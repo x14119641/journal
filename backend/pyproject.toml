@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "journal"
+version = "0.1.0"
+description = "MAnual Journal to sace trades and check statistics."
+authors = ["x14119641 <daniel.gil.romero24@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
