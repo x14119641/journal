@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 
-from .schema import Post
+from .schema import Post, PostOut,PostCreate
+from .dependencies import db
+
 import random
 app = FastAPI()
 
@@ -16,6 +18,17 @@ def find_post_index(id:int):
     return [i if row['id'] == id else None for i,row in enumerate(fake_data)  ][0]
 
 
+
+@app.on_event("startup")
+async def startup():
+    # Create the database pool at startup
+    await db.create_pool()
+
+@app.on_event("shutdown")
+async def shutdown():
+    # Close the database pool at shutdown
+    await db.close_pool()
+    
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -23,51 +36,60 @@ async def root():
 
 @app.get("/posts")
 async def get_posts():
-    return {"data": fake_data}   
+    results = await db.fetch("SELECT * FROM posts;")
+    return {"result": results}   
 
 
 
 @app.get("/posts/latest")
 async def get_latest_post():
-    return fake_data[len(fake_data)-1]
+    results = await db.fetchrow("SELECT * FROM posts ORDER BY created_at DESC LIMIT 1;")
+    return {"result": results}   
 
 
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=Post)
+async def create_post(post:PostCreate):
+    result = await db.fetch(
+        """
+        INSERT INTO posts (user_id, title, content, published) 
+        VALUES ($1, $2, $3, $4) RETURNING id
+        """,
+        1, post.title, post.content, str(post.published) 
+    )
+    post_id = result[0]['id'] if result else None
+    if post_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {_id} was not created")
+    data = await db.fetchrow("SELECT * FROM posts WHERE id = ($1)", (post_id),)
+    return data
 
-@app.post("/posts/{id}",)
-async def get_post(id:int):
-    post = find_post(id)
+
+@app.post("/posts/{_id}",)
+async def get_post(_id:int):
+    post = await db.fetchrow("SELECT * FROM posts WHERE id = ($1)", (_id))
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with id: {id} was not found")
+                            detail=f"post with id: {_id} was not found")
     return {"result": post}
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_post(post:Post):
-    post_dict = post.dict()
-    post_dict['id'] = random.randrange(0, 1000000)
-    fake_data.append(post_dict)
-    return {"data": post_dict}
-
-
-@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(id:int):
-    index = find_post_index(i)
-    if index is None:
+@app.delete("/posts/{_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(_id:int):
+    deleted_post = await db.execute("DELETE FROM posts WHERE id = ($1) returning *", (_id))
+    if deleted_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail={"result": f"post with id: {id} does not exists"})
-    fake_data.pop(index)
+                            detail={"result": f"post with id: {_id} does not exists"})
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 
-@app.put("/posts/{id}", status_code=status.HTTP_202_ACCEPTED)
-async def update_post(id:int, post: Post):
-    index = find_post_index(id)
-    if index is None:
+@app.put("/posts/{_id}", status_code=status.HTTP_202_ACCEPTED)
+async def update_post(_id:int, post: PostCreate):
+    updated_post = await db.fetchrow("""UPDATE posts 
+                                        SET title = ($1), content = ($2), published=($3) 
+                                        WHERE id = ($4) returning *""", 
+                                        post.title, post.content, str(post.published), _id)
+    if updated_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail={"result": f"post with id: {id} does not exists"})
-    fake_data[index]['title'] = post.title 
-    fake_data[index]['content'] = post.content
-    result = fake_data[index]
-    return {"result": result}
+                            detail={"result": f"post with id: {_id} does not exists"})
+    return {"result": updated_post}

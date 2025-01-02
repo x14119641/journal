@@ -1,6 +1,8 @@
-CREATE DATABASE IF NOT EXISTS journal_app;
+--
+-- You need to create the database journal_app manually
+--
 
-CREATE TABLE IF NOT EXISTS journal_app.users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR NOT NULL UNIQUE,
     email VARCHAR NOT NULL UNIQUE,
@@ -9,7 +11,7 @@ CREATE TABLE IF NOT EXISTS journal_app.users (
 );
 
 
-CREATE TABLE IF NOT EXISTS journal_app.posts (
+CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     user_id INT,
     title VARCHAR NOT NULL,
@@ -20,7 +22,7 @@ CREATE TABLE IF NOT EXISTS journal_app.posts (
 );
 
 
-CREATE TABLE IF NOT EXISTS journal_app.votes (
+CREATE TABLE IF NOT EXISTS votes (
     post_id INT NOT NULL,
     user_id INT NOT NULL,
     PRIMARY KEY (post_id, user_id),
