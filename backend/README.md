@@ -35,7 +35,7 @@ You need to set some configuration files in the following format and structure:
 
 
 # Step3: Set Up Database Schema #
-Create the database schema, you can use the sql file in: `app/test_config.json` or use the pytest library to run the test: `app/test_config.json` and this will create the schema.
+Create the database schema, you can use the sql file in: `app/test_config.json` or use the pytest library to run the test: `app/tests/test_database.py` and this will create the schema.
 
 # Step4: Install Python libraries and Run
 ```
