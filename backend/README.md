@@ -19,7 +19,7 @@ You need to set some configuration files in the following formats and structure:
     "password": "",
     "database": "journal_app"
 }
-``
+```
 ## Add secrets file: `app/secrets.json`
 ``json
 {
