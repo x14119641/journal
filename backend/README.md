@@ -1,5 +1,4 @@
-# Backend #
-**FastAPI backend + PostgresSQL**
+# Backend: FastAPI backend + PostgresSQL #
 
 # Step1: Create the configuration files #
 You need to set some configuration files in the following formats and structure:
@@ -22,7 +21,7 @@ You need to set some configuration files in the following formats and structure:
 }
 ``
 ## Add secrets file: `app/secrets.json`
-```json
+``json
 {
     "SECRET_KEY": "your secret",
     "ACCESS_TOKEN_EXPIRE_MINUTES": 30,
