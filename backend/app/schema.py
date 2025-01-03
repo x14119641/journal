@@ -27,7 +27,6 @@ class Post(PostBase):
     
     
 class UserBase(BaseModel):
-    id:int
     username: str
     email:EmailStr
     disabled: bool | None = None

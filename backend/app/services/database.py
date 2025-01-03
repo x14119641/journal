@@ -51,7 +51,7 @@ class Database:
         async with self.pool.acquire() as conn:
             # print(f"Fetching query: {query}")
             val = await conn.fetchval(query, *args)
-            return dict(val) if val else None
+            return val if val else None
     
     async def fetchrow(self, query, *args):
         """Execute a query and return one row."""
