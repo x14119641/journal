@@ -1,7 +1,7 @@
 # Backend: FastAPI backend + PostgresSQL #
 
 # Step1: Create the configuration files #
-You need to set some configuration files in the following formats and structure:
+You need to set some configuration files in the following format and structure:
 ## Main Configuration File for postgres: `app/config.json`
 ```json
 {
@@ -30,7 +30,7 @@ You need to set some configuration files in the following formats and structure:
 ```
 
 # Step2: Set up PostgresSQL #
-- Create the 'test' user in the postgres server and if you want create another one for this application, otherwise just use the postgres user.These are the 'credentials' you put in the step1:.
+- Create the 'test' user in the postgres server and if you want create another one for this application, otherwise just use the postgres user.*These are the 'credentials' you put in the step1.*
 - Create the database journal_app
 
 
