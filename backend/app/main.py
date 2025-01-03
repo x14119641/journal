@@ -3,7 +3,7 @@ from fastapi.params import Body
 
 from .schema import Post, PostOut,PostCreate
 from .dependencies import db
-
+from typing import List
 import random
 app = FastAPI()
 
@@ -34,17 +34,17 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[Post,])
 async def get_posts():
     results = await db.fetch("SELECT * FROM posts;")
-    return {"result": results}   
+    return  results
 
 
 
-@app.get("/posts/latest")
+@app.get("/posts/latest", response_model=Post)
 async def get_latest_post():
     results = await db.fetchrow("SELECT * FROM posts ORDER BY created_at DESC LIMIT 1;")
-    return {"result": results}   
+    return results  
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=Post)
@@ -60,17 +60,18 @@ async def create_post(post:PostCreate):
     if post_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {_id} was not created")
-    data = await db.fetchrow("SELECT * FROM posts WHERE id = ($1)", (post_id),)
+    data = await db.fetch("SELECT * FROM posts WHERE id = ($1)", (post_id),)
+    print(type(data))
     return data
 
 
-@app.post("/posts/{_id}",)
-async def get_post(_id:int):
+@app.post("/posts/{_id}", response_model=Post)
+async def get_post(_id:int, status_code=status.HTTP_200_OK):
     post = await db.fetchrow("SELECT * FROM posts WHERE id = ($1)", (_id))
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {_id} was not found")
-    return {"result": post}
+    return post
 
 
 @app.delete("/posts/{_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -83,7 +84,7 @@ async def delete_post(_id:int):
 
 
 
-@app.put("/posts/{_id}", status_code=status.HTTP_202_ACCEPTED)
+@app.put("/posts/{_id}", status_code=status.HTTP_200_OK, response_model=Post)
 async def update_post(_id:int, post: PostCreate):
     updated_post = await db.fetchrow("""UPDATE posts 
                                         SET title = ($1), content = ($2), published=($3) 
@@ -92,4 +93,4 @@ async def update_post(_id:int, post: PostCreate):
     if updated_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail={"result": f"post with id: {_id} does not exists"})
-    return {"result": updated_post}
+    return updated_post
