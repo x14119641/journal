@@ -5,7 +5,7 @@ from .schema import Post, PostOut, PostCreate, User, UserCreate, UserResponse
 from .dependencies import db, oauth2_scheme, password_hash
 from typing import List
 import random
-from .routes import post, user
+from .routes import post, user, auth
 
 
 app = FastAPI()
@@ -20,8 +20,10 @@ async def shutdown():
     # Close the database pool at shutdown
     await db.close_pool()
 
+app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(post.router)
+
 
 
 @app.get("/")
