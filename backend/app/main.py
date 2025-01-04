@@ -38,6 +38,10 @@ app.include_router(user.router)
 app.include_router(post.router)
 
 
+@app.get("/hello")
+async def root():
+    return {"message": "This is message from FastAPI"}
+
 
 @app.get("/")
 async def root():
