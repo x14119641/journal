@@ -10,7 +10,7 @@ const message = ref<string>('');
 
 onMounted(async () => {
     try {
-        const response = await axios.get('http:localhost:8000/hello')
+        const response = await axios.get('http://localhost:8000/hello')
         message.value = response.data.message
     } catch (error) {
         console.error('Errro to getch data: ', error)

@@ -3,8 +3,8 @@ import DemoPage from '../pages/DemoPage.vue';
 import HelloPage from '../pages/HelloPage.vue';
 
 const routes = [
-  { path: '/demo', name: 'Home', component: DemoPage },
-  { path: '/hello', name: 'Home', component: HelloPage },
+  { path: '/demo', name: 'Demo', component: DemoPage },
+  { path: '/hello', name: 'Hello', component: HelloPage },
 ];
 
 const router = createRouter({

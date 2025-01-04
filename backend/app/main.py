@@ -13,6 +13,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost",
+    "http://localhost:3000",
     "http://localhost:5173",
 ]
 app.add_middleware(
@@ -37,10 +38,6 @@ app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(post.router)
 
-
-@app.get("/hello")
-async def root():
-    return {"message": "This is message from FastAPI"}
 
 
 @app.get("/")
