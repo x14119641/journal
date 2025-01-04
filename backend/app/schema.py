@@ -44,9 +44,10 @@ class UserCreate(UserBase):
 
 
 class UserLogin(UserBase):
-    username: str | EmailStr
+    id:int
+    username: str 
     password:str
-    
+
     
 class UserResponse(BaseModel):
     id:int
