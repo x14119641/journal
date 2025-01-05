@@ -31,9 +31,20 @@ async def create_post(user:UserCreate):
 
 @router.get("/me")
 async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(get_current_active_user)], 
 ):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+    return {"id":current_user.id, "username":current_user.username}
+
+@router.get("/me/items", response_model=UserResponse)
+async def read_own_items(
+    current_user: Annotated[User, Depends(get_current_active_user)], 
+):
+    # Find user
+    user = await db.fetchrow("SELECT * FROM users WHERE id=($1) LIMIT 1", current_user.id,)
+    print(user)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='ID not found ')
+    return user
 
 @router.get("/{_id}", response_model=UserResponse)
 async def get_user_by_id(_id:int, current_user:Annotated[UserLogin, Depends(get_current_active_user)]):
@@ -43,10 +54,4 @@ async def get_user_by_id(_id:int, current_user:Annotated[UserLogin, Depends(get_
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='ID not found ')
     return user
     
-@router.get("/me/", response_model=User)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-):
-    return current_user
-
 
