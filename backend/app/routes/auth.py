@@ -90,6 +90,7 @@ async def get_current_active_user(
 
 @router.post("/login")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
+    print(form_data)
     user = await authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
