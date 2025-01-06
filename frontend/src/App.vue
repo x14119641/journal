@@ -8,7 +8,7 @@
       <Sidebar></Sidebar>
 
       <!-- Main Content -->
-      <main class="flex-1 bg-white p-4">
+      <main class="flex-1 bg-slate-700  p-4">
         <router-view />
       </main>
     </div>

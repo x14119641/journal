@@ -63,7 +63,7 @@
           />
         </svg>
         <span class="font-bazooka text-2xl font-semibold whitespace-nowrap">
-          Start Text
+          To The Moon !!
         </span>
       </span>
       

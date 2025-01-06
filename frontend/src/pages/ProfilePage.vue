@@ -1,18 +1,49 @@
 <template>
-  <div class="p-6 bg-white rounded-lg shadow-lg">
-    <h1 class="text-3xl font-semibold text-center text-indigo-600 mb-6">Profile Page</h1>
-    <div v-if="username" class="text-center">
-      <p class="text-lg">Welcome, {{ username }}</p>
-      <p>ID: {{ id }}</p>
-      <p>Email: {{ email }}</p>
-      <p>Created At: {{ created_at }}</p>
+  <div class=" flex items-center justify-center">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-300">Profile</h2>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex justify-between">
+          <span class="font-medium text-gray-400">User ID</span>
+          <span class="text-blue-200">{{ id }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-medium text-gray-400">Username</span>
+          <span class="text-blue-200">{{ username }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-medium text-gray-400">Email</span>
+          <span class="text-blue-200">{{ email }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-medium text-gray-400">Created At</span>
+          <span class="text-blue-200">{{ created_at }}</span>
+        </div>
+
+        <!-- <div class="flex justify-between">
+          <span class="font-medium text-gray-600">Status</span>
+          <span
+            :class="user.active ? 'text-green-500' : 'text-red-500'"
+            class="font-semibold"
+          >
+            {{ user.active ? 'Active' : 'Inactive' }}
+          </span>
+        </div> -->
+
+      </div>
+
+      <div class="mt-6 text-center">
+        <button
+          @click="authStore.logout"
+          class="bg-fuchsia-600 text-white py-2 px-4 rounded hover:bg-fuchsia-500 focus:outline-none"
+        >
+          Logout
+        </button>
+      </div>
     </div>
-    <button
-        @click="authStore.logout"
-        class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-      >
-        Logout
-      </button>
   </div>
 </template>
 
