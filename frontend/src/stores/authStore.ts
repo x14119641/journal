@@ -2,10 +2,12 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import router from '../router';
 
+
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: localStorage.getItem('token') || '',
-        user: {},
+        username: '',
+        id:'',
         errorMessage: '',
     }),
     actions: {
@@ -32,14 +34,16 @@ export const useAuthStore = defineStore('auth', {
                     headers: {Authorization: `Bearer ${this.token}`,},
                 });
                 console.log(response)
-                this.user = response.data;
+                this.username = response.data.username;
+                this.id = response.data.id;
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         },
         logout() {
             this.token = ''
-            this.user = ''
+            this.username = ''
+            this.username = ''
             localStorage.removeItem('token')
             router.push('/login')
         },

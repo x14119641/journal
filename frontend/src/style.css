@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -15,4 +15,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+} */
+
+/* Fonts */
+@font-face {
+  font-family: 'Bazooka';
+  src: url('assets/fonts/Bazooka.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
