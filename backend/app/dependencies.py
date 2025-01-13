@@ -11,4 +11,11 @@ password_hash = PasswordHash.recommended()
 settings = Settings.read_file()
 secrets = Secrets(**Settings.read_file('secrets.json'))
 
-db = Database(**settings)
+
+async def get_db():
+    db = Database(**settings)
+    await db.create_pool()
+    try:
+        yield db
+    finally:
+        await db.close_pool()

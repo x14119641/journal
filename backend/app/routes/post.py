@@ -1,7 +1,8 @@
 from fastapi import Depends, Response, status, HTTPException, APIRouter
 from.auth import get_current_active_user
+from ..services.database import Database
 from ..schema import (UserResponse, UserLogin,Post, PostBase, PostCreate, PostOut)
-from ..dependencies import db, oauth2_scheme, password_hash
+from ..dependencies import get_db, oauth2_scheme, password_hash
 from typing import List, Annotated
 
 
@@ -9,7 +10,9 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get("/", response_model=List[Post,])
-async def get_posts(current_user:Annotated[UserLogin, Depends(get_current_active_user)]):
+async def get_posts(
+    current_user:Annotated[UserLogin, Depends(get_current_active_user)],
+    db:Database=Depends(get_db)):
     results = await db.fetch("SELECT * FROM posts;")
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -19,14 +22,15 @@ async def get_posts(current_user:Annotated[UserLogin, Depends(get_current_active
 
 
 @router.get("/latest", response_model=Post)
-async def get_latest_post():
+async def get_latest_post(db:Database=Depends(get_db)):
     results = await db.fetchrow("SELECT * FROM posts ORDER BY created_at DESC LIMIT 1;")
     return results  
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=Post)
 async def create_post(post:PostCreate,
-                      current_user:Annotated[UserLogin, Depends(get_current_active_user)]):
+                      current_user:Annotated[UserLogin, Depends(get_current_active_user)],
+                      db:Database=Depends(get_db)):
     post_id = await db.fetchone(
         """
         INSERT INTO posts (user_id, title, content, published) 
@@ -42,7 +46,11 @@ async def create_post(post:PostCreate,
 
 
 @router.post("/{_id}", response_model=Post)
-async def get_post(_id:int, current_user:Annotated[UserLogin, Depends(get_current_active_user)],status_code=status.HTTP_200_OK):
+async def get_post(
+    _id:int, 
+    current_user:Annotated[UserLogin, Depends(get_current_active_user)],
+    status_code=status.HTTP_200_OK,
+    db:Database=Depends(get_db)):
     post = await db.fetchrow("SELECT * FROM posts WHERE id = ($1)", _id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -51,7 +59,10 @@ async def get_post(_id:int, current_user:Annotated[UserLogin, Depends(get_curren
 
 
 @router.delete("/{_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(_id:int,current_user:Annotated[UserLogin, Depends(get_current_active_user)]):
+async def delete_post(
+    _id:int,
+    current_user:Annotated[UserLogin, Depends(get_current_active_user)],
+    db:Database=Depends(get_db)):
     deleted_post = await db.execute("DELETE FROM posts WHERE id = ($1) returning *", (_id))
     if deleted_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -61,7 +72,11 @@ async def delete_post(_id:int,current_user:Annotated[UserLogin, Depends(get_curr
 
 
 @router.put("/{_id}", status_code=status.HTTP_200_OK, response_model=Post)
-async def update_post(_id:int, post: PostCreate, current_user:Annotated[UserLogin, Depends(get_current_active_user)]):
+async def update_post(
+    _id:int, 
+    post: PostCreate, 
+    current_user:Annotated[UserLogin, Depends(get_current_active_user)],
+    db:Database=Depends(get_db)):
     updated_post = await db.fetchrow("""UPDATE posts 
                                         SET title = ($1), content = ($2), published=($3) 
                                         WHERE id = ($4) returning *""", 

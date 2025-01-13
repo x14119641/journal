@@ -1,7 +1,8 @@
 from fastapi import Depends, Response, status, HTTPException, APIRouter
-from ..dependencies import db, password_hash, secrets, oauth2_scheme
+from ..dependencies import get_db, password_hash, secrets, oauth2_scheme
 from ..schema import (Post, PostCreate, User, UserCreate, UserResponse, UserLogin,
                      Token, TokenData)
+from ..services.database import Database
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List, Annotated
 from jwt.exceptions import InvalidTokenError
@@ -20,9 +21,10 @@ async def get_user(username: str) -> UserLogin:
     Returns:
         UserLogin: A Pydantic model representing the user data.
     """
-    data = await db.fetchrow("SELECT * FROM users WHERE username = ($1) OR email = ($2)", username, username)
-    if data:
-        return UserLogin(**data)
+    async for db in get_db():
+        data = await db.fetchrow("SELECT * FROM users WHERE username = ($1) OR email = ($2)", username, username)
+        if data:
+            return UserLogin(**data)
 
 
 def verify_password(plain_password, hashed_password):
