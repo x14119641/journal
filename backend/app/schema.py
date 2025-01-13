@@ -70,4 +70,15 @@ class Vote(BaseModel):
     liked: conint(le=1)
     
     
+class StockDividendRecord(BaseModel):
+    tick:str
+    ex_dividend_date:datetime|None
+    payment_type:str
+    amount:str
+    declaration_date:datetime|None
+    record_date:datetime|None
+    payment_date:datetime|None
+    currency:str
+    
+    
     

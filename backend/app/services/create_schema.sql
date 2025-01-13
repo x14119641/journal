@@ -28,4 +28,71 @@ CREATE TABLE IF NOT EXISTS votes (
     PRIMARY KEY (post_id, user_id),
     CONSTRAINT fk_votes_posts FOREIGN KEY (post_id) REFERENCES posts(id),
     CONSTRAINT fk_votes_users FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- The data of the following tables are extracted from another database 
+CREATE TABLE IF NOT EXISTS tickers (
+    id SERIAL PRIMARY KEY,
+    tick TEXT UNIQUE NOT NULL,
+    name TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_tick_tickers ON tickers (tick);
+
+CREATE TABLE IF NOT EXISTS metadata (
+    id SERIAL PRIMARY KEY,
+    tick TEXT NOT NULL,
+    name TEXT,
+    last_sale DECIMAL(12, 2),
+    net_change DECIMAL(12, 2),
+    change_perc DECIMAL(12, 2),
+    market_cap BIGINT,
+    country TEXT,
+    ipo_year BIGINT,
+    volume BIGINT,
+    sector TEXT,
+    industry TEXT,
+    inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tick) REFERENCES tickers (tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_metadata_tick ON metadata (tick);
+
+CREATE TABLE IF NOT EXISTS dividends (
+    id SERIAL PRIMARY KEY,
+    tick TEXT NOT NULL,
+    ex_dividend_date DATE,
+    payment_type TEXT,
+    amount DECIMAL(12, 2),
+    declaration_date DATE,
+    record_date DATE,
+    payment_date DATE,
+    currency TEXT,
+    inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tick) REFERENCES tickers (tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dividends_tick ON dividends (tick);
+
+CREATE TABLE IF NOT EXISTS institutional_holdings (
+    id BIGINT PRIMARY KEY,
+    tick text NOT NULL,
+    institutional_ownership_perc REAL,
+    total_shares_outstanding_millions BIGINT,
+    total_value_holdings_millions BIGINT,
+    increased_positions_holders BIGINT,
+    increased_positions_shares BIGINT,
+    decreased_positions_holders BIGINT,
+    decreased_positions_shares BIGINT,
+    held_positions_holders BIGINT,
+    held_positions_shares BIGINT,
+    total_institutional_holders BIGINT,
+    total_institutional_shares BIGINT,
+    new_positions_holders BIGINT,
+    new_positions_shares BIGINT,
+    sold_out_positions_holders BIGINT,
+    sold_out_positions_shares BIGINT,
+    refreshed_page_date TIMESTAMP DEFAULT NULL,
+    inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tick) REFERENCES tickers (tick)
 )
