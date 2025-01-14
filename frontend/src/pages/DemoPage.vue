@@ -1,28 +1,37 @@
 <template>
   <div class="min-h-screen bg-gray-100 p-6">
     <!-- <div v-if="error_message">{{ tickers }}</div> -->
-
+    <div class="mb-4">
+      <input
+        type="text"
+        v-model="filter_ticker"
+        placeholder="Filter by ticker"
+        class="border-gray-300 rounded-md px-3 py-2 mr-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent "
+      />
+      <button @click="applyFilter"
+        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">Apply Filter</button>
+    </div>
+    <div>
+      <!-- {{ dividends }} -->
+    </div>
     <div class="bg-white p-6 rounded-lg shadow-lg">
-      <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">
-        Tickers List
-      </h2>
       <table class="min-w-full table-auto">
         <thead>
           <tr class="bg-gray-200">
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">ID</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Ticker</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Name</th>
+            <th v-for="(key, index) in columns"  :key="index"
+            class="px-4 py-2 text-left text-sm font-medium text-gray-600">
+              {{ key }}
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="(ticker, index) in tickers"
+            v-for="(dividend, index) in dividends"
             :key="index"
             class="border-b border-gray-200 hover:bg-gray-50"
           >
-            <td class="px-4 py-2 text-sm text-gray-700">{{ ticker.id }}</td>
-            <td class="px-4 py-2 text-sm text-gray-700">{{ ticker.ticker }}</td>
-            <td class="px-4 py-2 text-sm text-gray-700">{{ ticker.name }}</td>
+            <td v-for="(key, index) in columns"  :key="index"
+              class="px-4 py-2 text-sm text-gray-700">{{ dividend[key] }}</td>
           </tr>
         </tbody>
       </table>
@@ -30,74 +39,43 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { Stock } from '../models/models';
+<script lang="ts">
+import { ref, computed } from "vue";
+import axios from "axios";
+import { type Dividend } from "../models/models"; // Import your Stock interface
 
-const tickers = ref<Stock[]>([]);
-const error_message = ref<String>('');
+export default {
+  setup() {
+    const dividends = ref<Dividend[]>([]);
+    const filter_ticker = ref<String>("");
+    const error_message = ref<String>("");
 
-onMounted(async () => {
-    try {
-        const response = await axios.get('http://localhost:8000/stocks/tickers')
-        tickers.value = response.data 
-    } catch (error) {
-        console.error('Errro to getch data: ', error)
-        error_message.value = 'Failed to load message'
-    }
-})
+    const columns = computed(() => {
+      if (dividends.value.length > 0) {return Object.keys(dividends.value[0])};
+      return [];
+    })
 
-// Example users data (JSON response like structure)
-const users = ref([
-  {
-    id: '1',
-    username: 'john_doe',
-    email: 'john.doe@example.com',
-    created_at: '2022-01-15',
-    active: true,
-  },
-  {
-    id: '2',
-    username: 'jane_smith',
-    email: 'jane.smith@example.com',
-    created_at: '2021-11-20',
-    active: false,
-  },
-  {
-    id: '3',
-    username: 'alice_jones',
-    email: 'alice.jones@example.com',
-    created_at: '2023-02-10',
-    active: true,
-  },
-  {
-    id: '4',
-    username: 'bob_brown',
-    email: 'bob.brown@example.com',
-    created_at: '2020-09-05',
-    active: true,
-  },
-  {
-    id: '5',
-    username: 'carol_white',
-    email: 'carol.white@example.com',
-    created_at: '2022-04-25',
-    active: false,
-  },
-  {
-    id: '6',
-    username: 'dave_black',
-    email: 'dave.black@example.com',
-    created_at: '2021-07-13',
-    active: true,
-  },
-]);
+    const applyFilter = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8000/stocks/dividends/${filter_ticker.value.toUpperCase()}`
+        );
+        dividends.value = response.data;
+      } catch (error) {
+        console.error("Errro to getch data: ", error);
+        error_message.value = "Failed to load message";
+      }
+    };
 
-// Function to handle action click
-function handleAction(userId: string) {
-  alert(`Action for user ID: ${userId}`);
-}
+    return {
+      dividends,
+      columns,
+      error_message,
+      filter_ticker,
+      applyFilter,
+    };
+  },
+};
 </script>
 
 <style scoped>

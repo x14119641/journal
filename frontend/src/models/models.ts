@@ -10,3 +10,10 @@ export interface Stock {
     ticker: string;
     name: number;
 }
+
+
+export interface Dividend {
+    id:Int16Array;
+    ticker: string;
+    name: number;
+}

@@ -15,5 +15,24 @@ async def get_tickers(db:Database=Depends(get_db)):
     results = await db.fetch("SELECT * FROM tickers;")
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="There are not tickers")
+    return  results
+
+
+
+@router.get("/dividends")
+async def get_dividends(db:Database=Depends(get_db)):
+    results = await db.fetch("SELECT * FROM dividends ORDER BY id DESC LIMIT 100")
+    if results is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="There are not dividends")
+    return  results
+
+
+@router.get("/dividends/{ticker}")
+async def get_dividends_by_ticker(ticker:str,db:Database=Depends(get_db)):
+    results = await db.fetch("SELECT * FROM dividends WHERE ticker = ($1) ORDER BY ex_dividend_date DESC", ticker)
+    if results is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not dividends")
     return  results

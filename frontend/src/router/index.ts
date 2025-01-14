@@ -5,6 +5,7 @@ import LoginPage from '../pages/LoginPage.vue';
 import ProfilePage from '../pages/ProfilePage.vue';
 import TablePage from '../pages/TablePage.vue';
 import { useAuthStore } from '../stores/authStore';
+import DividendsPage from '../pages/DividendsPage.vue';
 
 const routes = [
   { path: '/demo', name: 'Demo', component: DemoPage },
@@ -12,6 +13,7 @@ const routes = [
   { path: '/table', name: 'Table', component: TablePage },
   { path: '/login', name: 'Login', component: LoginPage },
   { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true } },
+  { path: '/dividends', name: 'Dividend', component: DividendsPage },
 ];
 
 const router = createRouter({
