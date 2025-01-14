@@ -1,44 +1,28 @@
 <template>
   <div class="min-h-screen bg-gray-100 p-6">
+    <!-- <div v-if="error_message">{{ tickers }}</div> -->
+
     <div class="bg-white p-6 rounded-lg shadow-lg">
       <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">
-        User List
+        Tickers List
       </h2>
       <table class="min-w-full table-auto">
         <thead>
           <tr class="bg-gray-200">
             <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">ID</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Username</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Email</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Created At</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Ticker</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Name</th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="user in users"
-            :key="user.id"
+            v-for="(ticker, index) in tickers"
+            :key="index"
             class="border-b border-gray-200 hover:bg-gray-50"
           >
-            <td class="px-4 py-2 text-sm text-gray-700">{{ user.id }}</td>
-            <td class="px-4 py-2 text-sm text-gray-700">{{ user.username }}</td>
-            <td class="px-4 py-2 text-sm text-gray-700">{{ user.email }}</td>
-            <td class="px-4 py-2 text-sm text-gray-700">{{ user.created_at }}</td>
-            <td
-              class="px-4 py-2 text-sm font-semibold"
-              :class="user.active ? 'text-green-500' : 'text-red-500'"
-            >
-              {{ user.active ? 'Active' : 'Inactive' }}
-            </td>
-            <td class="px-4 py-2 text-sm text-gray-700">
-              <button
-                @click="handleAction(user.id)"
-                class="text-blue-500 hover:text-blue-700"
-              >
-                Action
-              </button>
-            </td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ ticker.id }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ ticker.ticker }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ ticker.name }}</td>
           </tr>
         </tbody>
       </table>
@@ -47,7 +31,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { Stock } from '../models/models';
+
+const tickers = ref<Stock[]>([]);
+const error_message = ref<String>('');
+
+onMounted(async () => {
+    try {
+        const response = await axios.get('http://localhost:8000/stocks/tickers')
+        tickers.value = response.data 
+    } catch (error) {
+        console.error('Errro to getch data: ', error)
+        error_message.value = 'Failed to load message'
+    }
+})
 
 // Example users data (JSON response like structure)
 const users = ref([

@@ -12,8 +12,8 @@ router = APIRouter(prefix='/stocks', tags=["Stocks"])
 
 @router.get("/tickers")
 async def get_tickers(db:Database=Depends(get_db)):
-    results = await db.fetch("SELECT * FROM users;")
+    results = await db.fetch("SELECT * FROM tickers;")
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="There are not posts")
+                            detail="There are not dividends")
     return  results

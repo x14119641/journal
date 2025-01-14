@@ -33,15 +33,15 @@ CREATE TABLE IF NOT EXISTS votes (
 -- The data of the following tables are extracted from another database 
 CREATE TABLE IF NOT EXISTS tickers (
     id SERIAL PRIMARY KEY,
-    tick TEXT UNIQUE NOT NULL,
+    ticker TEXT UNIQUE NOT NULL,
     name TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_tick_tickers ON tickers (tick);
+CREATE INDEX IF NOT EXISTS idx_ticker_tickers ON tickers (ticker);
 
 CREATE TABLE IF NOT EXISTS metadata (
     id SERIAL PRIMARY KEY,
-    tick TEXT NOT NULL,
+    ticker TEXT NOT NULL,
     name TEXT,
     last_sale DECIMAL(12, 2),
     net_change DECIMAL(12, 2),
@@ -53,14 +53,14 @@ CREATE TABLE IF NOT EXISTS metadata (
     sector TEXT,
     industry TEXT,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tick) REFERENCES tickers (tick)
+    FOREIGN KEY (ticker) REFERENCES tickers (ticker)
 );
 
-CREATE INDEX IF NOT EXISTS idx_metadata_tick ON metadata (tick);
+CREATE INDEX IF NOT EXISTS idx_metadata_ticker ON metadata (ticker);
 
 CREATE TABLE IF NOT EXISTS dividends (
     id SERIAL PRIMARY KEY,
-    tick TEXT NOT NULL,
+    ticker TEXT NOT NULL,
     ex_dividend_date DATE,
     payment_type TEXT,
     amount DECIMAL(12, 2),
@@ -69,14 +69,15 @@ CREATE TABLE IF NOT EXISTS dividends (
     payment_date DATE,
     currency TEXT,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tick) REFERENCES tickers (tick)
+    FOREIGN KEY (ticker) REFERENCES tickers (ticker),
+    CONSTRAINT unique_ticker_ex_dividend_date_declaration_date UNIQUE (ticker, ex_dividend_date, declaration_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_dividends_tick ON dividends (tick);
+CREATE INDEX IF NOT EXISTS idx_dividends_ticker ON dividends (ticker);
 
 CREATE TABLE IF NOT EXISTS institutional_holdings (
     id BIGINT PRIMARY KEY,
-    tick text NOT NULL,
+    ticker text NOT NULL,
     institutional_ownership_perc REAL,
     total_shares_outstanding_millions BIGINT,
     total_value_holdings_millions BIGINT,
@@ -94,5 +95,7 @@ CREATE TABLE IF NOT EXISTS institutional_holdings (
     sold_out_positions_shares BIGINT,
     refreshed_page_date TIMESTAMP DEFAULT NULL,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tick) REFERENCES tickers (tick)
-)
+    FOREIGN KEY (ticker) REFERENCES tickers (ticker)
+);
+
+CREATE INDEX IF NOT EXISTS idx_institutional_holdings_ticker ON institutional_holdings (ticker);
