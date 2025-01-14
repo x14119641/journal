@@ -90,9 +90,9 @@
           <div>
             <ul class="my-10 pt-2 space-y-4">
               <li
-                class="text-sm flex items-center cursor-pointer p-2 text-blue-200 hover:bg-lime-50 rounded mt-2"
+                class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
               >
-                <router-link to="/demo" class="flex items-center w-full">
+                <router-link to="/demo" class="flex items-center w-full ">
                   <!-- Test Icon -->
                   <span class="text-2xl block float-left mr-3">
                     <svg
@@ -202,11 +202,11 @@
                   >
                 </router-link>
               </li>
-              <li>
-                <router-link to="/hello" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                  <span>
+              <li class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2">
+                <router-link to="/hello" class="flex items-center w-full ">
+                  <span class="text-2xl block float-left mr-3">
                     <svg viewBox="0 -0.5 17 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-                    class="w-10 h-10 si-glyph si-glyph-bubble-message-hi"> 
+                    class="w-10 h-10"> 
                         <title>1036</title>
                         
                         <defs>
@@ -220,16 +220,17 @@
                     </svg>
                   </span>
                   <span
-                    class="flex-1 ms-3 whitespace-nowrap"
+                    class="text-base font-medium flex-1"
                     :class="isSidebarOpen ? '' : 'hidden'"
                     >Hello</span
                   >
                 </router-link>
               </li>
-              <li class="text-sm flex items-center cursor-pointer p-2 text-gray-300 hover:bg-lime-50 rounded mt-2">
-                <router-link to="/table">
+              <li class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2">
+                <router-link to="/table" class="flex items-center w-full ">
                   <span class="text-2xl block float-left mr-3">
-                    <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
+                    <svg 
+                    class="w-10 h-10" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
                   <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 9a1 1 0 0 1-2 0V7h2v2Zm0-5a2 2 0 1 1 4 0v1H7V4Zm6 5a1 1 0 1 1-2 0V7h2v2Z"/>
                </svg>
                   </span>
@@ -240,7 +241,7 @@
                   >
                 </router-link>
               </li>
-              <li class="text-sm flex items-center cursor-pointer p-2 text-blue-300 hover:bg-green-500 rounded mt-2">
+              <li class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2">
                 <router-link to="/profile" class="flex items-center w-full">
                   <span class="text-2xl block float-left mr-3">
                     <svg viewBox="0 0 61.8092 61.8092" xmlns="http://www.w3.org/2000/svg"
