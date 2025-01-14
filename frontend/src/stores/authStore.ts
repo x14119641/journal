@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import router from '../router';
-
+import { jwtDecode } from 'jwt-decode';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -11,6 +11,12 @@ export const useAuthStore = defineStore('auth', {
         errorMessage: '',
     }),
     actions: {
+        isTokenExpired() {
+            if (!this.token) return true;
+            const { exp } = jwtDecode(this.token);
+            const currentTime = Math.floor(Date.now() / 1000);
+            return exp < currentTime;
+        },
         async login(username: string, password: string) {
             try {
                 const response = await axios.post(
@@ -29,6 +35,10 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         async fetchUser() {
+            if (this.isTokenExpired()) {
+                this.logout();
+                return;
+            }
             try {
                 const response = await axios.get('http://localhost:8000/users/me', {
                     headers: {Authorization: `Bearer ${this.token}`,},

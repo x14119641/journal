@@ -24,12 +24,21 @@ router.beforeEach((to, from, next) => {
   
   console.log('Token:', authStore.token); // Check the token
   console.log('Requires Auth:', to.meta.requiresAuth); // Check if the route requires auth
-  
-  if (to.meta.requiresAuth && !authStore.token) {
-    console.log('Redirecting to login');
-    next('/login'); // Redirect to login if not authenticated
+  console.log('Token Expired:', authStore.isTokenExpired()); // Debug token expiry
+
+  const x = authStore.isTokenExpired()
+  console.log(x)
+  if (x==true) {
+    if (to.name !== 'Login') {
+      authStore.logout();
+      next('/login');
+    } else {
+      next();
+    }
+  } else if (to.meta.requiresAuth && !authStore.token) {
+    next('/login'); // Allow navigation
   } else {
-    next(); // Allow navigation
+    next();
   }
 });
 
