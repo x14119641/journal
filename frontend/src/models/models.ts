@@ -1,3 +1,5 @@
+import type { NumericLiteral } from "typescript";
+
 export interface User {
     id: number;
     username: string;
@@ -19,5 +21,11 @@ export interface Ticker {
 export interface Dividend {
     id:Int16Array;
     ticker: string;
+    name: number;
+}
+
+export interface DividendCalendar {
+    ticker: string;
+    amount:NumericLiteral,
     name: number;
 }

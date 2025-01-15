@@ -1,12 +1,12 @@
 from typing import List, Annotated
-from ..dependencies import get_db, oauth2_scheme, password_hash
+from ..dependencies import get_db, last_day_of_month
 from ..services.database import Database
 from ..config import Settings
 from fastapi import Depends, Response, status, HTTPException, APIRouter
 from .auth import get_current_active_user
 from ..schema import (UserResponse, UserLogin, Post,
                       PostBase, PostCreate, PostOut)
-
+from datetime import datetime
 
 router = APIRouter(prefix='/stocks', tags=["Stocks"])
 
@@ -47,9 +47,10 @@ async def get_favorites(
                             detail="There are not dividends")
     return results
 
+
 @router.delete("/dividends/myfavorites/remove")
 async def remove_favorites(
-    ticker:str,
+    ticker: str,
     current_user: Annotated[UserLogin, Depends(get_current_active_user)],
     db: Database = Depends(get_db),
 ):
@@ -63,7 +64,7 @@ async def remove_favorites(
 
 @router.post("/dividends/myfavorites/add")
 async def add_favorites(
-    ticker:str,
+    ticker: str,
     current_user: Annotated[UserLogin, Depends(get_current_active_user)],
     db: Database = Depends(get_db)
 ):
@@ -74,6 +75,7 @@ async def add_favorites(
                             detail="There are not dividends")
     return Response(status_code=status.HTTP_201_CREATED)
 
+
 @router.get("/dividends/{ticker}")
 async def get_dividends_by_ticker(
     ticker: str,
@@ -81,8 +83,21 @@ async def get_dividends_by_ticker(
     db: Database = Depends(get_db)
 ):
     results = await db.fetch("SELECT * FROM dividends WHERE ticker = ($1) ORDER BY ex_dividend_date DESC", ticker.upper())
-    print(results)
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not dividends")
     return results
+
+
+@router.get("/dividends/calendar/{month}")
+async def get_dividends_calendar(
+    month: int,
+    db: Database = Depends(get_db)
+):
+    start_month = datetime(day=1, month=month, year=datetime.today().year)
+    end_month = last_day_of_month(start_month)
+    results = await db.fetch("""
+                            SELECT d.ticker, d.amount, d.payment_date FROM dividends d
+                            WHERE d.payment_date BETWEEN ($1) AND ($2);
+                             """, start_month, end_month)
+    return  results

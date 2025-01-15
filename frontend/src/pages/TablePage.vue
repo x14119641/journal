@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { Stock } from '../models/models';
+import { type Stock } from '../models/models';
 
 const tickers = ref<Stock[]>([]);
 const error_message = ref<String>('');

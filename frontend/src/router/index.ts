@@ -6,6 +6,8 @@ import ProfilePage from '../pages/ProfilePage.vue';
 import TablePage from '../pages/TablePage.vue';
 import { useAuthStore } from '../stores/authStore';
 import DividendsPage from '../pages/DividendsPage.vue';
+import FullCalendarPage from '../pages/FullCalendarPage.vue';
+
 
 const routes = [
   { path: '/demo', name: 'Demo', component: DemoPage },
@@ -14,6 +16,7 @@ const routes = [
   { path: '/login', name: 'Login', component: LoginPage },
   { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true } },
   { path: '/dividends', name: 'Dividend', component: DividendsPage },
+  { path: '/calendar', name: 'Calendar', component: FullCalendarPage },
 ];
 
 const router = createRouter({

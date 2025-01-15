@@ -67,7 +67,7 @@
 <script lang="ts">
 import { ref, computed, onMounted } from "vue";
 import api from "../services/api";
-import { type Dividend, type Ticker } from "../models/models";
+import { type Dividend } from "../models/models";
 import { useFavoriteStocksStore } from "../stores/favoriteStocksStore";
 
 export default {
