@@ -99,3 +99,12 @@ CREATE TABLE IF NOT EXISTS institutional_holdings (
 );
 
 CREATE INDEX IF NOT EXISTS idx_institutional_holdings_ticker ON institutional_holdings (ticker);
+
+
+CREATE TABLE IF NOT EXISTS favorites (
+    ticker text NOT NULL,
+    user_id INT NOT NULL,
+    PRIMARY KEY (ticker, user_id),
+    FOREIGN KEY (ticker) REFERENCES tickers(ticker),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
