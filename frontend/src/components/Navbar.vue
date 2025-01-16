@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-gray-800 text-lime-400 p-2">
+  <nav class="bg-gray-800 text-lime-400 p-2 w-full">
     <div class="flex items-center justify-between mx-auto">
       <!-- Icon and Text at the beginning -->
       <span class="flex items-center space-x-2 mx-3">

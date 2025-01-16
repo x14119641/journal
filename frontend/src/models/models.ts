@@ -28,6 +28,21 @@ export interface StockMetadata {
     sold_out_positions_holders:number;
 }
 
+export interface StockScreener {
+    ticker: string;
+    ex_dividend_date : string;
+    payment_date: string;
+    amount: number;
+    institutional_ownership_perc: number;
+    increased_positions_holders: number;
+    decreased_positions_holders:number;
+    held_positions_holders: number;
+    total_institutional_holders: number;
+    new_positions_holders:number;
+    sold_out_positions_holders:number;
+    ratioholdersbuysold:number | null;
+}
+
 export interface Ticker {
     ticker: string;
 }
