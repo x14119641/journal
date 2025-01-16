@@ -32,7 +32,16 @@
         <!-- Actual Days of the Month -->
         <div v-for="(day, index) in daysInMonth" :key="index" class="p-4 border rounded-lg bg-white shadow-sm">
           <div class="font-bold text-lg">{{ day.date }}</div>
-          <div class="text-sm text-gray-600" v-html="day.message"></div>
+          <div class="text-sm text-gray-600">
+            <div v-for="(dividend, dividendIndex) in day.dividends" :key="dividendIndex">
+              <router-link
+                :to="`/stocks/${dividend.ticker}`"
+                class="text-blue hover:underline">
+                {{ dividend.ticker }}
+              </router-link>
+              <span class="font-bold text-green-500">{{ dividend.amount }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -40,10 +49,11 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { format, getDaysInMonth, addDays, startOfMonth, getDay } from "date-fns";
 import { type DividendCalendar } from "../models/models";
 import api from "../services/api";
+import { da } from "date-fns/locale";
 export default {
   setup() {
     const daysOfWeek = ref(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
@@ -75,18 +85,9 @@ export default {
         const dayDividends = dividends.value.filter(
           dividend => dividend.payment_date === dateStr
         );
-        const messages = dayDividends.map(dividend => {
-          return `
-            <div>
-              <a href="#" class="text-blue-500 hover:underline">${dividend.ticker}</a>: 
-              <span class="font-bold text-green-500">${dividend.amount}</span>
-            </div>
-          `;
-        }).join("")
-
         days.push({
           date: format(date, "d"),
-          message: messages
+          dividends: dayDividends
         });
       }
       return days;

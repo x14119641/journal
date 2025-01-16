@@ -101,3 +101,37 @@ async def get_dividends_calendar(
                             WHERE d.payment_date BETWEEN ($1) AND ($2);
                              """, start_month, end_month)
     return  results
+
+
+# stocks/"MAIN"
+@router.get("/{ticker}")
+async def get_stock_by_ticker(
+    ticker: str,
+    db: Database = Depends(get_db)
+):
+    query = """
+        SELECT m.ticker, m.name, m.market_cap, m.country, m.sector, m.industry,
+            i.institutional_ownership_perc, i.increased_positions_holders, i.decreased_positions_holders, i.held_positions_holders,
+            i.total_institutional_holders, i.new_positions_holders, i.sold_out_positions_holders
+        FROM metadata m
+        INNER JOIN institutional_holdings i
+        ON m.ticker = i.ticker
+        WHERE m.ticker=($1);
+    """
+    print("Getting ticket data from: ",ticker)
+    # results = await db.fetch(query, ticker)
+    results = {
+        "ticker": "MAIN",
+        "name" : "MAin insustries",
+        "country": "EEUU",
+        "sector": "Finances",
+        "industry": "Services",
+        "institutional_ownership_perc": 40.3,
+        "increased_positions_holders": 20,
+        "decreased_positions_holders":5,
+        "held_positions_holders": 10,
+        "total_institutional_holders": 50,
+        "new_positions_holders":1,
+        "sold_out_positions_holders":0
+    }
+    return  results

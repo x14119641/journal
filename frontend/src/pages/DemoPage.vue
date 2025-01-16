@@ -1,136 +1,80 @@
 <template>
   <div class="bg-gray-100 p-6">
-    <!-- Months buttons -->
-    <div class="flex justify-center mb-2">
-      <div v-for="(month, index) in months" :key="index" class="px-2">
-        <button 
-          @click="setMonth(index)"
-          :class="{
-            'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-400': currentMonth === index,
-            'bg-gray-200 text-black hover:bg-gray-300 focus:ring-gray-400': currentMonth !== index
-          }"
-        >
-          {{ month }}
-        </button>
+    <h1 class="text-3xl font-bold text-center mb-6">Stock Information</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Amount Card -->
+      <div class="pg-4 bg-slate-200 shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-2">Amount</h2>
+        <p class="text-gray-700">{{ stockData.amount }}</p>
       </div>
-    </div>
-    <div class="mt-10">
-      <h2 class="text-2xl font-bold text-center mb-4">{{ monthYear }}</h2>
-      
-      <!-- Calendar Days Header -->
-      <div class="grid grid-cols-7 gap-4 mb-2">
-        <div v-for="(day, index) in daysOfWeek" :key="index" class="font-bold text-center">
-          {{ day }}
-        </div>
+      <!-- Payment Date Card -->
+      <div class="p-4 bg-white shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-2">Payment Date</h2>
+        <p class="text-gray-700">{{ stockData.paymentDate }}</p>
       </div>
-      
-      <!-- Calendar Grid -->
-      <div class="grid grid-cols-7 gap-4">
-        <!-- Fill in empty days before the first day of the month -->
-        <div v-for="n in startDayOfMonth" :key="`empty-${n}`" class="p-4 border rounded-lg bg-transparent shadow-sm"></div>
-        
-        <!-- Actual Days of the Month -->
-        <div v-for="(day, index) in daysInMonth" :key="index" class="p-4 border rounded-lg bg-white shadow-sm">
-          <div class="font-bold text-lg">{{ day.date }}</div>
-          <div class="text-sm text-gray-600" v-html="day.message"></div>
-        </div>
+
+      <!-- Total Investors Card -->
+      <div class="p-4 bg-white shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-2">Total Investors</h2>
+        <p class="text-gray-700">{{ stockData.totalInvestors }}</p>
       </div>
+
+      <!-- Percentage of Buys This Month Card -->
+      <div class="p-4 bg-white shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-2">Buys This Month</h2>
+        <p class="text-gray-700">{{ stockData.buysThisMonth }}%</p>
+      </div>
+
+      <!-- Last Sellers Table -->
+      <div class="p-4 bg-white shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-2">Last Sellers</h2>
+        <table class="min-w-full border-collapse border border-gray-200">
+          <thead>
+            <tr>
+              <th class="border border-gray-200 p-2">Seller</th>
+              <th class="border border-gray-200 p-2">Date</th>
+              <th class="border border-gray-200 p-2">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="seller in stockData.lastSellers" :key="seller.id">
+              <td class="border border-gray-200 p-2">{{ seller.name }}</td>
+              <td class="border border-gray-200 p-2">{{ seller.date }}</td>
+              <td class="border border-gray-200 p-2">{{ seller.amount }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Add more cards or sections as needed -->
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { format, getDaysInMonth, addDays, startOfMonth, getDay } from "date-fns";
-import { type DividendCalendar } from "../models/models";
+import { ref, computed, onMounted } from "vue";
 import api from "../services/api";
+
 export default {
   setup() {
-    const daysOfWeek = ref(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
-    const months = ref([
-      "January", "February", "March", "April", "May", "June", 
-      "July", "August", "September", "October", "November", "December"
-    ]);
-
-    const today = new Date();
-    let currentMonth = ref(today.getMonth());
-    const monthYear = computed(() => `${months.value[currentMonth.value]} ${today.getFullYear()}`);
-    const startDate = computed(() => startOfMonth(new Date(today.getFullYear(), currentMonth.value)));
-
-    
-    // Calculate the day of the week the month starts on
-    const startDayOfMonth = computed(() => getDay(startDate.value));
-
-    const error_message = ref<String>("");
-    const dividends = ref<DividendCalendar[]>([]);
-
-    // Calculate the days in the current month
-    const daysInMonth = computed(() => {
-      const days = [];
-      const totalDays = getDaysInMonth(startDate.value);
-
-      for (let i = 0; i < totalDays; i++) {
-        const date = addDays(startDate.value, i);
-        const dateStr = format(date, "yyyy-MM-dd");
-        const dayDividends = dividends.value.filter(
-          dividend => dividend.payment_date === dateStr
-        );
-        const messages = dayDividends.map(dividend => {
-          return `
-            <div>
-              <a href="#" class="text-blue-500 hover:underline">${dividend.ticker}</a>: 
-              <span class="font-bold text-green-500">${dividend.amount}</span>
-            </div>
-          `;
-        }).join("")
-
-        days.push({
-          date: format(date, "d"),
-          message: messages
-        });
-      }
-      return days;
-    });
-
-    // load data for current month when entering
-    onMounted(async () => {
-      getMonthDividends()
+    const stockData = ref({
+      amount:1000,
+      paymentDate: "2025-01-31",
+      totalInvestors: 1200,
+      buysThisMonth: 45,
+      lastSellers: [
+        { id: 1, name: "John Doe", date: "2025-01-10", amount: 500 },
+        { id: 2, name: "Jane Smith", date: "2025-01-11", amount: 300 },
+        { id: 3, name: "Alice Johnson", date: "2025-01-12", amount: 200 },
+      ],
+      // Add more data as needed
     })
-    const setMonth = (monthIndex:number) => {
-      currentMonth.value = monthIndex
-      getMonthDividends()
-    }
-    // call api
-    const getMonthDividends = async () => {
-      // need to +1
-      const correct_index = currentMonth.value +1
-      try {
-        // gives me ticker, amount and payment date 
-        const response = await api.get(
-          `/stocks/dividends/calendar/${correct_index}`
-        )
-        dividends.value = response.data
-      } catch (error) {
-        console.error("Errro to getch data: ", error);
-        error_message.value = "Failed to load message";
-      }
-
-    }
-
     return {
-      daysOfWeek,
-      months,
-      monthYear,
-      currentMonth,
-      startDayOfMonth,
-      daysInMonth,
-      setMonth,
-      getMonthDividends
+      stockData,
     };
-  }
+  },
 };
 </script>
-
 
 <style scoped>
 /* You can add custom styles here if needed */
