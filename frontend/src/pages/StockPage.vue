@@ -34,14 +34,15 @@
   import { useRoute } from 'vue-router';
   
   const route = useRoute();
-  const ticker = ref<String>(route.params.ticker_name as string);
-  
+  const ticker = ref<String>(route.params.ticker as string);
+
   const stockData = ref<StockMetadata | null>(null);
   const error_message = ref<String>('');
   
   onMounted(async () => {
     try {
         const response = await api.get(`/stocks/${ticker.value}`);
+        
         stockData.value = response.data;
     } catch (error) {
       console.error('Errro to getch data: ', error)

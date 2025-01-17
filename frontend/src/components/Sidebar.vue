@@ -178,6 +178,20 @@
               >
             </router-link>
           </li>
+          <li
+            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+          >
+            <router-link to="/screener" class="flex items-center w-full">
+              <span class="text-2xl block float-left">
+                <img :src="binocularsIcon" class="w-10 h-10" alt="Icon" />
+              </span>
+              <span
+                class="text-base font-medium flex-1 ml-3"
+                :class="isSidebarOpen ? '' : 'hidden'"
+                >Screener</span
+              >
+            </router-link>
+          </li>
         </ul>
       </div>
     </div>
@@ -193,6 +207,8 @@ import alienHeadIcon from "@/assets/img/alien-head-svgrepo-com.svg";
 import accountAvatarIcon from "@/assets/img/account-avatar-profile-user-3-svgrepo-com.svg";
 import moneyIcon from "@/assets/img/money-svgrepo-com.svg";
 import calendarIcon from "@/assets/img/calendar-svgrepo-com.svg";
+import binocularsIcon from "@/assets/img/binoculars-find-svgrepo-com.svg";
+
 
 // Access the store
 const sidebarStore = useSidebarStore();

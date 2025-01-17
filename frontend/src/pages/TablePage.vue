@@ -32,15 +32,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { type Stock } from '../models/models';
+import api from '../services/api';
+import { type Ticker } from '../models/models';
 
-const tickers = ref<Stock[]>([]);
+const tickers = ref<Ticker[]>([]);
 const error_message = ref<String>('');
 
 onMounted(async () => {
     try {
-        const response = await axios.get('http://localhost:8000/stocks/dividends')
+        const response = await api.get('/stocks/tickers')
         tickers.value = response.data 
     } catch (error) {
         console.error('Errro to getch data: ', error)

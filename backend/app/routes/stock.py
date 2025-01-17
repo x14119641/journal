@@ -13,7 +13,7 @@ router = APIRouter(prefix='/stocks', tags=["Stocks"])
 
 @router.get("/tickers")
 async def get_tickers(db: Database = Depends(get_db)):
-    results = await db.fetch("SELECT * FROM tickers;")
+    results = await db.fetch("SELECT * FROM tickers ORDER BY id;")
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not tickers")
@@ -108,45 +108,57 @@ async def get_dividends_calendar(
 # stocks/screener
 @router.get("/screener")
 async def get_stock_by_ticker(
-    paymentMonth: int,
+    paymentMonth: Optional[int] = None,
     institutionalPercentage: Optional[Decimal] = None,
     amountAbove: Optional[Decimal] = None,
     ratioholdersbuysold:Optional[Decimal] = None,
+    lastYearPayments:Optional[int] = None,
     db: Database = Depends(get_db)
 ):
-    query = """
-        SELECT 
-            d.ticker,
-            d.ex_dividend_date, 
-            d.payment_date, 
-            d.amount,
-            i.institutional_ownership_perc, 
-            i.increased_positions_holders, 
-            i.decreased_positions_holders, 
-            i.held_positions_holders,
-            i.total_institutional_holders, 
-            i.new_positions_holders, 
-            i.sold_out_positions_holders,
-            NULLIF(i.new_positions_holders, 0) / NULLIF(i.sold_out_positions_holders, 0) AS ratioHoldersBuySold
-        FROM 
-            dividends d
-        INNER JOIN 
-            institutional_holdings i
-        ON 
-            d.ticker = i.ticker
-        WHERE 
-            EXTRACT(YEAR FROM d.payment_date) = 2025 
-            AND EXTRACT(MONTH FROM d.payment_date) = $1
+    this_year = datetime.today().year
+    #  So far now, if there is not data in instutionals we dont show data,
+    # This is because i am doind a left join, at the moment i leave it like that
+    # Not sure if i will need to handle nulls and now i dont want the hasle
+    query = f"""
+        WITH DividendCount AS(
+            SELECT ticker, COUNT(ticker) AS numDividends
+            FROM dividends 
+            WHERE EXTRACT(YEAR FROM payment_date) = {this_year}
+            GROUP BY ticker
+            )
+        SELECT d.ticker,
+                dd.numDividends,
+                d.ex_dividend_date, 
+                d.payment_date, 
+                d.amount,
+                i.institutional_ownership_perc, 
+                i.increased_positions_holders, 
+                i.decreased_positions_holders, 
+                i.held_positions_holders,
+                i.total_institutional_holders, 
+                i.new_positions_holders, 
+                i.sold_out_positions_holders,
+                ROUND(NULLIF(i.new_positions_holders, 0) / NULLIF(i.sold_out_positions_holders, 0), 3) AS ratioHoldersBuySold
+        FROM DividendCount dd
+        JOIN dividends d ON d.ticker = dd.ticker
+        INNER JOIN institutional_holdings i ON d.ticker = i.ticker
+        WHERE EXTRACT(YEAR FROM d.payment_date) = {this_year}
     """
-    
-    query_params = [paymentMonth]
-    param_counter = 2  # Start from $2 for dynamic parameters
+    # Store parameters in list
+    query_params = []
+    # and do a counter to see how many placeholders while the query is built
+    param_counter = 1  
 
+    if paymentMonth is not None:
+        query += f"AND EXTRACT(MONTH FROM d.payment_date) = ${param_counter}"
+        query_params.append(paymentMonth)
+        param_counter += 1
+    
     if amountAbove is not None:
         query += f" AND d.amount >= ${param_counter}"
         query_params.append(amountAbove)
         param_counter += 1
-
+        
     if institutionalPercentage is not None:
         query += f" AND i.institutional_ownership_perc >= ${param_counter}"
         query_params.append(institutionalPercentage)
@@ -155,9 +167,16 @@ async def get_stock_by_ticker(
     if ratioholdersbuysold is not None:
         query += f" AND NULLIF(i.new_positions_holders, 0) / NULLIF(i.sold_out_positions_holders, 0) >= ${param_counter}"
         query_params.append(ratioholdersbuysold)
+        param_counter += 1
 
-    results = await db.fetch(query, *query_params)
+    if lastYearPayments is not None:
+        query += f" AND dd.numDividends >= ${param_counter}"
+        query_params.append(lastYearPayments)
+        param_counter += 1
     
+    query += " ORDER BY dd.numDividends DESC"
+    results = await db.fetch(query, *query_params)
+
     return results
 
 
@@ -178,6 +197,7 @@ async def get_stock_by_ticker(
         ON m.ticker = i.ticker
         WHERE m.ticker=$1;
     """
+
     results = await db.fetch(query, ticker.upper())
     if not results:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found.")

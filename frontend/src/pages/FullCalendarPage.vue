@@ -53,7 +53,7 @@ import { ref, computed, onMounted } from "vue";
 import { format, getDaysInMonth, addDays, startOfMonth, getDay } from "date-fns";
 import { type DividendCalendar } from "../models/models";
 import api from "../services/api";
-import { da } from "date-fns/locale";
+
 export default {
   setup() {
     const daysOfWeek = ref(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);

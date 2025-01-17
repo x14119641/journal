@@ -8,6 +8,7 @@ import { useAuthStore } from '../stores/authStore';
 import DividendsPage from '../pages/DividendsPage.vue';
 import FullCalendarPage from '../pages/FullCalendarPage.vue';
 import StockPage from '../pages/StockPage.vue';
+import ScreenerPage from '../pages/ScreenerPage.vue';
 
 
 const routes = [
@@ -18,6 +19,7 @@ const routes = [
   { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true } },
   { path: '/dividends', name: 'Dividend', component: DividendsPage },
   { path: '/calendar', name: 'Calendar', component: FullCalendarPage },
+  { path: '/screener', name: 'Screener', component: ScreenerPage },
   { path: '/stocks/:ticker', name: 'Stocks', component: StockPage },
 ];
 

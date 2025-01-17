@@ -44,7 +44,9 @@ export interface StockScreener {
 }
 
 export interface Ticker {
+    id:Int16Array;
     ticker: string;
+    name: number;
 }
 
 
