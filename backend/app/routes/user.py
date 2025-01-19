@@ -1,4 +1,5 @@
 from fastapi import Depends, status, HTTPException, APIRouter
+from fastapi.responses import JSONResponse
 from .auth import get_current_active_user
 from ..services.database import Database
 from ..schema import (User, UserBase, UserCreate, UserLogin, UserResponse)
@@ -13,11 +14,19 @@ async def create_post(user:UserCreate, db:Database=Depends(get_db)):
     # email an user validiations
     email_exists = await db.fetchone("SELECT email FROM users WHERE email=($1)", user.email)
     if email_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Email already registered.')
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Email already registered.')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "Email already registered."})
+        
     
     username_exists = await db.fetchone("SELECT username FROM users WHERE username=($1)", user.username)
     if username_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User already registered.')
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User already registered.')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "Username already registered."}
+        )
     
     
     hashed_pwd = password_hash.hash(user.password)
