@@ -109,3 +109,69 @@ CREATE TABLE IF NOT EXISTS favorites (
     FOREIGN KEY (ticker) REFERENCES tickers(ticker),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Create Portfolio and its relations
+CREATE TABLE IF NOT EXISTS portfolio (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    ticker TEXT REFERENCES tickers(ticker),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, ticker)
+);
+CREATE INDEX IF NOT EXISTS idx_portfolio_user_ticker ON portfolio (user_id, ticker);
+
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id SERIAL PRIMARY KEY, 
+    user_id INT REFERENCES users(id),
+    ticker TEXT REFERENCES tickers(ticker),
+    price NUMERIC,
+    quantity INT,
+    transaction_type TEXT,
+    fee NUMERIC DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_transcations_user_ticker ON transactions (user_id, ticker);
+
+
+CREATE TABLE IF NOT EXISTS funds (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    amount NUMERIC,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_funds_user ON funds (user_id);
+
+
+CREATE TABLE dividend_transactions (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  ticker TEXT REFERENCES tickers(ticker),
+  dividend NUMERIC,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_dividend_transactions_user_ticker ON dividend_transactions (user_id, ticker);
+
+-- Create Some functions or porcedures we might need
+CREATE OR REPLACE FUNCTION calculate_portfolio_totals(
+    user_id_input INT
+)
+RETURNS TABLE(
+    total_funds NUMERIC,
+    total_spent NUMERIC,
+    available_funds NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT COALESCE(SUM(amount), 0),
+           COALESCE(SUM(price * quantity + fee), 0),
+           COALESCE(SUM(amount), 0) - COALESCE(SUM(price * quantity + fee), 0)
+    INTO total_funds, total_spent, available_funds
+    FROM funds
+    LEFT JOIN transactions ON funds.user_id = transactions.user_id
+    WHERE funds.user_id = user_id_input;
+    RETURN NEXT;
+END;
+$$;
