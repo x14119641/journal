@@ -27,8 +27,9 @@
       <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
         <!-- Box 4 content goes here -->
       </div>
-      <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <div class="bg-gray-800 p-6 rounded-lg shadow-lg overflow-hidden">
         <!-- Box 5 content goes here -->
+        <DataTable :headers="tableHeaders" :rows="tableData" />
       </div>
     </div>
   </div>
@@ -38,4 +39,12 @@ import ProfileInfo from "../components/ProfileInfo.vue"; // Import the Profile c
 import FundsHeader from "../components/FundsHeader.vue";
 import AddFunds from "../components/AddFunds.vue";
 import RemoveFunds from "../components/RemoveFunds.vue";
+import DataTable from "../components/DataTable.vue";
+
+const tableHeaders = ['Name', 'Age', 'Email'];
+const tableData = [
+  { name: 'John Doe', age: 30, email: 'john@example.com' },
+  { name: 'Jane Doe', age: 25, email: 'jane@example.com' },
+  { name: 'Sam Smith', age: 35, email: 'sam@example.com' },
+];
 </script>
