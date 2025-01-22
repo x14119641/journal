@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div class="">
     <form @submit.prevent="onSubmit" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
       <div class="flex-grow">
@@ -6,7 +6,7 @@
           type="number"
           id="amount"
           v-model="amount"
-          placeholder="Add amount"
+          placeholder="Add Funds Amount"
           required
           min="0"
           class="w-full bg-gray-400 p-3 border border-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-lime-400"
@@ -26,10 +26,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
-import { useAuthStore } from "../stores/authStore";
 
-const authStore = useAuthStore();
-const amount = ref<number>(0);
+const amount = ref<number | null>(null);
 const errorMessage = ref<string>("");
 const portfolioStore = usePortfolioStore();
 

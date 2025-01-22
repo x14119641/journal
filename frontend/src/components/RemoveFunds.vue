@@ -6,7 +6,7 @@
           type="number"
           id="amount"
           v-model="amount"
-          placeholder="Add amount"
+          placeholder="Withdraw Funds Amount"
           required
           min="0"
           class="w-full bg-gray-400 p-3 border border-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -27,7 +27,7 @@
 import { ref } from "vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
 
-const amount = ref<number>(0);
+const amount = ref<number | null>(null);
 const errorMessage = ref<string>("");
 const portfolioStore = usePortfolioStore();
 
