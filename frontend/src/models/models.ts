@@ -62,3 +62,11 @@ export interface DividendCalendar {
     name: number;
     payment_date:string;
 }
+
+export interface Transaction {
+    ticker: string;
+    price: number;
+    quantity: number;
+    transaction_type: string;
+    fee: number;
+  }

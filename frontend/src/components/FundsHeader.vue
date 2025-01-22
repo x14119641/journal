@@ -10,10 +10,6 @@
         <span class="font-medium text-gray-400">Total Spent</span>
         <span class="text-red-200">{{ totalSpent }}</span>
       </div>
-      <div class="flex justify-between mt-2">
-        <span class="font-medium text-gray-400">Available Funds</span>
-        <span class="text-blue-200">{{ availableFunds }}</span>
-      </div>
     </div>
   </div>
 </template>
@@ -28,7 +24,6 @@ const authStore = useAuthStore();
 
 const totalFunds = computed(() => portfolioStore.total_funds);
 const totalSpent = computed(() => portfolioStore.total_spent);
-const availableFunds = computed(() => portfolioStore.available_funds);
 
 onMounted(async () => {
   if (authStore.token) {

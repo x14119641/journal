@@ -5,7 +5,7 @@ from .schema import Post, PostOut, PostCreate, User, UserCreate, UserResponse
 from .dependencies import oauth2_scheme, password_hash
 from typing import List
 import random
-from .routes import post, user, auth, stock, portfolio
+from .routes import post, user, auth, stock, portfolio, transaction
 
 
 app = FastAPI()
@@ -30,6 +30,7 @@ app.include_router(user.router)
 app.include_router(post.router)
 app.include_router(stock.router)
 app.include_router(portfolio.router)
+app.include_router(transaction.router)
 
 
 

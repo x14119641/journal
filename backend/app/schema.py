@@ -1,7 +1,8 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from pydantic.types import conint
 from typing import Optional
 from datetime import datetime
+from decimal import Decimal
 
 
 
@@ -80,5 +81,10 @@ class StockDividendRecord(BaseModel):
     payment_date:datetime|None
     currency:str
     
-    
-    
+
+class Transaction(BaseModel):
+    ticker:str
+    price:Decimal
+    quantity:Decimal
+    transaction_type:str
+    fee: Decimal=Field(2)

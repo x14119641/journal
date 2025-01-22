@@ -159,19 +159,105 @@ CREATE OR REPLACE FUNCTION calculate_portfolio_totals(
 )
 RETURNS TABLE(
     total_funds NUMERIC,
-    total_spent NUMERIC,
-    available_funds NUMERIC
+    total_spent NUMERIC
 )
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    total_funds NUMERIC;
+    total_spent NUMERIC;
 BEGIN
-    SELECT COALESCE(SUM(amount), 0),
-           COALESCE(SUM(price * quantity + fee), 0),
-           COALESCE(SUM(amount), 0) - COALESCE(SUM(price * quantity + fee), 0)
-    INTO total_funds, total_spent, available_funds
+
+    SELECT COALESCE(SUM(amount), 0)
+    INTO total_funds
     FROM funds
-    LEFT JOIN transactions ON funds.user_id = transactions.user_id
-    WHERE funds.user_id = user_id_input;
-    RETURN NEXT;
+    WHERE user_id = user_id_input;
+
+    SELECT COALESCE(SUM(price * quantity + fee), 0)
+    INTO total_spent
+    FROM transactions
+    WHERE user_id = user_id_input
+	AND transaction_type='buy';
+
+    RETURN QUERY SELECT total_funds, total_spent;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION add_transaction(
+    user_id_input INT, 
+    ticker_input TEXT, 
+    price_input NUMERIC, 
+    quantity_input NUMERIC, 
+    transaction_type_input TEXT, 
+    fee_input NUMERIC DEFAULT 2
+)
+RETURNS TEXT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    available_funds NUMERIC;
+    return_message TEXT;
+    ticker_exists BOOLEAN;
+    total_transaction NUMERIC;
+    total_quantity_stock NUMERIC;
+BEGIN
+
+    SELECT COALESCE(SUM(amount), 0)
+    INTO available_funds
+    FROM funds
+    WHERE user_id = user_id_input;
+
+    SELECT EXISTS (SELECT 1 FROM tickers WHERE ticker = ticker_input) INTO ticker_exists;
+
+
+
+    IF ticker_exists THEN
+        IF LOWER(transaction_type_input) = 'buy' THEN
+			-- If you buy you pay the fee
+			total_transaction := price_input * quantity_input + fee_input;
+            IF available_funds >= total_transaction THEN
+                -- If enough funds, buy, "insert ignore" if ticker not in portfolio 
+                INSERT INTO portfolio (user_id, ticker) 
+                SELECT user_id_input, ticker_input 
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM portfolio WHERE user_id = user_id_input AND ticker = ticker_input
+                );
+				
+                INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee) 
+                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input);
+                -- Add the fund 'transaction' in order to keep record of the funds, total transaction in negative!
+				INSERT INTO funds (user_id, amount, description) 
+                VALUES (user_id_input, -total_transaction, 'Bought ' || quantity_input || ' of ' || ticker_input);
+				return_message := 'Transaction BUY added successfully.';
+            ELSE
+                return_message := 'Insufficient funds.';
+            END IF;
+        ELSIF LOWER(transaction_type_input) = 'sell' THEN
+            SELECT SUM(quantity) INTO total_quantity_stock FROM transactions WHERE user_id = user_id_input AND ticker = ticker_input;
+            -- If you sell the fee is negative
+			total_transaction := price_input * quantity_input - fee_input;
+			IF total_quantity_stock >= quantity_input THEN
+			    -- Quantity must be negative
+                INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee) 
+                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input);
+                -- DELETE ticker in portfolio if the quantity of stocks sold is the same as what is in the portfolio
+                IF total_quantity_stock = quantity_input THEN
+                    DELETE FROM portfolio WHERE user_id = user_id_input AND ticker = ticker_input;
+                END IF;		
+				-- Add the the sell, quantity is positive!
+ 				INSERT INTO funds (user_id, amount, description) 
+                VALUES (user_id_input, total_transaction, 'Sold ' || quantity_input || ' of ' || ticker_input);
+                return_message := 'Transaction SELL added successfully.';
+            ELSE
+                return_message := 'There is not enough stock to sell.';
+            END IF;
+        ELSE
+            return_message := 'Invalid transaction type.';
+        END IF;
+    ELSE
+        return_message := 'Ticker does not exist.';
+    END IF;
+
+    RETURN return_message;
 END;
 $$;

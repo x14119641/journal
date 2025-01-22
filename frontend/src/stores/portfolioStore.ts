@@ -7,7 +7,6 @@ export const usePortfolioStore = defineStore('portfolio', {
     state: () => ({
         total_funds: 0,
         total_spent:0,
-        available_funds:0,
         tickers_in_portfolio: [] as string[]
     }),
     actions: {
@@ -24,7 +23,6 @@ export const usePortfolioStore = defineStore('portfolio', {
                 const response = await api.get('/portfolio/funds')
                 this.total_funds = response.data.total_funds
                 this.total_spent = response.data.total_spent
-                this.available_funds = response.data.available_funds
             } catch (error) {
                 throw error;
             }
@@ -44,6 +42,7 @@ export const usePortfolioStore = defineStore('portfolio', {
             } catch (error) {
                 throw error;
             }
-        }
+        },
+        
     }
 })
