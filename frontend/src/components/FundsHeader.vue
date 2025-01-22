@@ -17,22 +17,21 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
-import { useAuthStore } from "../stores/authStore";
+
 
 const portfolioStore = usePortfolioStore();
-const authStore = useAuthStore();
+
 
 const totalFunds = computed(() => portfolioStore.total_funds);
 const totalSpent = computed(() => portfolioStore.total_spent);
 
 onMounted(async () => {
-  if (authStore.token) {
+
     try {
       await portfolioStore.getFunds();
     } catch (error) {
       console.error("Error fetching funds:", error);
     }
-  }
-  console.error("No token found, user is not authenticated.");
+
 });
 </script>

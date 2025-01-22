@@ -14,6 +14,10 @@ import RegisterPage from '../pages/RegisterPage.vue';
 
 const routes = [
   { path: '/', name: 'Demo0', component: DemoPage, meta: { requiresAuth: false }},
+  { path: '/logout', name: 'Logout', beforeEnter: (to, from, next) => {
+    const authStore = useAuthStore();
+    authStore.logout()
+  }},
   { path: '/demo', name: 'Demo', component: DemoPage, meta: { requiresAuth: false } },
   { path: '/hello', name: 'Hello', component: HelloPage, meta: { requiresAuth: false } },
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
