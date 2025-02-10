@@ -16,7 +16,7 @@ async def get_transactions(
     db:Database=Depends(get_db),
     limit:int=10):
     results = await db.fetch("""
-                             SELECT ticker, quantity, price, transaction_type, price*quantity as total, created_at FROM transactions WHERE user_id = ($1) LIMIT ($2)""",
+                             SELECT ticker, quantity, price, transactionType, price*quantity as total, created_at FROM transactions WHERE user_id = ($1) LIMIT ($2)""",
                              current_user.id, limit)
     if not results:
         return []

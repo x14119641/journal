@@ -129,11 +129,16 @@ CREATE TABLE IF NOT EXISTS portfolio (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
     ticker TEXT REFERENCES tickers(ticker),
+    price NUMERIC(19, 2),
+    quantity BIGINT,
+    fee NUMERIC(19, 2) DEFAULT 2,
+    -- Calculated column: price * quantity + fee
+    totalValue NUMERIC(19, 2) GENERATED ALWAYS AS (price * quantity + fee) STORED, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, ticker)
+    UNIQUE(user_id, ticker, fee, created_at)
 );
 CREATE INDEX IF NOT EXISTS idx_portfolio_user_ticker ON portfolio (user_id, ticker);
-
+CREATE INDEX IF NOT EXISTS idx_portfolio_fifo ON portfolio (user_id, ticker, fee, created_at);
 
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY, 
@@ -168,18 +173,19 @@ CREATE TABLE dividend_transactions (
 CREATE INDEX IF NOT EXISTS idx_dividend_transactions_user_ticker ON dividend_transactions (user_id, ticker);
 
 -- Create Some functions or porcedures we might need
-CREATE OR REPLACE FUNCTION calculate_portfolio_totals(
-    user_id_input INT
-)
-RETURNS TABLE(
-    total_funds NUMERIC,
-    total_spent NUMERIC
-)
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION public.calculate_portfolio_totals(
+	user_id_input integer)
+    RETURNS TABLE(total_funds numeric, total_spent numeric, total_gains numeric) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 DECLARE
     total_funds NUMERIC;
     total_spent NUMERIC;
+	total_gains NUMERIC;
 BEGIN
 
     SELECT COALESCE(SUM(amount), 0)
@@ -187,91 +193,53 @@ BEGIN
     FROM funds
     WHERE user_id = user_id_input;
 
-    SELECT COALESCE(SUM(price * quantity + fee), 0)
-    INTO total_spent
-    FROM transactions
-    WHERE user_id = user_id_input
-	AND transactionType='buy';
+    SELECT COALESCE(sum(totalValue), 0)
+	INTO total_spent
+	FROM portfolio
+	WHERE user_id = 2	;
 
-    RETURN QUERY SELECT total_funds, total_spent;
+	SELECT COALESCE(SUM(price*quantity+fee), 0)
+	INTO total_gains
+	FROM transactions
+	WHERE user_id = user_id_input
+	AND transactionType='sell';
+
+    RETURN QUERY SELECT total_funds, total_spent,total_gains;
 END;
-$$;
+$BODY$;
 
-CREATE OR REPLACE FUNCTION add_transaction(
-    user_id_input INT, 
-    ticker_input TEXT, 
-    price_input NUMERIC, 
-    quantity_input NUMERIC, 
-    transaction_type_input TEXT, 
-    fee_input NUMERIC DEFAULT 2
-)
-RETURNS TEXT
-LANGUAGE plpgsql
-AS $$
+
+CREATE OR REPLACE FUNCTION public.calculate_portfolio_totals(
+	user_id_input integer)
+    RETURNS TABLE(total_funds numeric, total_spent numeric, total_gains numeric) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 DECLARE
-    available_funds NUMERIC;
-    return_message TEXT;
-    ticker_exists BOOLEAN;
-    total_transaction NUMERIC;
-    total_quantity_stock NUMERIC;
+    total_funds NUMERIC;
+    total_spent NUMERIC;
+	total_gains NUMERIC;
 BEGIN
 
     SELECT COALESCE(SUM(amount), 0)
-    INTO available_funds
+    INTO total_funds
     FROM funds
     WHERE user_id = user_id_input;
 
-    SELECT EXISTS (SELECT 1 FROM tickers WHERE ticker = ticker_input) INTO ticker_exists;
+    SELECT COALESCE(sum(totalValue), 0)
+	INTO total_spent
+	FROM portfolio
+	WHERE user_id = 2	;
 
+	SELECT COALESCE(SUM(amount), 0)
+	INTO total_gains
+	FROM funds
+	WHERE user_id = 2
+	AND description NOT LIKE  '%Deposit%';
 
-
-    IF ticker_exists THEN
-        IF LOWER(transaction_type_input) = 'buy' THEN
-			-- If you buy you pay the fee
-			total_transaction := price_input * quantity_input + fee_input;
-            IF available_funds >= total_transaction THEN
-                -- If enough funds, buy, "insert ignore" if ticker not in portfolio 
-                INSERT INTO portfolio (user_id, ticker) 
-                SELECT user_id_input, ticker_input 
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM portfolio WHERE user_id = user_id_input AND ticker = ticker_input
-                );
-				
-                INSERT INTO transactions (user_id, ticker, price, quantity, transactionType, fee) 
-                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input);
-                -- Add the fund 'transaction' in order to keep record of the funds, total transaction in negative!
-				INSERT INTO funds (user_id, amount, description) 
-                VALUES (user_id_input, -total_transaction, 'Bought ' || quantity_input || ' of ' || ticker_input);
-				return_message := 'Transaction BUY added successfully.';
-            ELSE
-                return_message := 'Insufficient funds.';
-            END IF;
-        ELSIF LOWER(transaction_type_input) = 'sell' THEN
-            SELECT SUM(quantity) INTO total_quantity_stock FROM transactions WHERE user_id = user_id_input AND ticker = ticker_input;
-            -- If you sell the fee is negative
-			total_transaction := price_input * quantity_input - fee_input;
-			IF total_quantity_stock >= quantity_input THEN
-			    -- Quantity must be negative
-                INSERT INTO transactions (user_id, ticker, price, quantity, transactionType, fee) 
-                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input);
-                -- DELETE ticker in portfolio if the quantity of stocks sold is the same as what is in the portfolio
-                IF total_quantity_stock = quantity_input THEN
-                    DELETE FROM portfolio WHERE user_id = user_id_input AND ticker = ticker_input;
-                END IF;		
-				-- Add the the sell, quantity is positive!
- 				INSERT INTO funds (user_id, amount, description) 
-                VALUES (user_id_input, total_transaction, 'Sold ' || quantity_input || ' of ' || ticker_input);
-                return_message := 'Transaction SELL added successfully.';
-            ELSE
-                return_message := 'There is not enough stock to sell.';
-            END IF;
-        ELSE
-            return_message := 'Invalid transaction type.';
-        END IF;
-    ELSE
-        return_message := 'Ticker does not exist.';
-    END IF;
-
-    RETURN return_message;
+    RETURN QUERY SELECT total_funds, total_spent,total_gains;
 END;
-$$;
+$BODY$;
