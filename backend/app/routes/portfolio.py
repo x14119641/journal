@@ -14,8 +14,11 @@ async def get_portfolio(current_user:Annotated[UserLogin, Depends(get_current_ac
 
 
 @router.get("/funds")
-async def get_total_funds(current_user:Annotated[UserLogin, Depends(get_current_active_user)],db:Database=Depends(get_db) ):
-    results = await db.fetch("SELECT * FROM funds WHERE user_id = ($1) ORDER BY created_at LIMIT 10", current_user.id)
+async def get_total_funds(
+    current_user:Annotated[UserLogin, Depends(get_current_active_user)],
+    db:Database=Depends(get_db),
+    limit:int=10):
+    results = await db.fetch("SELECT * FROM funds WHERE user_id = ($1) ORDER BY created_at DESC LIMIT ($2)", current_user.id, limit)
     print(results)
     return results  
 

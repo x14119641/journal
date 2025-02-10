@@ -45,7 +45,7 @@ const realizedGains = computed(() => portfolioStore.realized_gains);
 onMounted(async () => {
 
     try {
-      await portfolioStore.getFunds();
+      await portfolioStore.getFundsTotals();
     } catch (error) {
       console.error("Error fetching funds:", error);
     }

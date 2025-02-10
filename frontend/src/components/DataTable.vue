@@ -15,15 +15,15 @@
             <tbody>
                 <tr v-for="(row, rowIndex) in rows" :key="rowIndex"
                 class="hover:bg-gray-700 transition-colors duration-200">
-                    <td v-for="(value, colIndex) in Object.values(row)" :key="colIndex"
+                    <td v-for="header in headers" :key="header"
                     class="py-3 px-6 border-b border-gray-700 text-gray-400 text-sm">
-                    <template v-if="Object.keys(row)[colIndex] === 'ticker'">
-                        <router-link :to="`/stocks/${value}`" class="text-lime-400 hover:underline">
-                            {{ value }}
+                    <template v-if="header === 'ticker'">
+                        <router-link :to="`/stocks/${row[header]}`" class="text-lime-400 hover:underline">
+                            {{ row[header] }}
                         </router-link>
                         </template>
                         <template v-else>
-                        {{ value }}
+                        {{ row[header] }}
                     </template>
                     </td>
                 </tr>

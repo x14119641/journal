@@ -21,33 +21,22 @@
   </template>
   
   <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  import api from '../services/api';
+  import { computed, onMounted } from 'vue';
   // import { type Fund } from '../models/models';
   import DataTable from '../components/DataTable.vue';
   import FundsHeader from '../components/FundsHeader.vue';
   import AddTransaction from '../components/AddTransaction.vue';
+  import { usePortfolioStore } from '../stores/portfolioStore';
+  
+  const tableHeaders = ['amount', 'description', 'created_at'];
+  
+  const portfolioStore = usePortfolioStore();
+  onMounted(portfolioStore.getPortfolio);
 
-  
-  const tableData = ref([]);
-  const error_message = ref<String>(''); 
-  const tableHeaders = ['Amount', 'Description', 'Created at'];
-  
-  onMounted(async () => {
-    try {
-      const response = await api.get('/portfolio/funds')
-      tableData.value = response.data.map((key) => {
-        return {
-          'amount':key.amount,
-          'description':key.description,
-          'created_at':key.created_at
-        }
-      })
-    } catch (error) {
-      console.error('Error in get funds data: ', error)
-      error_message.value = 'Failed to load data from funds'
-    }
-  })
+
+  const tableData = computed(() => portfolioStore.latest_portfolio);
+
+
   </script>
   
   <style scoped>
