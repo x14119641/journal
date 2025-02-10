@@ -5,9 +5,11 @@ import api from "../services/api";
 
 export const usePortfolioStore = defineStore('portfolio', {
     state: () => ({
-        total_funds: 0,
+        accountValue: 0,
         total_spent:0,
-        tickers_in_portfolio: [] as string[]
+        cash:0,
+        tickers_in_portfolio: [] as string[],
+        realized_gains:0
     }),
     actions: {
         async getPortfolio() {
@@ -20,9 +22,12 @@ export const usePortfolioStore = defineStore('portfolio', {
         },
         async getFunds() {
             try {
-                const response = await api.get('/portfolio/funds')
-                this.total_funds = response.data.total_funds
+                const response = await api.get('/portfolio/funds/totals')
+                
                 this.total_spent = response.data.total_spent
+                this.accountValue = response.data.total_funds
+                this.cash = this.accountValue -  this.total_spent
+                this.realized_gains = response.data.total_gains
             } catch (error) {
                 throw error;
             }

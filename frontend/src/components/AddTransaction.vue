@@ -1,5 +1,5 @@
 <template>
-    <div class="text-white">
+    <div class="p-6 text-white">
       <form @submit.prevent="onSubmit" class="flex flex-wrap gap-4 items-end">
         <!-- Ticker -->
         <div class="flex-1 min-w-[100px]">
@@ -17,11 +17,12 @@
         <div class="flex-1 min-w-[100px]">
           <label for="price" class="block text-sm font-medium">Price:</label>
           <input 
+            id="price"
             type="number" 
-            id="price" 
             v-model="price" 
             placeholder="Enter price" 
-            required min="0"
+            step="0.01" 
+            required 
             class="w-full bg-gray-400 p-2 border border-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-lime-400" />
         </div>
   

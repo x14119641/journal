@@ -1,6 +1,6 @@
 <template>
   
-    <div class="text-center">
+    <div class="p-6 text-center">
       <h3 class="text-lg font-semibold text-gray-300">User Profile</h3>
       <div class="mt-4 space-y-4">
         <div class="flex justify-between">

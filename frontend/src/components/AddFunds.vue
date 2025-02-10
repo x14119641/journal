@@ -1,5 +1,5 @@
 <template> 
-  <div class="">
+  <div class="p-6">
     <form @submit.prevent="onSubmit" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
       <div class="flex-grow">
         <input

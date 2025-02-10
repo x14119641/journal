@@ -1,4 +1,5 @@
 import type { NumericLiteral } from "typescript";
+import Decimal from "decimal.js";
 
 export interface User {
     id: number;
@@ -11,6 +12,14 @@ export interface Stock {
     id:Int16Array;
     ticker: string;
     name: number;
+}
+
+export interface Fund {
+    id:Int16Array;
+    userId: string;
+    amount: Decimal;
+    description: string;
+    created_at:string;
 }
 
 export interface StockMetadata {

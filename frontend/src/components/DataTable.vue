@@ -1,5 +1,8 @@
 <template>
-    <div class="overflow-auto" style="max-height: 300px;">
+    <div v-if="title">
+        <h3 class="text-xl font-semibold text-center text-white mb-2">{{ title }}</h3>
+    </div>
+    <div class="overflow-auto" >
         <table class="w-full text-center border-collapse">
             <thead>
                 <tr class="bg-gray-800 text-gray-200">
@@ -32,6 +35,7 @@
 <script setup lang="ts">
 
 defineProps<{
+    title?:string; 
     headers:string[];
     rows:Record<string, any>[];
 }>();

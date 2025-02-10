@@ -10,7 +10,8 @@ import FullCalendarPage from '../pages/FullCalendarPage.vue';
 import StockPage from '../pages/StockPage.vue';
 import ScreenerPage from '../pages/ScreenerPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
-
+import ManageFundsPage from '../pages/ManageFundsPage.vue';
+import TransactionsPage from '../pages/TransactionsPage.vue';
 
 const routes = [
   { path: '/', name: 'Demo0', component: DemoPage, meta: { requiresAuth: false }},
@@ -21,6 +22,8 @@ const routes = [
   { path: '/demo', name: 'Demo', component: DemoPage, meta: { requiresAuth: false } },
   { path: '/hello', name: 'Hello', component: HelloPage, meta: { requiresAuth: false } },
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
+  { path: '/funds', name: 'Funds', component: ManageFundsPage, meta: { requiresAuth: true } },
+  { path: '/transactions', name: 'Transactions', component: TransactionsPage, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginPage, meta: { requiresAuth: false } },
   { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true } },
   { path: '/dividends', name: 'Dividend', component: DividendsPage, meta: { requiresAuth: true } },
