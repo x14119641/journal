@@ -77,20 +77,23 @@
                 :fill="isSidebarOpen ? '#FA2488' : '#44FF57'"
                 d="M3.504,6.83C3.421,6.857,3.37,6.913,3.373,7.024c0.308,1.938,1.616,3.536,3.842,3.126
                   C7.002,8.019,5.745,6.933,3.504,6.83z"
-              />
+              /> 
               <path
                 :fill="isSidebarOpen ? '#44FF57' : '#FA2488'"
                 d="M8.778,10.215c2.196-0.125,3.61-1.379,3.776-3.319C10.321,6.727,8.55,7.923,8.778,10.215z"
               />
             </g>
           </g>
+          <!-- Dollar Sign on Forehead -->
+          <text class="cursor-pointer select-none" x="8" y="5" font-size="4" font-weight="bold" text-anchor="middle" :fill="isSidebarOpen ? '#FA2488' : '#44FF57'">$</text>
+
         </svg>
       </div>
       <!-- Items in menu -->
       <div>
         <ul class="my-10 pt-2 space-y-4">
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/demo" class="flex items-center w-full">
               <span class="text-2xl block float-left ">
@@ -105,7 +108,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center select-none cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/hello" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -120,7 +123,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/table" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -135,7 +138,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/profile" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -150,7 +153,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/dividends" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -165,7 +168,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/calendar" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -179,7 +182,7 @@
             </router-link>
           </li>
           <li
-            class="text-sm flex items-center cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/screener" class="flex items-center w-full">
               <span class="text-2xl block float-left">
