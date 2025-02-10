@@ -34,25 +34,40 @@ CREATE TABLE IF NOT EXISTS votes (
 CREATE TABLE IF NOT EXISTS tickers (
     id SERIAL PRIMARY KEY,
     ticker TEXT UNIQUE NOT NULL,
-    name TEXT
+    companyName TEXT,
+    stockType TEXT,
+    exchange TEXT,
+    assetClass TEXT,
+    isNasdaqListed BOOLEAN,
+    isNasdaq100 BOOLEAN,
+    isHeld BOOLEAN
 );
 
 CREATE INDEX IF NOT EXISTS idx_ticker_tickers ON tickers (ticker);
 
-
 CREATE TABLE IF NOT EXISTS metadata (
     id SERIAL PRIMARY KEY,
     ticker TEXT NOT NULL,
-    name TEXT,
-    last_sale NUMERIC(12, 2),
-    net_change NUMERIC(12, 2),
-    change_perc NUMERIC(12, 2),
-    market_cap BIGINT,
-    country TEXT,
-    ipo_year BIGINT,
-    volume BIGINT,
+    exchange TEXT,
     sector TEXT,
     industry TEXT,
+    oneYrTarget NUMERIC(12, 2),
+    todayHighLow TEXT,
+    shareVolume BIGINT,
+    averageVolume BIGINT,
+    previousClose NUMERIC(12,2),
+    fiftTwoWeekHighLow TEXT,
+    marketCap BIGINT,
+    PERatio NUMERIC(12,2),
+    forwardPE1Yr  NUMERIC(12,2),
+    earningsPerShare  NUMERIC(12,2),
+    annualizedDividend  NUMERIC(12,2),
+    exDividendDate DATE,
+    dividendPaymentDate DATE,
+    yield  NUMERIC(12,2),
+    specialDividendDate DATE,
+    specialDividendAmount  NUMERIC(12,2),
+    specialDividendPaymentDate DATE,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticker) REFERENCES tickers (ticker)
 );
@@ -62,16 +77,16 @@ CREATE INDEX IF NOT EXISTS idx_metadata_ticker ON metadata (ticker);
 CREATE TABLE IF NOT EXISTS dividends (
     id SERIAL PRIMARY KEY,
     ticker TEXT NOT NULL,
-    ex_dividend_date DATE,
-    payment_type TEXT,
+    exOrEffDate DATE,
+    paymentType TEXT,
     amount NUMERIC(12, 2),
-    declaration_date DATE,
-    record_date DATE,
-    payment_date DATE,
+    declarationDate DATE,
+    recordDate DATE,
+    paymentDate DATE,
     currency TEXT,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticker) REFERENCES tickers (ticker),
-    CONSTRAINT unique_ticker_ex_dividend_date_declaration_date UNIQUE (ticker, ex_dividend_date, declaration_date)
+    CONSTRAINT unique_ticker_dividend UNIQUE (ticker, exOrEffDate, paymentType, amount, declarationDate, recordDate, paymentDate, currency)
 );
 
 CREATE INDEX IF NOT EXISTS idx_dividends_ticker ON dividends (ticker);
@@ -79,29 +94,28 @@ CREATE INDEX IF NOT EXISTS idx_dividends_ticker ON dividends (ticker);
 CREATE TABLE IF NOT EXISTS institutional_holdings (
     id SERIAL PRIMARY KEY,
     ticker text NOT NULL,
-    institutional_ownership_perc NUMERIC,
-    total_shares_outstanding_millions NUMERIC,
-    total_value_holdings_millions NUMERIC,
-    increased_positions_holders NUMERIC,
-    increased_positions_shares NUMERIC,
-    decreased_positions_holders NUMERIC,
-    decreased_positions_shares NUMERIC,
-    held_positions_holders NUMERIC,
-    held_positions_shares NUMERIC,
-    total_institutional_holders NUMERIC,
-    total_institutional_shares NUMERIC,
-    new_positions_holders NUMERIC,
-    new_positions_shares NUMERIC,
-    sold_out_positions_holders NUMERIC,
-    sold_out_positions_shares NUMERIC,
-    refreshed_page_date TIMESTAMP DEFAULT NULL,
+    sharesOutstandingPCT NUMERIC(12,2),
+    sharesOutstandingTotal BIGINT,
+    totalHoldingsValue BIGINT,
+    increasedPositionsHolders BIGINT,
+    increasedPositionsShares BIGINT,
+    decreasedPositionsHolders BIGINT,
+    decreasedPositionsShares BIGINT,
+    heldPositionsHolders BIGINT,
+    heldPositionsShares BIGINT,
+    totalPositionsHolders BIGINT,
+    totalPositionsShares BIGINT,
+    newPositionsHolders  BIGINT,
+    newPositionsShares BIGINT,
+    soldOutPositionsHolders BIGINT,
+    soldOutPositionsShares BIGINT,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticker) REFERENCES tickers (ticker)
 );
 
 CREATE INDEX IF NOT EXISTS idx_institutional_holdings_ticker ON institutional_holdings (ticker);
 
-
+-- Relational tables
 CREATE TABLE IF NOT EXISTS favorites (
     ticker text NOT NULL,
     user_id INT NOT NULL,
@@ -125,9 +139,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY, 
     user_id INT REFERENCES users(id),
     ticker TEXT REFERENCES tickers(ticker),
-    price NUMERIC,
-    quantity INT,
-    transaction_type TEXT,
+    price NUMERIC(19,2),
+    quantity BIGINT,
+    transactionType TEXT,
     fee NUMERIC DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -137,7 +151,7 @@ CREATE INDEX IF NOT EXISTS idx_transcations_user_ticker ON transactions (user_id
 CREATE TABLE IF NOT EXISTS funds (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
-    amount NUMERIC,
+    amount NUMERIC(19,2),
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -223,7 +237,7 @@ BEGIN
                     SELECT 1 FROM portfolio WHERE user_id = user_id_input AND ticker = ticker_input
                 );
 				
-                INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee) 
+                INSERT INTO transactions (user_id, ticker, price, quantity, transactionType, fee) 
                 VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input);
                 -- Add the fund 'transaction' in order to keep record of the funds, total transaction in negative!
 				INSERT INTO funds (user_id, amount, description) 
@@ -238,7 +252,7 @@ BEGIN
 			total_transaction := price_input * quantity_input - fee_input;
 			IF total_quantity_stock >= quantity_input THEN
 			    -- Quantity must be negative
-                INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee) 
+                INSERT INTO transactions (user_id, ticker, price, quantity, transactionType, fee) 
                 VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input);
                 -- DELETE ticker in portfolio if the quantity of stocks sold is the same as what is in the portfolio
                 IF total_quantity_stock = quantity_input THEN
