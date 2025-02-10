@@ -191,7 +191,7 @@ BEGIN
     INTO total_spent
     FROM transactions
     WHERE user_id = user_id_input
-	AND transaction_type='buy';
+	AND transactionType='buy';
 
     RETURN QUERY SELECT total_funds, total_spent;
 END;
