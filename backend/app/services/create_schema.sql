@@ -209,6 +209,7 @@ END;
 $BODY$;
 
 
+
 CREATE OR REPLACE FUNCTION public.calculate_portfolio_totals(
 	user_id_input integer)
     RETURNS TABLE(total_funds numeric, total_spent numeric, total_gains numeric) 
@@ -224,22 +225,26 @@ DECLARE
 	total_gains NUMERIC;
 BEGIN
 
+	--cash
     SELECT COALESCE(SUM(amount), 0)
     INTO total_funds
     FROM funds
     WHERE user_id = user_id_input;
 
+	-- positions
     SELECT COALESCE(sum(totalValue), 0)
 	INTO total_spent
 	FROM portfolio
-	WHERE user_id = 2	;
+	WHERE user_id = user_id_input;
 
+	-- REalized gains
 	SELECT COALESCE(SUM(amount), 0)
 	INTO total_gains
 	FROM funds
-	WHERE user_id = 2
-	AND description NOT LIKE  '%Deposit%';
+	WHERE user_id = user_id_input
+	AND description LIKE  '%Sold%';
 
     RETURN QUERY SELECT total_funds, total_spent,total_gains;
 END;
 $BODY$;
+

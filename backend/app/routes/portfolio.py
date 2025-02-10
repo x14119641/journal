@@ -41,7 +41,7 @@ async def add_funds(amount:int,
     current_user:Annotated[UserLogin, Depends(get_current_active_user)],db:Database=Depends(get_db) ):
     portfolio = await db.fetchrow("SELECT * FROM calculate_portfolio_totals(($1))", current_user.id)
     if portfolio:
-        if amount > portfolio["available_funds"]:
+        if amount > portfolio["total_funds"]:
             print('Not enough funds')
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Not enough funds")

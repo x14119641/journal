@@ -31,8 +31,8 @@ export const usePortfolioStore = defineStore('portfolio', {
                 
                 this.total_spent = response.data.total_spent
                 this.accountValue = response.data.total_funds
-                this.cash = this.accountValue -  this.total_spent
                 this.realized_gains = response.data.total_gains
+                this.cash = this.accountValue -  this.total_spent
             } catch (error) {
                 throw error;
             }
