@@ -1,24 +1,31 @@
 <template>
   <div class="bg-gray-800 rounded-lg shadow-lg">
-    <PieChartComponent :labels="chartLabels" :values="chartValues" :colors="chartColors"/>
+    <AllocationDoughnout />
   </div>
-  <p class="text-white">{{ result }}</p>
+  <!-- <p class="text-white">{{ chartData }}</p> -->
 </template>
 
 <script setup lang="ts">
 
 import { onMounted,computed, ref } from 'vue';
-import PieChartComponent from '../components/PieChartComponent.vue';
+import AllocationDoughnout from '../components/AllocationDoughnout.vue';
 import { usePortfolioStore } from '../stores/portfolioStore';
 
-const portfolioStore = usePortfolioStore();
+// const portfolioStore = usePortfolioStore();
 
-onMounted(portfolioStore.getPortfolio)
-const result = computed(() => portfolioStore.portfolio)
+// onMounted(async () => {
+//   await portfolioStore.getPortfolioAllocation();
+// });
+// const chartData = computed(() => portfolioStore.allocation_portfolio)
 
-const chartLabels = computed(() => result.value.map(item => item.ticker));
-const chartValues = computed(() => result.value.map(item => item.totalValue));
+// const chartData = computed(() => result.value.map(item => item.totalValue));
 // const chartLabels = ref<string[]>(["Stocks", "Bonds", "Real Estate", "Crypto", "Cash"]);
 // const chartValues = ref<number[]>([5000, 3000, 2000, 1500, 1000]);
-const chartColors = ref<string[]>(['#f87171', '#60a5fa', '#fbbf24', '#34d399', '#a78bfa']);
+// const chartColors = ref<string[]>(['#f87171', '#60a5fa', '#fbbf24', '#34d399', '#a78bfa']);
+
+// // Create a key from the labels and values. Whenever the data changes,
+// // the key will change, forcing Vue to re-create the PieChartComponent.
+// const chartKey = computed(() => {
+//   return chartLabels.value.join('-') + '|' + chartValues.value.join('-');
+// });
 </script>

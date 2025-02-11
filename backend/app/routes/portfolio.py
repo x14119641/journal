@@ -9,7 +9,7 @@ router = APIRouter(prefix='/portfolio', tags=["Portfolio",])
 
 @router.get("/")
 async def get_portfolio(
-        current_user: Annotated[UserLogin,Depends(get_current_active_user)],
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
     results = await db.fetch("SELECT * FROM get_portfolio_summary(($1))", current_user.id)
     return results
@@ -22,6 +22,30 @@ async def get_total_funds(
         limit: int = 10):
     results = await db.fetch("SELECT * FROM funds WHERE user_id = ($1) ORDER BY created_at DESC LIMIT ($2)", current_user.id, limit)
     print(results)
+    return results
+
+
+@router.get("/allocation")
+async def get_allocation_funds(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch("""
+                            with cte as (
+                                SELECT ticker,
+                                SUM(quantity) AS quantity 
+                                FROM portfolio 
+                                WHERE user_id = ($1)
+                                GROUP BY ticker
+                            )
+                            SELECT 
+                            c.ticker,
+                            c.quantity,
+                            m.sector,
+                            m.industry
+                            FROM metadata m
+                            JOIN cte c
+                            ON c.ticker = m.ticker;
+                            """, current_user.id)
     return results
 
 

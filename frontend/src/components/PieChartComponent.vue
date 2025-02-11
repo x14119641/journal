@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed } from "vue";
 import {
   Chart,
   PieController,
@@ -24,7 +24,7 @@ Chart.register(PieController, ArcElement, Tooltip, Legend, Title);
 
 // Define the component props.
 const props = defineProps<{
-    title?:string; 
+  title?:string; 
   labels: string[];
   values: number[];
   colors: string[];

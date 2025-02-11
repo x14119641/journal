@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col items-center space-y-6">
     <!-- Top Row: 3 Boxes -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full h-fit">
-      <div class="bg-gray-800 rounded-lg shadow-lg row-span-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      <div class="bg-gray-800 rounded-lg shadow-lg">
         <!-- Box 1  -->
         <ProfileInfo />
       </div>
@@ -11,17 +11,17 @@
         <!-- Box 2  -->
         <FundsHeader />
       </div>
-      <div class="bg-gray-800 rounded-lg shadow-lg row-span-2">
+      <div class="bg-gray-800 rounded-lg shadow-lg">
         <!-- Box 1  -->
         <ProfileInfo />
       </div>
     </div>
 
     <!-- Bottom Row: 2 Boxes -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
       <div class="bg-gray-800 rounded-lg shadow-lg">
         <!-- Box 4 content goes here -->
-        <PieChartComponent :labels="chartLabels" :values="chartValues" :colors="chartColors"/>
+        <AllocationDoughnout />
       </div>
       <div class="bg-gray-800 p-6 rounded-lg shadow-lg overflow-hidden">
         <!-- Box 5 content goes here -->
@@ -29,13 +29,13 @@
       </div>
     </div>
   </div>
-</template>
+</template> 
 <script setup lang="ts">
 import ProfileInfo from "../components/ProfileInfo.vue"; // Import the Profile component
 import FundsHeader from "../components/FundsHeader.vue";
 import DataTable from "../components/DataTable.vue";
 import { onMounted,computed, ref } from 'vue';
-import PieChartComponent from '../components/PieChartComponent.vue';
+import AllocationDoughnout from "../components/AllocationDoughnout.vue";
 import { usePortfolioStore } from '../stores/portfolioStore';
 
 const tableHeaders = ['Name', 'Age', 'Email'];

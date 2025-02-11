@@ -28,6 +28,13 @@ export interface PortfolioItem {
     totalQuantity: number;
 }
 
+export interface AllocationRecord {
+    ticker: string;
+    quantity: number;
+    sector: string;
+    industry: string;
+}
+
 export interface StockMetadata {
     ticker: string;
     name : string;

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { type Fund } from "../models/models";
 import api from "../services/api";
 import  { type PortfolioItem } from "../models/models";
-
+import { type AllocationRecord } from "../models/models";
 
 export const usePortfolioStore = defineStore('portfolio', {
     state: () => ({
@@ -11,6 +11,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         cash:0,
         latest_funds_transactions: [] as Fund[],
         portfolio: [] as PortfolioItem[],
+        allocation_portfolio: [] as AllocationRecord[],
         realized_gains:0,
         default_limit:10
     }),
@@ -29,6 +30,14 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 const response = await api.get('/portfolio/')
                 this.portfolio = [...response.data]
+            } catch (error) {
+                throw error;
+            }
+        },
+        async getPortfolioAllocation() {
+            try {
+                const response = await api.get('/portfolio/allocation')
+                this.allocation_portfolio = [...response.data]
             } catch (error) {
                 throw error;
             }
