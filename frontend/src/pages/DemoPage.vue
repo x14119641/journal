@@ -1,16 +1,13 @@
 <template>
   <div class="bg-gray-800 rounded-lg shadow-lg">
-    <AllocationDoughnout />
+    <PortfolioBarChart />
   </div>
   <!-- <p class="text-white">{{ chartData }}</p> -->
 </template>
 
 <script setup lang="ts">
 
-import { onMounted,computed, ref } from 'vue';
-import AllocationDoughnout from '../components/AllocationDoughnout.vue';
-import { usePortfolioStore } from '../stores/portfolioStore';
-
+import PortfolioBarChart from '../components/PortfolioBarChart.vue';
 // const portfolioStore = usePortfolioStore();
 
 // onMounted(async () => {

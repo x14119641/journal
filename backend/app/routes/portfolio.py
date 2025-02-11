@@ -49,6 +49,19 @@ async def get_allocation_funds(
     return results
 
 
+@router.get("/barchartdata")
+async def get_portfolio_barchart_Data(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch(
+        """SELECT ticker, SUM(totalValue) AS "totalValue" 
+            FROM portfolio
+            WHERE user_id = ($1)
+            GROUP BY ticker;""", 
+        current_user.id)
+    return results
+
+
 @router.get("/funds/totals")
 async def get_total_funds(current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
     results = await db.fetchrow("SELECT * FROM calculate_portfolio_totals(($1))", current_user.id)

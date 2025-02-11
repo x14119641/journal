@@ -3,6 +3,8 @@ import { type Fund } from "../models/models";
 import api from "../services/api";
 import  { type PortfolioItem } from "../models/models";
 import { type AllocationRecord } from "../models/models";
+import { type BarChartDataItem } from "../models/models";
+
 
 export const usePortfolioStore = defineStore('portfolio', {
     state: () => ({
@@ -12,6 +14,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         latest_funds_transactions: [] as Fund[],
         portfolio: [] as PortfolioItem[],
         allocation_portfolio: [] as AllocationRecord[],
+        portfolio_barchart_data: [] as BarChartDataItem[],
         realized_gains:0,
         default_limit:10
     }),
@@ -38,6 +41,14 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 const response = await api.get('/portfolio/allocation')
                 this.allocation_portfolio = [...response.data]
+            } catch (error) {
+                throw error;
+            }
+        },
+        async getPortfolioBarChartData() {
+            try {
+                const response = await api.get('/portfolio/barchartdata')
+                this.portfolio_barchart_data = [...response.data]
             } catch (error) {
                 throw error;
             }
@@ -73,3 +84,4 @@ export const usePortfolioStore = defineStore('portfolio', {
         
     }
 })
+

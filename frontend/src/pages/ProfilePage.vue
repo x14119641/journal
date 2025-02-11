@@ -18,14 +18,14 @@
     </div>
 
     <!-- Bottom Row: 2 Boxes -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-full">
       <div class="bg-gray-800 rounded-lg shadow-lg">
         <!-- Box 4 content goes here -->
         <AllocationDoughnout />
       </div>
-      <div class="bg-gray-800 p-6 rounded-lg shadow-lg overflow-hidden">
+      <div class="bg-gray-800  rounded-lg shadow-lg ">
         <!-- Box 5 content goes here -->
-        <DataTable :headers="tableHeaders" :rows="tableData" />
+        <PortfolioBarChart />
       </div>
     </div>
   </div>
@@ -37,6 +37,7 @@ import DataTable from "../components/DataTable.vue";
 import { onMounted,computed, ref } from 'vue';
 import AllocationDoughnout from "../components/AllocationDoughnout.vue";
 import { usePortfolioStore } from '../stores/portfolioStore';
+import PortfolioBarChart from '../components/PortfolioBarChart.vue';
 
 const tableHeaders = ['Name', 'Age', 'Email'];
 const tableData = [

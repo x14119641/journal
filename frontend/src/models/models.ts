@@ -35,6 +35,13 @@ export interface AllocationRecord {
     industry: string;
 }
 
+
+export interface BarChartDataItem {
+    ticker: string;
+    totalValue: number;
+}
+
+
 export interface StockMetadata {
     ticker: string;
     name : string;
