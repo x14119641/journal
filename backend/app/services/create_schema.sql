@@ -210,41 +210,32 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION public.calculate_portfolio_totals(
-	user_id_input integer)
-    RETURNS TABLE(total_funds numeric, total_spent numeric, total_gains numeric) 
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-    ROWS 1000
-
+CREATE OR REPLACE FUNCTION get_portfolio_summary(user_id_input INTEGER)
+RETURNS TABLE(
+	ticker TEXT,
+	"totalValue" NUMERIC,
+	"totalQuantity" NUMERIC
+)
+LANGUAGE sql
 AS $BODY$
-DECLARE
-    total_funds NUMERIC;
-    total_spent NUMERIC;
-	total_gains NUMERIC;
-BEGIN
+WITH totals AS (
+  SELECT
+    COALESCE((SELECT SUM(amount) FROM funds WHERE user_id = user_id_input), 0) AS total_funds,
+    COALESCE((SELECT SUM(totalValue) FROM portfolio WHERE user_id = user_id_input), 0) AS total_spent
+)
+SELECT 
+  ticker,
+  SUM(totalValue) AS "totalValue",
+  SUM(quantity) AS "totalQuantity"
+FROM public.portfolio
+WHERE user_id = user_id_input
+GROUP BY ticker
 
-	--cash
-    SELECT COALESCE(SUM(amount), 0)
-    INTO total_funds
-    FROM funds
-    WHERE user_id = user_id_input;
+UNION ALL
 
-	-- positions
-    SELECT COALESCE(sum(totalValue), 0)
-	INTO total_spent
-	FROM portfolio
-	WHERE user_id = user_id_input;
-
-	-- REalized gains
-	SELECT COALESCE(SUM(amount), 0)
-	INTO total_gains
-	FROM funds
-	WHERE user_id = user_id_input
-	AND description LIKE  '%Sold%';
-
-    RETURN QUERY SELECT total_funds, total_spent,total_gains;
-END;
+SELECT
+  'Money' AS ticker,
+  (t.total_funds - t.total_spent) AS "totalValue",  
+  NULL::numeric AS "totalQuantity"
+FROM totals t;
 $BODY$;
-
