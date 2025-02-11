@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { type Fund } from "../models/models";
 import api from "../services/api";
-
+import  { type PortfolioItem } from "../models/models";
 
 
 export const usePortfolioStore = defineStore('portfolio', {
@@ -9,18 +9,26 @@ export const usePortfolioStore = defineStore('portfolio', {
         accountValue: 0,
         total_spent:0,
         cash:0,
-        latest_portfolio: [] as Fund[],
+        latest_funds_transactions: [] as Fund[],
+        portfolio: [] as PortfolioItem[],
         realized_gains:0,
         default_limit:10
     }),
     actions: {
-        async getPortfolio(limit?:number) {
+        async getFunds(limit?:number) {
             const finalLimit = limit || this.default_limit
             try {
                 const response = await api.get('/portfolio/funds', {params:{limit:finalLimit}})
-                this.latest_portfolio = [...response.data]
-                console.log(this.latest_portfolio)
+                this.latest_funds_transactions = [...response.data]
                 await this.getFundsTotals()
+            } catch (error) {
+                throw error;
+            }
+        },
+        async getPortfolio() {
+            try {
+                const response = await api.get('/portfolio/')
+                this.portfolio = [...response.data]
             } catch (error) {
                 throw error;
             }
@@ -32,7 +40,7 @@ export const usePortfolioStore = defineStore('portfolio', {
                 this.total_spent = response.data.total_spent
                 this.accountValue = response.data.total_funds
                 this.realized_gains = response.data.total_gains
-                this.cash = this.accountValue -  this.total_spent
+                this.cash = response.data.cash
             } catch (error) {
                 throw error;
             }
@@ -40,7 +48,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         async addFunds(total_funds_to_add:number) {
             try {
                 await api.post(`portfolio/funds/add?amount=${total_funds_to_add}`);
-                await this.getPortfolio()
+                await this.getFunds()
             } catch (error) {
                 throw error;
             }
@@ -48,7 +56,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         async removeFunds(total_funds_to_remove:number) {
             try {
                 await api.post(`portfolio/funds/withdraw?amount=${total_funds_to_remove}`);
-                await this.getPortfolio()
+                await this.getFunds()
             } catch (error) {
                 throw error;
             }

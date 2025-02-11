@@ -1,57 +1,24 @@
 <template>
-  <div class="flex flex-col items-center space-y-6">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-      <!-- Left Column -->
-      <div class="bg-gray-800 rounded-lg shadow-lg ">
-        <FundsHeader />
-      </div>
-
-      <!-- Right Column (2 boxes inside) -->
-      <div class="col-span-2 flex flex-col gap-6 w-full">
-        <div class="bg-gray-800 rounded-lg shadow-lg flex-grow">
-          <AddFunds />
-        </div>
-        <div class="bg-gray-800 rounded-lg shadow-lg flex-grow">
-          <RemoveFunds />
-        </div>
-      </div>
-    </div>
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-full overflow-hidden">
-      <!-- Main content, table -->
-      <DataTable :headers="tableHeaders" :rows="tableData" />
-    </div>
+  <div class="bg-gray-800 rounded-lg shadow-lg">
+    <PieChartComponent :labels="chartLabels" :values="chartValues" :colors="chartColors"/>
   </div>
+  <p class="text-white">{{ result }}</p>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import api from '../services/api';
-// import { type Fund } from '../models/models';
-import DataTable from '../components/DataTable.vue';
-import FundsHeader from '../components/FundsHeader.vue';
-import AddFunds from '../components/AddFunds.vue';
-import RemoveFunds from '../components/RemoveFunds.vue';
 
-const tableData = ref([]);
-const error_message = ref<String>(''); 
-const tableHeaders = ['Amount', 'Description', 'Created at'];
+import { onMounted,computed, ref } from 'vue';
+import PieChartComponent from '../components/PieChartComponent.vue';
+import { usePortfolioStore } from '../stores/portfolioStore';
 
-onMounted(async () => {
-  try {
-    const response = await api.get('/portfolio/funds')
-    tableData.value = response.data.map((key) => {
-      return {
-        'amount':key.amount,
-        'description':key.description,
-        'created_at':key.created_at
-      }
-    })
-  } catch (error) {
-    console.error('Error in get funds data: ', error)
-    error_message.value = 'Failed to load data from funds'
-  }
-})
+const portfolioStore = usePortfolioStore();
+
+onMounted(portfolioStore.getPortfolio)
+const result = computed(() => portfolioStore.portfolio)
+
+const chartLabels = computed(() => result.value.map(item => item.ticker));
+const chartValues = computed(() => result.value.map(item => item.totalValue));
+// const chartLabels = ref<string[]>(["Stocks", "Bonds", "Real Estate", "Crypto", "Cash"]);
+// const chartValues = ref<number[]>([5000, 3000, 2000, 1500, 1000]);
+const chartColors = ref<string[]>(['#f87171', '#60a5fa', '#fbbf24', '#34d399', '#a78bfa']);
 </script>
-
-<style scoped>
-</style> 

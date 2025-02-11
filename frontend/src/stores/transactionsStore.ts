@@ -19,6 +19,7 @@ export const useTransactionsStore = defineStore('transactions', {
                 this.transaction_message_return = response.data.message
                 await this.getLatestTransactions()
                 const portfolioStore = usePortfolioStore()
+                await portfolioStore.getFunds()
                 await portfolioStore.getPortfolio()
             } catch (error) {
                 throw error;

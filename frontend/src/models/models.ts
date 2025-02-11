@@ -22,6 +22,12 @@ export interface Fund {
     created_at:string;
 }
 
+export interface PortfolioItem {
+    ticker: string;
+    totalValue: Decimal;
+    totalQuantity: number;
+}
+
 export interface StockMetadata {
     ticker: string;
     name : string;
