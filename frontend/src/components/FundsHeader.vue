@@ -20,7 +20,9 @@
       </div>
       <div class="flex justify-center mt-2">
         <RouterLink v-if="currentRoute!=='/funds'" to="/funds" class="font-medium text-blue-500 px-4 py-2 m-2">Manage funds</RouterLink>
+        <RouterLink v-else to="/profile" class="font-medium text-blue-500 px-4 py-2 m-2">Back to Profile</RouterLink>
         <RouterLink v-if="currentRoute!=='/transactions'" to="/transactions" class="font-medium text-blue-500 px-4 py-2 m-2">Manage Transactions</RouterLink>
+        <RouterLink v-else to="/profile" class="font-medium text-blue-500 px-4 py-2 m-2">Back to Profile</RouterLink>
       </div>
     </div>
 
