@@ -22,7 +22,6 @@
           :key="chartKey"
           :labels="chartLabels"
           :values="chartValues"
-          :colors="chartColors"
         />
       </div>
       <div class="bg-gray-800 p-6 rounded-lg shadow-lg overflow-hidden">
@@ -35,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 // import { type Fund } from '../models/models';
 import DataTable from "../components/DataTable.vue";
 import FundsHeader from "../components/FundsHeader.vue";
@@ -58,8 +57,6 @@ const chartLabels = computed(() => result.value.map(item => item.ticker));
 const chartValues = computed(() => result.value.map(item => item.totalQuantity));
 // const chartLabels = ref<string[]>(["Stocks", "Bonds", "Real Estate", "Crypto", "Cash"]);
 // const chartValues = ref<number[]>([5000, 3000, 2000, 1500, 1000]);
-const chartColors = ref<string[]>(['#001A6E', '#074799', '#009990', '#E1FFBB', '#536493', '#036493', '#088493', '#001190']);
-
 // Create a key from the labels and values. Whenever the data changes,
 // the key will change, forcing Vue to re-create the PieChartComponent.
 const chartKey = computed(() => {

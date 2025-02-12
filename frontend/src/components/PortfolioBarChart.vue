@@ -14,7 +14,9 @@
   import { ref, onMounted, computed } from 'vue';
   import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
   import { usePortfolioStore } from '../stores/portfolioStore';
-  
+  import chroma from 'chroma-js';
+
+
   // Register Chart.js components.
   Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
   
@@ -33,8 +35,14 @@
   const chartCanvas = ref<HTMLCanvasElement | null>(null);
   const chartInstance = ref<Chart | null>(null);
   
+
+  const n_colors = computed(() => tickers.value.length)
+
   onMounted(async () => {
     await portfolioStore.getPortfolioBarChartData();
+    // Generate colors
+    const colors = chroma.scale(['#ff9544', '#749fe5', '#293b1e'])
+      .mode('lch').colors(n_colors.value)
     if (chartCanvas.value) {
       const ctx = chartCanvas.value.getContext('2d');
       if (ctx) {
@@ -46,7 +54,7 @@
               // Use a proper string label for the dataset (not an array).
             //   label: "Portfolio",
               data: totalValues.value,     // Y-axis values.
-              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#6BC0C0', '#4BC1C1'], // Colors for each bar.
+              backgroundColor: colors, // Colors for each bar.
             }]
           },
           options: {

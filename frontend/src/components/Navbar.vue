@@ -74,7 +74,7 @@
         </span>
         <button
           class="bg-transparent font-semibold hover:text-white py-2 px-4 border  hover:border-transparent rounded-full"
-          :class="authStore.username ? ' hover:bg-customFuchsia-1 text-customFuchsia-1 border-customFuchsia-1' : ' hover:bg-lime-400 text-lime-300 border-lime-300'"
+          :class="authStore.username ? ' hover:bg-customFuchsia-2 text-customFuchsia-2 border-customFuchsia-2' : ' hover:bg-lime-400 text-lime-300 border-lime-300'"
           >
         <router-link v-if="authStore.username" @click.native="authStore.logout" to="/logout" class="">Logout</router-link>
         <router-link v-else @click.native="authStore.login" to="/login" class="">Login</router-link>

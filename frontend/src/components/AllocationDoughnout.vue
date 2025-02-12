@@ -17,6 +17,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { Chart, DoughnutController, ArcElement, Tooltip, Legend } from 'chart.js';
 import { usePortfolioStore } from '../stores/portfolioStore';
+import chroma from 'chroma-js';
 
 // Register Chart.js components.
 Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
@@ -48,7 +49,7 @@ const quantities = computed(() =>
   sectors.value.map(sector => sectorAllocation.value[sector].total)
 );
 
-
+const n_colors = computed(() => quantities.value.length)
 // Build a mapping from sector to a list of ticker details (as strings).
 const sectorDetails = computed(() => {
   return sectors.value.reduce((acc, sector) => {
@@ -62,9 +63,15 @@ const sectorDetails = computed(() => {
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
 
 
+
 // Combine onMounted: first fetch data from the store, then create the chart.
 onMounted(async () => {
   await portfolioStore.getPortfolioAllocation(); // Wait for API data to load.
+
+  // Generate colors '#44FF57' : '#FA2488' // '#fafa6e', '#2A4858'
+  const colors = chroma.scale(['#44ff57', '#ff44ad', '#7a808e'])
+    .mode('lch').colors(n_colors.value)
+    
   if (hasData.value && chartCanvas.value) {
     const ctx = chartCanvas.value.getContext('2d');
     if (ctx) {
@@ -74,7 +81,7 @@ onMounted(async () => {
           labels: sectors.value,
           datasets: [{
             data: quantities.value,
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+            backgroundColor: colors,
           }],
         },
         options: {

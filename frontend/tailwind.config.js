@@ -8,9 +8,9 @@ export default {
       },
       colors:{
         customFuchsia: {
-          1: '#FA2488',
-          2: '#E1207A',
-          3: '#C81C6C'
+          1: '#c444ff',
+          2: '#ff44ec',
+          3: '#ff449e'
         }
       }
     },
