@@ -26,6 +26,7 @@
 import { ref, onMounted } from "vue";
 import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
+import moment from 'moment';
 
 const authStore = useAuthStore();
 
@@ -41,7 +42,8 @@ onMounted(async () => {
       id.value = response.data.id;
       username.value = response.data.username;
       email.value = response.data.email;
-      created_at.value = response.data.created_at;
+      let strDate = moment(response.data.created_at).format('DD-MMM-YYYY')
+      created_at.value = strDate
     } catch (error) {
       console.error("Error fetching data: ", error);
     }
