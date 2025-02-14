@@ -7,9 +7,9 @@
       <span class="text-green-400">
         <template v-for="(stock, index) in stocks" :key="index">
           <!-- You can wrap item in a router-link if needed -->
-          <RouterLink :to="`/stocks/${stock}`"
+          <router-link :to="`/stocks/${stock}`"
           class="font-medium text-blue-500"
-          >{{ stock }}</RouterLink
+          >{{ stock }}</router-link
           ><span v-if="index < stocks.length - 1">, </span>
         </template>
       </span>
@@ -37,11 +37,9 @@
 import { computed, onMounted } from "vue";
 // import { useTransactionsStore } from '../stores/transactionsStore';
 import { usePortfolioStore } from "../stores/portfolioStore";
-import { RouterLink, useRoute } from "vue-router";
 
 const portfolioStore = usePortfolioStore();
 // const transactionsStore = useTransactionsStore();
-const route = useRoute();
 
 const stocks = computed(() => portfolioStore.getTickersPortfolio);
 const numberStocks = computed(() => portfolioStore.portfolio_summary.length);

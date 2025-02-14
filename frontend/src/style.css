@@ -24,3 +24,24 @@
   font-weight: normal;
   font-style: normal;
 }
+
+/* Titles */
+.chart-title{
+  @apply text-center text-xl font-bazooka text-cyan-500;
+}
+
+/* Special Styles */
+.dolar-style{
+  @apply text-2xl font-bazooka text-lime-500;
+}
+.loading-text-style{
+  @apply mt-4 text-white text-lg
+}
+
+/* Must Need (layouts) */
+/* chart container sets a high to the chart */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 400px; /* Ensure the container has a defined height */
+}
