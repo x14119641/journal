@@ -59,16 +59,17 @@ export interface StockMetadata {
 
 export interface StockScreener {
     ticker: string;
-    ex_dividend_date : string;
-    payment_date: string;
+    numdividends:number;
     amount: number;
-    institutional_ownership_perc: number;
-    increased_positions_holders: number;
-    decreased_positions_holders:number;
-    held_positions_holders: number;
-    total_institutional_holders: number;
-    new_positions_holders:number;
-    sold_out_positions_holders:number;
+    declarationdate : string;
+    sector: string;
+    marketcap: number;
+    peratio: number;
+    forwardpe1yr:number;
+    earningspershare: number;
+    annualizeddividend: number;
+    yield:number;
+    sharesoutstandingpct:number;
     ratioholdersbuysold:number | null;
 }
 

@@ -48,7 +48,6 @@ async def get_total_funds(
         db: Database = Depends(get_db),
         limit: int = 10):
     results = await db.fetch("SELECT * FROM funds WHERE user_id = ($1) ORDER BY created_at DESC LIMIT ($2)", current_user.id, limit)
-    print(results)
     return results
 
 

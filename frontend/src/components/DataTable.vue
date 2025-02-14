@@ -22,7 +22,7 @@
                             {{ row[header] }}
                         </router-link>
                         </template>
-                        <template v-else>
+                    <template v-else>
                         {{ row[header] }}
                     </template>
                     </td>

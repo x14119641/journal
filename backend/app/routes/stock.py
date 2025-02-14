@@ -97,8 +97,8 @@ async def get_dividends_calendar(
     start_month = datetime(day=1, month=month, year=datetime.today().year)
     end_month = last_day_of_month(start_month)
     results = await db.fetch("""
-                            SELECT d.ticker, d.amount, d.payment_date FROM dividends d
-                            WHERE d.payment_date BETWEEN ($1) AND ($2);
+                            SELECT d.ticker, d.amount, d.paymentDate FROM dividends d
+                            WHERE d.paymentDate BETWEEN ($1) AND ($2);
                              """, start_month, end_month)
     return  results
 
@@ -108,75 +108,135 @@ async def get_dividends_calendar(
 # stocks/screener
 @router.get("/screener")
 async def get_stock_by_ticker(
-    paymentMonth: Optional[int] = None,
-    institutionalPercentage: Optional[Decimal] = None,
+    numDividends:Optional[int] = None,
     amountAbove: Optional[Decimal] = None,
+    exDateMonth: Optional[int] = None,
+    sector: Optional[str] = None,
+    marketcap: Optional[int] = None,
+    peratio: Optional[Decimal] = None,
+    forwardpe1yr: Optional[Decimal] = None,
+    earningspershare: Optional[Decimal] = None,
+    annualizeddividend: Optional[Decimal] = None,
+    annualyield: Optional[Decimal] = None,
+    sharesoutstandingpct: Optional[Decimal] = None,
     ratioholdersbuysold:Optional[Decimal] = None,
-    lastYearPayments:Optional[int] = None,
     db: Database = Depends(get_db)
 ):
     this_year = datetime.today().year
     #  So far now, if there is not data in instutionals we dont show data,
     # This is because i am doind a left join, at the moment i leave it like that
     # Not sure if i will need to handle nulls and now i dont want the hasle
-    query = f"""
-        WITH DividendCount AS(
-            SELECT ticker, COUNT(ticker) AS numDividends
+    """
+    # We build the query dinamically as i dont want to query a lot of data a lot of time and then filter
+    The query looks like:
+        WITH DividendCount AS (
+            SELECT ticker, COUNT(ticker) AS numDividends, amount
             FROM dividends 
-            WHERE EXTRACT(YEAR FROM payment_date) = {this_year}
-            GROUP BY ticker
-            )
-        SELECT d.ticker,
-                dd.numDividends,
-                d.ex_dividend_date, 
-                d.payment_date, 
-                d.amount,
-                i.institutional_ownership_perc, 
-                i.increased_positions_holders, 
-                i.decreased_positions_holders, 
-                i.held_positions_holders,
-                i.total_institutional_holders, 
-                i.new_positions_holders, 
-                i.sold_out_positions_holders,
-                ROUND(NULLIF(i.new_positions_holders, 0) / NULLIF(i.sold_out_positions_holders, 0), 3) AS ratioHoldersBuySold
+            bla bla
+        ),
+        FindExDate AS (
+            SELECT ticker, MIN(declarationdate) AS declarationdate
+            FROM dividends
+            WHERE EXTRACT(YEAR FROM declarationdate) = EXTRACT(YEAR FROM CURRENT_DATE)
+            -- Conditional -- AND EXTRACT(MONTH FROM declarationdate) = {month}
+        )
+        SELECT bla bla bla
         FROM DividendCount dd
-        JOIN dividends d ON d.ticker = dd.ticker
-        INNER JOIN institutional_holdings i ON d.ticker = i.ticker
-        WHERE EXTRACT(YEAR FROM d.payment_date) = {this_year}
+        JOIN FindExDate f ON f.ticker = dd.ticker
+        JOIN metadata m ON m.ticker = dd.ticker
+        JOIN institutional_holdings ih ON ih.ticker = dd.ticker
+        -- Conditional Some WHEREs ...
     """
     # Store parameters in list
     query_params = []
     # and do a counter to see how many placeholders while the query is built
     param_counter = 1  
-
-    if paymentMonth is not None:
-        query += f"AND EXTRACT(MONTH FROM d.payment_date) = ${param_counter}"
-        query_params.append(paymentMonth)
+    query = f"""
+        WITH DividendCount AS (
+            SELECT ticker, COUNT(ticker) AS numDividends, amount 
+            FROM dividends 
+            WHERE EXTRACT(YEAR FROM paymentDate) = {this_year}
+            GROUP BY ticker, amount
+        ),
+        FindExDate AS (
+            SELECT ticker, MIN(declarationdate) AS declarationdate
+            FROM dividends
+            WHERE EXTRACT(YEAR FROM declarationdate) = EXTRACT(YEAR FROM CURRENT_DATE)
+    """
+    if exDateMonth:
+        query += f" AND EXTRACT(MONTH FROM declarationdate) = ${param_counter}"
+        query_params.append(exDateMonth)
         param_counter += 1
-    
+    # Close cte
+    query += " GROUP BY ticker) "
+    query += """
+        SELECT dd.ticker,
+            dd.numDividends,
+            dd.amount,
+            f.declarationdate,
+            m.sector, 
+            m.marketcap, 
+            m.peratio, 
+            m.forwardpe1yr, 
+            m.earningspershare, 
+            m.annualizeddividend, 
+            m.yield,
+            ih.sharesoutstandingpct,
+            NULLIF(ih.newpositionsholders, 0) / NULLIF(ih.soldoutpositionsholders, 0) as ratioholdersbuysold
+        FROM DividendCount dd
+        JOIN FindExDate f ON f.ticker = dd.ticker
+        JOIN metadata m ON m.ticker = dd.ticker
+        JOIN institutional_holdings ih ON ih.ticker = dd.ticker
+    """
+    if numDividends is not None:
+        query += f" AND dd.numDividends >= ${param_counter}"
+        query_params.append(numDividends)
+        param_counter += 1
     if amountAbove is not None:
-        query += f" AND d.amount >= ${param_counter}"
+        query += f" AND dd.amount >= ${param_counter}"
         query_params.append(amountAbove)
         param_counter += 1
-        
-    if institutionalPercentage is not None:
-        query += f" AND i.institutional_ownership_perc >= ${param_counter}"
-        query_params.append(institutionalPercentage)
+    if sector is not None:
+        query += f" AND m.sector >= ${param_counter}"
+        query_params.append(sector)
         param_counter += 1
-
+    if marketcap is not None:
+        query += f" AND m.marketcap >= ${param_counter}"
+        query_params.append(marketcap)
+        param_counter += 1
+    if peratio is not None:
+        query += f" AND m.peratio >= ${param_counter}"
+        query_params.append(peratio)
+        param_counter += 1
+    
+    if forwardpe1yr is not None:
+        query += f" AND m.forwardpe1yr >= ${param_counter}"
+        query_params.append(forwardpe1yr)
+        param_counter += 1
+    if earningspershare is not None:
+        query += f" AND m.earningspershare >= ${param_counter}"
+        query_params.append(earningspershare)
+        param_counter += 1
+    if annualizeddividend is not None:
+        query += f" AND m.annualizeddividend >= ${param_counter}"
+        query_params.append(annualizeddividend)
+        param_counter += 1
+    if annualyield is not None:
+        query += f" AND m.yield >= ${param_counter}"
+        query_params.append(annualyield)
+        param_counter += 1
+    if sharesoutstandingpct is not None:
+        query += f" AND m.sharesoutstandingpct >= ${param_counter}"
+        query_params.append(sharesoutstandingpct)
+        param_counter += 1
     if ratioholdersbuysold is not None:
-        query += f" AND NULLIF(i.new_positions_holders, 0) / NULLIF(i.sold_out_positions_holders, 0) >= ${param_counter}"
+        query += f" AND NULLIF(i.newpositionsholders, 0) / NULLIF(i.soldoutpositionsholders, 0) >= ${param_counter}"
         query_params.append(ratioholdersbuysold)
         param_counter += 1
 
-    if lastYearPayments is not None:
-        query += f" AND dd.numDividends >= ${param_counter}"
-        query_params.append(lastYearPayments)
-        param_counter += 1
-    
-    query += " ORDER BY dd.numDividends DESC"
+    query += " ORDER BY dd.numDividends DESC LIMIT 10"
     results = await db.fetch(query, *query_params)
-
+    # print(query)
     return results
 
 
