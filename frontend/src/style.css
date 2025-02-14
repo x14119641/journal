@@ -17,6 +17,8 @@
   -moz-osx-font-smoothing: grayscale;
 } */
 
+
+
 /* Fonts */
 @font-face {
   font-family: 'Bazooka';
@@ -51,7 +53,7 @@
 }
 
 .summary-link-separation{
-  @apply px-4 ml-8 mt-2;
+  @apply px-4 pl-8 mt-2 ;
 }
 
 /* Special Styles */
@@ -82,8 +84,10 @@ Must Need (layouts)
   position: relative;
   width: 100%;
   height: 400px; /* Ensure the container has a defined height */
+
 }
+
 /* slate box with rounded borders and shadow */
 .slate-container{
-  @apply bg-gray-800 rounded-lg shadow-lg
+  @apply bg-gray-800 rounded-lg shadow-lg min-w-full md:min-w-0
 }
