@@ -1,7 +1,7 @@
 <template>
   <div class="p-6 text-center">
     <h3 class="summary-title">User Balance</h3>
-    <div class="mt-2 space-y-2">
+    <div class="mt-2 space-y-2"> 
       <div class="flex justify-between">
         <span class="summary-label">Account Value</span>
         <span class="account-value-style">{{ accountValue }}</span>
@@ -29,19 +29,19 @@
         <router-link
           v-if="currentRoute !== '/funds'"
           to="/funds"
-          class="summary-link"
+          class="summary-link summary-link-separation"
           >Manage funds</router-link
         >
-        <router-link v-else to="/profile" class="summary-link"
+        <router-link v-else to="/profile" class="summary-link summary-link-separation"
           >Back to Profile</router-link
         >
         <router-link
           v-if="currentRoute !== '/transactions'"
           to="/transactions"
-          class="summary-link"
+          class="summary-link summary-link-separation"
           >Manage Transactions</router-link
         >
-        <router-link v-else to="/profile" class="summary-link"
+        <router-link v-else to="/profile" class="summary-link summary-link-separation"
           >Back to Profile</router-link
         >
       </div>

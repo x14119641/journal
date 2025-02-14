@@ -1,33 +1,34 @@
 <template>
   <div class="p-6 w-auto">
     <div v-if="hasData" class="chart-container">
-      <h3 class="text-center text-xl text-gray-200">Allocation by Sector</h3>
+      <h3 class="chart-title">Sector Allocation</h3>
       <canvas class="pb-4" ref="chartCanvas"></canvas>
     </div>
-    <div v-else class="chart-container text-white">
-      Loading chart...
+    <div v-else class="">
+      <LoadingComponent />
     </div>
   </div>
-  <!-- Debugging output -->
-  <!-- <p class="text-white">{{ sectorDetails }}</p>
-  <p class="text-white">{{ sectorAllocation }}</p> -->
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { Chart, DoughnutController, ArcElement, Tooltip, Legend } from 'chart.js';
-import { usePortfolioStore } from '../stores/portfolioStore';
-import chroma from 'chroma-js';
+import { ref, onMounted, computed } from "vue";
+import {
+  Chart,
+  DoughnutController,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { usePortfolioStore } from "../stores/portfolioStore";
+import chroma from "chroma-js";
+import LoadingComponent from "./LoadingComponent.vue";
 
 // Register Chart.js components.
 Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
 
 const portfolioStore = usePortfolioStore();
 
-// Use the store's allocation data.
 const rawData = computed(() => portfolioStore.allocation_portfolio || []);
-
-// Data is available if rawData has at least one item.
 const hasData = computed(() => rawData.value.length > 0);
 
 // --- Aggregate Data by Sector ---
@@ -35,10 +36,16 @@ const hasData = computed(() => rawData.value.length > 0);
 const sectorAllocation = computed(() => {
   return rawData.value.reduce((acc, item) => {
     if (!acc[item.sector]) {
-      acc[item.sector] = { total: 0, tickers: [] as { ticker: string; quantity: number }[] };
+      acc[item.sector] = {
+        total: 0,
+        tickers: [] as { ticker: string; quantity: number }[],
+      };
     }
     acc[item.sector].total += item.quantity;
-    acc[item.sector].tickers.push({ ticker: item.ticker, quantity: item.quantity });
+    acc[item.sector].tickers.push({
+      ticker: item.ticker,
+      quantity: item.quantity,
+    });
     return acc;
   }, {} as Record<string, { total: number; tickers: { ticker: string; quantity: number }[] }>);
 });
@@ -46,70 +53,99 @@ const sectorAllocation = computed(() => {
 // Compute chart labels (sectors) and data (aggregated quantities).
 const sectors = computed(() => Object.keys(sectorAllocation.value));
 const quantities = computed(() =>
-  sectors.value.map(sector => sectorAllocation.value[sector].total)
+  sectors.value.map((sector) => sectorAllocation.value[sector].total)
 );
 
-const n_colors = computed(() => quantities.value.length)
 // Build a mapping from sector to a list of ticker details (as strings).
 const sectorDetails = computed(() => {
   return sectors.value.reduce((acc, sector) => {
     acc[sector] = sectorAllocation.value[sector].tickers.map(
-      t => `${t.ticker}: ${t.quantity}`
+      (t) => `${t.ticker}: ${t.quantity}`
     );
     return acc;
   }, {} as Record<string, string[]>);
 });
-// Reference for the canvas element.
+
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
+const n_colors = computed(() => quantities.value.length);
+const scale_colors = ["#44ff57", "#ff44ad", "#7a808e"];
 
-
-
-// Combine onMounted: first fetch data from the store, then create the chart.
 onMounted(async () => {
-  await portfolioStore.getPortfolioAllocation(); // Wait for API data to load.
+  await portfolioStore.getPortfolioAllocation();
+  // Generate colors
+  const colors = chroma
+    .scale(scale_colors)
+    .mode("lch")
+    .colors(n_colors.value);
 
-  // Generate colors '#44FF57' : '#FA2488' // '#fafa6e', '#2A4858'
-  const colors = chroma.scale(['#44ff57', '#ff44ad', '#7a808e'])
-    .mode('lch').colors(n_colors.value)
-    
   if (hasData.value && chartCanvas.value) {
-    const ctx = chartCanvas.value.getContext('2d');
+    const ctx = chartCanvas.value.getContext("2d");
     if (ctx) {
       new Chart(ctx, {
-        type: 'doughnut', // Change to 'pie' if you prefer.
+        type: "doughnut", 
         data: {
           labels: sectors.value,
-          datasets: [{
-            data: quantities.value,
-            backgroundColor: colors,
-          }],
+          datasets: [
+            {
+              data: quantities.value,
+              backgroundColor: colors,
+            },
+          ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          // Labels in x
           plugins: {
-            legend: { position: 'top', labels:{color:"white", font:{size:14, }},},
+            legend: {
+              position: "top",
+              labels: { color: "#E5E7EB", font: { size: 16, family: 'Inter, sans-serif', } },
+            },
             tooltip: {
+              mode: "nearest",
+              backgroundColor: "#1F293790",
+              displayColors: true,
+              borderWidth: 1,
+              borderColor: "#7fa8e1",
+              titleColor:"#06B6D4",
+              bodyColor:"#E5E7EB",
+              titleFont: {
+                size: 16,
+                family: "Inter, sans-serif",
+              },
+              bodyFont: {
+                size: 14,
+                family: "Inter, sans-serif",
+              },
               callbacks: {
+                title: (tooltipItems) => {
+                  const item = tooltipItems[0]
+                  return `${item.label}`;
+                },
                 label: (context) => {
-                  const label = context.label || '';
+                  const label = context.label || "";
                   const value = Number(context.parsed);
                   // Compute the total across all sectors.
-                  const total = quantities.value.reduce((sum, val) => sum + val, 0);
-                  const percentage = total ? ((value / total) * 100).toFixed(2) : '0';
+                  const total = quantities.value.reduce(
+                    (sum, val) => sum + val,
+                    0
+                  );
+                  const percentage = total
+                    ? ((value / total) * 100).toFixed(2)
+                    : "0";
                   // Get the ticker details for the current sector.
                   const details = sectorDetails.value[label] || [];
                   // Return a multiline tooltip: first line with the aggregate info, second with tickers.
                   return [
-                    `${label}: ${value} (${percentage}%)`,
-                    `Tickers: ${details.join(', ')}`
+                    ` Quantity: ${value} (${percentage}%)`,
+                    ` Tickers: ${details.join(", ")}`,
                   ];
-                }
-              }
-            }
+                },
+              },
+            },
           },
-          interaction: { intersect: true, mode: 'nearest' }
-        }
+          interaction: { intersect: true, mode: "nearest" },
+        },
       });
     }
   }
@@ -117,9 +153,5 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.chart-container {
-  position: relative;
-  width: 100%;
-  height: 400px; /* Ensure the container has a defined height */
-}
+
 </style>

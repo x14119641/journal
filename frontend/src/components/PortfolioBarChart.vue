@@ -2,7 +2,8 @@
   <div class="p-6 w-auto">
     <div v-if="hasData" class="chart-container">
       <h3 class="chart-title">
-        <span class="dolar-style">$</span> Portfolio Allocation
+        <!-- <span class="dolar-style-title">$</span> -->
+        Portfolio Allocation
       </h3>
       <canvas class="pb-2" ref="chartCanvas"></canvas>
     </div>
@@ -52,15 +53,12 @@ const chartCanvas = ref<HTMLCanvasElement | null>(null);
 const chartInstance = ref<Chart | null>(null);
 
 const n_colors = computed(() => tickers.value.length);
-const scale_colors = ["#ff9544", "#749fe5", "#293b1e"]
+const scale_colors = ["#ff9544", "#749fe5", "#293b1e"];
 
 onMounted(async () => {
   await portfolioStore.getPortfolioAllocationInitialCost();
   // Generate colors
-  const colors = chroma
-    .scale(scale_colors)
-    .mode("lch")
-    .colors(n_colors.value);
+  const colors = chroma.scale(scale_colors).mode("lch").colors(n_colors.value);
   if (chartCanvas.value) {
     const ctx = chartCanvas.value.getContext("2d");
     if (ctx) {
@@ -83,6 +81,17 @@ onMounted(async () => {
           scales: {
             y: {
               beginAtZero: true,
+              ticks: {
+                color: "#E5E7EB",
+                font: { size: 16, family: "Inter, sans-serif" },
+              },
+            },
+            x: {
+              beginAtZero: true,
+              ticks: {
+                color: "#E5E7EB",
+                font: { size: 16, family: "Inter, sans-serif" },
+              },
             },
           },
           plugins: {
@@ -90,10 +99,25 @@ onMounted(async () => {
               display: false,
             },
             tooltip: {
+              mode: "nearest",
+              backgroundColor: "#1F293790",
+              displayColors: true,
+              borderWidth: 1,
+              borderColor: "#7fa8e1",
+              titleColor:"#06B6D4",
+              bodyColor:"#E5E7EB",
+              titleFont: {
+                size: 16,
+                family: "Inter, sans-serif",
+              },
+              bodyFont: {
+                size: 14,
+                family: "Inter, sans-serif",
+              },
               callbacks: {
                 // Use context.label to show the x-axis label (ticker)
                 label: (context) => {
-                  return `${context.label}: $${context.parsed.y}`;
+                  return ` $ ${context.parsed.y}`;
                 },
               },
             },
