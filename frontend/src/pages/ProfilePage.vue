@@ -29,11 +29,11 @@
       </div>
     </div>
   </div>
-</template> 
+</template>
 <script setup lang="ts">
-import ProfileInfo from "../components/ProfileInfo.vue"; 
+import ProfileInfo from "../components/ProfileInfo.vue";
 import FundsHeader from "../components/FundsHeader.vue";
 import AllocationDoughnout from "../components/AllocationDoughnout.vue";
-import PortfolioBarChart from '../components/PortfolioBarChart.vue';
-import PortfolioSummary from '../components/PortfolioSummary.vue';
+import PortfolioBarChart from "../components/PortfolioBarChart.vue";
+import PortfolioSummary from "../components/PortfolioSummary.vue";
 </script>
