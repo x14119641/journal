@@ -1,27 +1,25 @@
 <template>
-  
-    <div class="p-6 text-center">
-      <h3 class="text-lg font-semibold text-gray-300">User Profile</h3>
-      <div class="mt-4 space-y-4">
-        <div class="flex justify-between">
-          <span class="font-medium text-gray-400">User ID</span>
-          <span class="text-blue-200">{{ id }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="font-medium text-gray-400">Username</span>
-          <span class="text-blue-200">{{ username }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="font-medium text-gray-400">Email</span>
-          <span class="text-blue-200">{{ email }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="font-medium text-gray-400">Created At</span>
-          <span class="text-blue-200">{{ created_at }}</span>
-        </div>
+  <div class="p-6 text-center">
+    <h3 class="summary-title">User Profile</h3>
+    <div class="mt-2 space-y-2">
+      <div class="flex justify-between">
+        <span class="summary-label">User ID</span>
+        <span class="summary-value">{{ id }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="summary-label">Username</span>
+        <span class="summary-value">{{ username }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="summary-label">Email</span>
+        <span class="summary-value email-style">{{ email }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="summary-label">Created At</span>
+        <span class="summary-value">{{ created_at }}</span>
       </div>
     </div>
-
+  </div>
 </template>
 
 <script setup lang="ts">

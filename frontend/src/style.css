@@ -25,17 +25,46 @@
   font-style: normal;
 }
 
-/* Titles */
+/* Titles and other text related styles */
 .chart-title{
   @apply text-center text-xl font-bazooka text-cyan-500;
+}
+.summary-title{
+  @apply text-lg font-semibold text-indigo-300;
+}
+.summary-label{
+  @apply font-medium text-gray-200;
+}
+.summary-value{
+  @apply font-bold text-indigo-200;
+}
+.loading-text{
+  @apply mt-4 text-white text-lg;
+}
+
+.summary-text-label{
+  @apply text-lg font-semibold text-gray-300;
+}
+
+.summary-link{
+  @apply font-medium text-blue-500 px-4 ml-8 mt-2 hover:text-lime-500
 }
 
 /* Special Styles */
 .dolar-style{
   @apply text-2xl font-bazooka text-lime-500;
 }
-.loading-text-style{
-  @apply mt-4 text-white text-lg
+.email-style{
+  @apply text-blue-400;
+}
+.account-value-style {
+  @apply text-emerald-300;
+}
+.money-positive-style {
+  @apply text-green-300;
+}
+.money-negative-style {
+  @apply text-red-300;
 }
 
 /* 
