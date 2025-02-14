@@ -1,13 +1,13 @@
 <template>
   <div class="bg-gray-800 rounded-lg shadow-lg">
-    <PortfolioBarChart />
+    <PortfolioSummary />
   </div>
   <!-- <p class="text-white">{{ chartData }}</p> -->
 </template>
 
 <script setup lang="ts">
 
-import PortfolioBarChart from '../components/PortfolioBarChart.vue';
+import PortfolioSummary from '../components/PortfolioSummary.vue';
 // const portfolioStore = usePortfolioStore();
 
 // onMounted(async () => {

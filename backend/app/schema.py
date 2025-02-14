@@ -88,3 +88,7 @@ class Transaction(BaseModel):
     quantity:Decimal
     transaction_type:str
     fee: Decimal=Field(2)
+    
+class TickerPrice(BaseModel):
+    ticker:str
+    price:Decimal

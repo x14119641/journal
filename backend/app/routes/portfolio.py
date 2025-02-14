@@ -1,9 +1,12 @@
 from ..dependencies import get_db
 from ..services.database import Database
+from ..services import mini_scarper
 from ..schema import UserLogin
 from .auth import get_current_active_user
 from fastapi import Depends, Response, status, APIRouter, HTTPException
 from typing import Annotated
+from decimal import Decimal
+
 router = APIRouter(prefix='/portfolio', tags=["Portfolio",])
 
 
@@ -13,6 +16,30 @@ async def get_portfolio(
         db: Database = Depends(get_db)):
     results = await db.fetch("SELECT * FROM get_portfolio_summary(($1))", current_user.id)
     return results
+
+
+
+@router.get("/summary")
+async def get_summary_external(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch(
+        "SELECT * FROM get_portfolio_summary(($1))", 
+        current_user.id)
+
+    tickers = [item['ticker']  for item in results if item['ticker'] != 'Money']
+
+    stocks =  mini_scarper.get_current_price_tickers(tickers)
+    price_mapping = {item.ticker: Decimal(item.price) for item in stocks}
+    res = []
+    for item in results:
+        ticker = item['ticker']
+        if ticker != 'Money':
+            market_value = price_mapping[ticker] * item['totalQuantity']
+            new_record = {**item, "marketValue":market_value}
+            res.append(new_record)
+    # print(list(stocks))
+    return res
 
 
 @router.get("/funds")
@@ -49,8 +76,8 @@ async def get_allocation_funds(
     return results
 
 
-@router.get("/barchartdata")
-async def get_portfolio_barchart_Data(
+@router.get("/allocation/inital_cost")
+async def get_portfolio_barchart_data(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
     results = await db.fetch(

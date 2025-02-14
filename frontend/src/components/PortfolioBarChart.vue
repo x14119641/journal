@@ -39,7 +39,7 @@
   const n_colors = computed(() => tickers.value.length)
 
   onMounted(async () => {
-    await portfolioStore.getPortfolioBarChartData();
+    await portfolioStore.getPortfolioAllocationInitialCost();
     // Generate colors
     const colors = chroma.scale(['#ff9544', '#749fe5', '#293b1e'])
       .mode('lch').colors(n_colors.value)

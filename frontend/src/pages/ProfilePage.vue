@@ -12,8 +12,8 @@
         <FundsHeader />
       </div>
       <div class="bg-gray-800 rounded-lg shadow-lg">
-        <!-- Box 1  -->
-        <ProfileInfo />
+        <!-- Box 3  -->
+        <PortfolioSummary />
       </div>
     </div>
 
@@ -33,18 +33,13 @@
 <script setup lang="ts">
 import ProfileInfo from "../components/ProfileInfo.vue"; // Import the Profile component
 import FundsHeader from "../components/FundsHeader.vue";
-import DataTable from "../components/DataTable.vue";
+
 import { onMounted,computed, ref } from 'vue';
 import AllocationDoughnout from "../components/AllocationDoughnout.vue";
 import { usePortfolioStore } from '../stores/portfolioStore';
 import PortfolioBarChart from '../components/PortfolioBarChart.vue';
+import PortfolioSummary from '../components/PortfolioSummary.vue';
 
-const tableHeaders = ['Name', 'Age', 'Email'];
-const tableData = [
-  { name: 'John Doe', age: 30, email: 'john@example.com' },
-  { name: 'Jane Doe', age: 25, email: 'jane@example.com' },
-  { name: 'Sam Smith', age: 35, email: 'sam@example.com' },
-];
 
 const portfolioStore = usePortfolioStore();
 

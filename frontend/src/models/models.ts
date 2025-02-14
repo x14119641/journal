@@ -78,6 +78,10 @@ export interface Ticker {
     name: number;
 }
 
+export interface TickerPrice {
+    id:Int16Array;
+    price:Decimal;
+}
 
 export interface Dividend {
     id:Int16Array;
