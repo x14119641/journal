@@ -12,7 +12,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
       <div class="slate-container col-span-2">
         <DataTable :headers="tableHeaders" :rows="stockDividends" />
-         <p>{{ stockDividends }}</p>
+         <!-- <p>{{ stockDividends }}</p> -->
       </div>
     </div>
   </div>
