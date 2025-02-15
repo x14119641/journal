@@ -1,30 +1,28 @@
 <template>
-    <div class="">
-      <div class="bg-slate-600 p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Stock Screener</h2>
-  
+  <div class="flex flex-col items-center gap-6 w-full">
+    <div class="grid grid-cols-1">
+      <div class="slate-container">
+        <h2 class="page-title pt-6">Stock Screener</h2>
+
         <!-- Filters Section -->
-        <div class="flex justify-center">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
+        <div class="flex justify-center px-6">
+          <div class="grid grid-cols-6 sm:grid-cols-2 lg:grid-cols-6 gap-6">
             <div
               v-for="(filter, index) in filterFields"
               :key="index"
               class="space-y-2"
             >
-              <label
-                v-bind:for="filter.id"
-                class="block text-sm font-medium text-gray-700"
-              >
+              <label v-bind:for="filter.id" class="input-label">
                 {{ filter.label }}
               </label>
-  
+
               <!-- Render select fields manually -->
               <template v-if="filter.type === 'select'">
                 <select
                   :id="filter.id"
                   :name="filter.id"
                   v-model="filters[filter.id]"
-                  class="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-blue-100"
+                  class="input-style"
                 >
                   <option
                     v-for="option in filter.props.options"
@@ -35,192 +33,237 @@
                   </option>
                 </select>
               </template>
-  
+
               <!-- Render input fields dynamically -->
               <template v-else>
                 <input
                   v-bind="filter.props"
                   v-model="filters[filter.id]"
-                  class="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-blue-100"
+                  class="input-style"
                 />
               </template>
             </div>
           </div>
         </div>
-  
+
         <!-- Submit Button -->
-        <div class="flex justify-center">
+        <div class="flex justify-center p-6">
           <button
             @click="queryStocks"
-            class="bg-blue-600 text-white py-2 px-6 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
+            class="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
           >
             Search
           </button>
         </div>
       </div>
-  
       <!-- Results Table -->
-      <div v-if="results.length > 0" class="mt-6">
-    <h3 class="text-lg font-semibold mb-4">Results</h3>
-    <div class="overflow-x-auto max-w-full">
-      <table class="min-w-full bg-white border border-gray-300 rounded-md shadow-md">
-        <thead>
-          <tr class="bg-gray-100">
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Ticker</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Payments</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">ExDivDate</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">PayDate</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Amount</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">% Inst. Ownership</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Increased Inst. pos</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Decreased Inst. pos</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Held Inst. pos</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">Total Inst. pos</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">New pos. Holders</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">SoldOut pos.</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-gray-800">ratioBuySold</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(stock, index) in results" :key="index" class="hover:bg-gray-50">
-            <td v-for="(col, index) in columns" :key="index" class="px-4 py-3 border-b border-gray-200">
-              {{ stock[col] }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-if="results.length > 0" class="pt-6">
+        <div class="slate-container">
+          <DataTable :headers="tableHeaders" :rows="results" />
+        </div>
+      </div>
     </div>
   </div>
-  
-    </div>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref, computed } from "vue";
-  import api from "../services/api";
-  import { type StockScreener } from "../models/models";
-  
-  // Filters object, ensure the initial values align with your backend requirements
-  const filters = ref({
-    paymentMonth: "",
-    lastYearPayments: "",
-    institutionalPercentage: "",
-    amountAbove: "",
-    ratioHoldersBuySold: "",
-  });
-  
-  // Filter fields configuration for dynamic filter rendering
-  const filterFields = [
-    {
-      id: "paymentMonth",
-      label: "Payment Month",
-      type: "select",
-      props: {
-        options: [
-          { value: "", label: "Select Payment Month" },
-          { value: "1", label: "January" },
-          { value: "2", label: "February" },
-          { value: "3", label: "March" },
-          { value: "4", label: "April" },
-          { value: "5", label: "May" },
-          { value: "6", label: "June" },
-          { value: "7", label: "July" },
-          { value: "8", label: "August" },
-          { value: "9", label: "September" },
-          { value: "10", label: "October" },
-          { value: "11", label: "November" },
-          { value: "12", label: "December" },
-        ],
-      },
-    },
-    {
-      id: "lastYearPayments",
-      label: "Number of Payments Last Year",
-      type: "select",
-      props: {
-        options: [
-          { value: "", label: "Select Last Year Payments" },
-          { value: "1", label: "Above 1" },
-          { value: "2", label: "Above 2" },
-          { value: "3", label: "Above 3" },
-          { value: "4", label: "Above 4" },
-          { value: "5", label: "Above 5" },
-        ],
-      },
-    },
-    {
-      id: "institutionalPercentage",
-      label: "Institutional Percentage",
-      type: "select",
-      props: {
-        options: [
-          { value: "", label: "Select Percentage" },
-          { value: "1", label: "Above 1%" },
-          { value: "5", label: "Above 5%" },
-          { value: "10", label: "Above 10%" },
-          { value: "20", label: "Above 20%" },
-          { value: "30", label: "Above 30%" },
-          { value: "40", label: "Above 40%" },
-          { value: "50", label: "Above 50%" },
-          { value: "60", label: "Above 60%" },
-          { value: "70", label: "Above 70%" },
-          { value: "80", label: "Above 80%" },
-          { value: "90", label: "Above 90%" },
-        ],
-      },
-    },
-    {
-      id: "amountAbove",
-      label: "Amount Above",
-      type: "input",
-      props: {
-        type: "number",
-      },
-    },
-    {
-      id: "ratioHoldersBuySold",
-      label: "Ratio of Holders Buy/Sold",
-      type: "input",
-      props: {
-        type: "number",
-      },
-    },
-  ];
-  
-  const results = ref<StockScreener[]>([]);
-  
-  // Columns are dynamically computed based on the first result object
-  const columns = computed(() => {
-    if (results.value.length > 0) {
-      return Object.keys(results.value[0]);
-    }
-    return [];
-  });
-  
-  const queryStocks = async () => {
-    // Construct query params from filters object
-    const queryParams = new URLSearchParams();
-  
-    Object.keys(filters.value).forEach((key) => {
-      if (filters.value[key]) {
-        queryParams.append(key, filters.value[key]);
-      }
-    });
-    // Clear previous results to trigger reactivity
-    results.value = [];
-  
-    try {
-      const response = await api.get(
-        `/stocks/screener?${queryParams.toString()}`
-      );
-      results.value = [...response.data]; // Spread the array to ensure reactivity
-    } catch (error) {
-      console.error("Error fetching data in Demo page", error);
-    }
-  };
-  </script>
+</template>
 
-  <style scoped>
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import api from "../services/api";
+import { type StockScreener } from "../models/models";
+import DataTable from "../components/DataTable.vue";
 
-  </style> 
-  
+// Filters object, ensure the initial values align with your backend requirements
+const filters = ref({
+  numDividends: "",
+  amountAbove: "",
+  exDateMonth: "",
+  sector: "",
+  marketcap: "",
+  peratio: "",
+  forwardpe1yr: "",
+  earningspershare: "",
+  annualizeddividend: "",
+  annualyield: "",
+  sharesoutstandingpct: "",
+  ratioholdersbuysold: "",
+});
+
+// Filter fields configuration for dynamic filter rendering
+const filterFields = [
+  {
+    id: "numDividends",
+    label: "Number of Payments Last Year",
+    type: "select",
+    props: {
+      options: [
+        { value: "", label: "Select Last Year Payments" },
+        { value: "1", label: "Above 1" },
+        { value: "2", label: "Above 2" },
+        { value: "3", label: "Above 3" },
+        { value: "4", label: "Above 4" },
+        { value: "5", label: "Above 5" },
+      ],
+    },
+  },
+  {
+    id: "amountAbove",
+    label: "Amount Above",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "exDateMonth",
+    label: "Payment Month",
+    type: "select",
+    props: {
+      options: [
+        { value: "", label: "Select Payment Month" },
+        { value: "1", label: "January" },
+        { value: "2", label: "February" },
+        { value: "3", label: "March" },
+        { value: "4", label: "April" },
+        { value: "5", label: "May" },
+        { value: "6", label: "June" },
+        { value: "7", label: "July" },
+        { value: "8", label: "August" },
+        { value: "9", label: "September" },
+        { value: "10", label: "October" },
+        { value: "11", label: "November" },
+        { value: "12", label: "December" },
+      ],
+    },
+  },
+  {
+    id: "sector",
+    label: "Sector",
+    type: "select",
+    props: {
+      options: [
+        { value: "", label: "Select Percentage" },
+        { value: "1", label: "Above 1%" },
+        { value: "5", label: "Above 5%" },
+        { value: "10", label: "Above 10%" },
+        { value: "20", label: "Above 20%" },
+        { value: "30", label: "Above 30%" },
+        { value: "40", label: "Above 40%" },
+        { value: "50", label: "Above 50%" },
+        { value: "60", label: "Above 60%" },
+        { value: "70", label: "Above 70%" },
+        { value: "80", label: "Above 80%" },
+        { value: "90", label: "Above 90%" },
+      ],
+    },
+  },
+  {
+    id: "marketcap",
+    label: "Market Cap.",
+    type: "select",
+    props: {
+      options: [
+        { value: "", label: "Select Market Cap. (Millions)" },
+        { value: "100", label: "Above 100" },
+        { value: "200", label: "Above 200" },
+        { value: "300", label: "Above 300" },
+        { value: "400", label: "Above 400" },
+        { value: "500", label: "Above 500" },
+      ],
+    },
+  },
+  {
+    id: "peratio",
+    label: "PER Ratio",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "forwardpe1yr",
+    label: "Forwar PER 1yr",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "earningspershare",
+    label: "Earnings Share",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "annualizeddividend",
+    label: "Anual Yield %",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "annualyield",
+    label: "Yield %",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "sharesoutstandingpct",
+    label: "Instiutional Ownershift %",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+  {
+    id: "ratioHoldersBuySold",
+    label: "Ratio of Holders Buy/Sold",
+    type: "input",
+    props: {
+      type: "number",
+    },
+  },
+];
+
+const results = ref<StockScreener[]>([]);
+// const tableHeaders = [
+//   "ticker", "numdividends", "amount", "declarationdate", "sector",
+//   "marketcap", "peratio", "forwardpe1yr", "earningspershare",
+//   "annualizeddividend", "yield", "sharesoutstandingpct", "ratioholdersbuysold"];
+
+// Columns are dynamically computed based on the first result object
+const tableHeaders = computed(() => {
+  if (results.value.length > 0) {
+    return Object.keys(results.value[0]);
+  }
+  return [];
+});
+
+const queryStocks = async () => {
+  // Construct query params from filters object
+  const queryParams = new URLSearchParams();
+
+  Object.keys(filters.value).forEach((key) => {
+    if (filters.value[key]) {
+      queryParams.append(key, filters.value[key]);
+    }
+  });
+  // Clear previous results to trigger reactivity
+  results.value = [];
+
+  try {
+    const response = await api.get(
+      `/stocks/screener?${queryParams.toString()}`
+    );
+    results.value = [...response.data]; // Spread the array to ensure reactivity
+  } catch (error) {
+    console.error("Error fetching data in Demo page", error);
+  }
+};
+</script>
+
+<style scoped></style>

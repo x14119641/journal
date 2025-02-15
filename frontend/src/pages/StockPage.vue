@@ -34,8 +34,8 @@
   import { useRoute } from 'vue-router';
   
   const route = useRoute();
-  const ticker = ref<String>(route.params.ticker as string);
-
+  // const ticker = ref<String>(route.params.ticker as string);
+  const ticker = 'MAIN'
   const stockData = ref<StockMetadata | null>(null);
   const error_message = ref<String>('');
   

@@ -8,7 +8,7 @@
           <span class="text-green-400">
             <template v-for="(stock, index) in stocks" :key="index">
               <router-link :to="`/stocks/${stock}`" class="summary-link">{{
-                stock
+                stock 
               }}</router-link
               ><span v-if="index < stocks.length - 1">, </span>
             </template>
