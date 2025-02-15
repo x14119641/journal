@@ -44,19 +44,34 @@ export interface BarChartDataItem {
 
 export interface StockMetadata {
     ticker: string;
-    name : string;
-    country: string;
+    companyName : string;
+    isNasdaq100: Boolean | null;
+    exchange: string;
     sector: string;
     industry: string;
-    institutional_ownership_perc: number;
-    increased_positions_holders: number;
-    decreased_positions_holders:number;
-    held_positions_holders: number;
-    total_institutional_holders: number;
-    new_positions_holders:number;
-    sold_out_positions_holders:number;
+    oneyrtarget: number | null;
+    averagevolume: number;
+    fiftTwoWeekHighLow:string;
+    marketcap:string;
+    peratio:string;
+    forwardpe1yr:string;
+    earningspershare:string;
+    annualizeddividend:string;
+    yield: number;
+    sharesoutstandingpct: number;
+    ratioholdersbuysold:number;
 }
 
+
+export interface StockDividend {
+    exoreffdate:string; 
+    paymenttype:string; 
+    amount:number; 
+    declarationdate:string; 
+    recorddate:string; 
+    paymentdate:string; 
+    currency:string;
+}
 export interface StockScreener {
     ticker: string;
     numdividends:number;

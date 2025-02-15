@@ -1,58 +1,57 @@
 <template>
-    <div class="bg-gray-100 p-6">
-      <h1 class="text-3xl font-bold text-center mb-6">Stock Information</h1>
-      
-      <div v-if="stockData" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Amount Card -->
-        <div class="p-4 bg-white shadow rounded-lg">
-          <h2 class="text-xl font-semibold mb-2">Institutional Ownership Percentage</h2>
-          <p class="text-gray-700">{{ stockData.institutional_ownership_perc }}%</p>
-        </div>
-  
-        <!-- Total Investors Card -->
-        <div class="p-4 bg-white shadow rounded-lg">
-          <h2 class="text-xl font-semibold mb-2">Total Institutional Holders</h2>
-          <p class="text-gray-700">{{ stockData.total_institutional_holders }}</p>
-        </div>
-  
-        <!-- Last Sellers Table -->
-        <div class="p-4 bg-white shadow rounded-lg">
-          <h2 class="text-xl font-semibold mb-2">Increased Positions Holders</h2>
-          <p class="text-gray-700">{{ stockData.increased_positions_holders }}</p>
-        </div>
-  
-        <!-- Add more cards or sections as needed -->
+  <div class="flex flex-col items-center space-y-6">
+    <!-- Top row -->
+    <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+      <div class="slate-container col-span-2">
+        <StockSummary />
+      </div>
+      <div class="slate-container">
+        <FundsHeader />
       </div>
     </div>
-  </template>
-  
-  
-  <script setup lang="ts">
-  import { ref, onMounted } from "vue";
-  import { type StockMetadata } from "../models/models";
-  import api from "../services/api";
-  import { useRoute } from 'vue-router';
-  
-  const route = useRoute();
-  // const ticker = ref<String>(route.params.ticker as string);
-  const ticker = 'MAIN'
-  const stockData = ref<StockMetadata | null>(null);
-  const error_message = ref<String>('');
-  
-  onMounted(async () => {
-    try {
-        const response = await api.get(`/stocks/${ticker.value}`);
-        
-        stockData.value = response.data;
-    } catch (error) {
-      console.error('Errro to getch data: ', error)
-      error_message.value = 'Failed to load message'
-    }
-  })
-  
-  </script>
-  
-  <style scoped>
-  /* You can add additional custom styles here */
-  </style>
-  
+    <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+      <div class="slate-container col-span-2">
+        <DataTable :headers="tableHeaders" :rows="stockDividends" />
+         <p>{{ stockDividends }}</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import StockSummary from "../components/StockSummary.vue";
+import DataTable from "../components/DataTable.vue";
+import { ref, onMounted, computed } from "vue";
+import FundsHeader from "../components/FundsHeader.vue";
+import { type StockDividend } from "../models/models";
+import api from "../services/api";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const ticker = ref<String>(route.params.ticker as string);
+
+const stockDividends = ref<StockDividend[]>([]);
+// const tableHeaders = ["Ex. DeclarationDate", "PaymentDate", "Amount", "DeclarationDate","RecordDate", "PaymentDate", "Currency"]
+const tableHeaders = computed(() => {
+  if (stockDividends.value.length > 0) {
+    return Object.keys(stockDividends.value[0]);
+  }
+  return [];
+});
+const error_message = ref<String>("");
+
+onMounted(async () => {
+  try {
+    const response = await api.get(`/stocks/dividends/${ticker.value}`);
+
+    stockDividends.value = response.data;
+  } catch (error) {
+    console.error("Errro to getch data: ", error);
+    error_message.value = "Failed to load message";
+  }
+});
+</script>
+
+<style scoped>
+/* You can add additional custom styles here */
+</style>

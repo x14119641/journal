@@ -2,6 +2,7 @@ from typing import List, Annotated, Optional
 from ..dependencies import get_db, last_day_of_month
 from ..services.database import Database
 from ..config import Settings
+from ..services.mini_scarper import get_current_outstanding_shares_ticker
 from fastapi import Depends, Response, status, HTTPException, APIRouter
 from .auth import get_current_active_user
 from ..schema import (UserResponse, UserLogin, Post,
@@ -41,7 +42,6 @@ async def get_favorites(
                             INNER JOIN users u
                             ON f.user_id = u.id
                             WHERE u.id = ($1) """, current_user.id)
-    print('results: ', results)
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not dividends")
@@ -82,7 +82,13 @@ async def get_dividends_by_ticker(
     current_user: Annotated[UserLogin, Depends(get_current_active_user)],
     db: Database = Depends(get_db)
 ):
-    results = await db.fetch("SELECT * FROM dividends WHERE ticker = ($1) ORDER BY ex_dividend_date DESC", ticker.upper())
+    results = await db.fetch("""
+                             SELECT exoreffdate, paymenttype, amount, declarationdate, 
+                             recorddate, paymentdate, currency 
+                             FROM dividends 
+                             WHERE ticker = ($1) 
+                             ORDER BY exoreffdate DESC""", ticker.upper()
+                             )
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not dividends")
@@ -100,15 +106,13 @@ async def get_dividends_calendar(
                             SELECT d.ticker, d.amount, d.paymentDate FROM dividends d
                             WHERE d.paymentDate BETWEEN ($1) AND ($2);
                              """, start_month, end_month)
-    return  results
-
-
+    return results
 
 
 # stocks/screener
 @router.get("/screener")
 async def get_stock_by_ticker(
-    numDividends:Optional[int] = None,
+    numDividends: Optional[int] = None,
     amountAbove: Optional[Decimal] = None,
     exDateMonth: Optional[int] = None,
     sector: Optional[str] = None,
@@ -119,7 +123,7 @@ async def get_stock_by_ticker(
     annualizeddividend: Optional[Decimal] = None,
     annualyield: Optional[Decimal] = None,
     sharesoutstandingpct: Optional[Decimal] = None,
-    ratioholdersbuysold:Optional[Decimal] = None,
+    ratioholdersbuysold: Optional[Decimal] = None,
     db: Database = Depends(get_db)
 ):
     this_year = datetime.today().year
@@ -150,7 +154,7 @@ async def get_stock_by_ticker(
     # Store parameters in list
     query_params = []
     # and do a counter to see how many placeholders while the query is built
-    param_counter = 1  
+    param_counter = 1
     query = f"""
         WITH DividendCount AS (
             SELECT ticker, COUNT(ticker) AS numDividends, amount 
@@ -208,7 +212,7 @@ async def get_stock_by_ticker(
         query += f" AND m.peratio >= ${param_counter}"
         query_params.append(peratio)
         param_counter += 1
-    
+
     if forwardpe1yr is not None:
         query += f" AND m.forwardpe1yr >= ${param_counter}"
         query_params.append(forwardpe1yr)
@@ -230,7 +234,7 @@ async def get_stock_by_ticker(
         query_params.append(sharesoutstandingpct)
         param_counter += 1
     if ratioholdersbuysold is not None:
-        query += f" AND NULLIF(i.newpositionsholders, 0) / NULLIF(i.soldoutpositionsholders, 0) >= ${param_counter}"
+        query += f" AND NULLIF(ih.newpositionsholders, 0) / NULLIF(ih.soldoutpositionsholders, 0) >= ${param_counter}"
         query_params.append(ratioholdersbuysold)
         param_counter += 1
 
@@ -240,29 +244,41 @@ async def get_stock_by_ticker(
     return results
 
 
-
-
-
 @router.get("/{ticker}")
 async def get_stock_by_ticker(
     ticker: str,
     db: Database = Depends(get_db)
 ):
     query = """
-        SELECT m.ticker, m.name, m.market_cap, m.country, m.sector, m.industry,
-            i.institutional_ownership_perc, i.increased_positions_holders, i.decreased_positions_holders, i.held_positions_holders,
-            i.total_institutional_holders, i.new_positions_holders, i.sold_out_positions_holders
+        with latest_institutional  as (
+            SELECT ticker, sharesoutstandingpct, 
+                NULLIF(newpositionsholders, 0) / NULLIF(soldoutpositionsholders, 0) as ratioholdersbuysold
+            FROM institutional_holdings
+            WHERE ticker = ($1)
+            ORDER BY inserted DESC
+            LIMIT 1
+        )
+        SELECT t.companyName, isNasdaq100,
+        m.exchange, m.sector, m.industry, m.oneyrtarget, m.averagevolume,
+        m.fiftTwoWeekHighLow, m.marketcap, m.peratio, m.forwardpe1yr, 
+        m.earningspershare, m.annualizeddividend, m.yield, 
+        l.sharesoutstandingpct, l.ratioholdersbuysold
         FROM metadata m
-        INNER JOIN institutional_holdings i
-        ON m.ticker = i.ticker
-        WHERE m.ticker=$1;
+        JOIN latest_institutional  l ON l.ticker = m.ticker
+        JOIN tickers t ON l.ticker=t.ticker
+        WHERE m.ticker = ($1)
+        ORDER BY m.inserted DESC LIMIT 1;
     """
 
-    results = await db.fetch(query, ticker.upper())
+    results = await db.fetchrow(query, ticker.upper())
     if not results:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found.")
+    # shares_outstanding = get_current_outstanding_shares_ticker(ticker.upper())
+    # print(shares_outstanding)
+    # results['sharesOutstanding'] = shares_outstanding
+    # remove ticker i dont want ite
     return results
-
 
 
 # # stocks/"MAIN"
