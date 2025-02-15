@@ -236,7 +236,7 @@ async def get_stock_by_ticker(
 
     query += " ORDER BY dd.numDividends DESC LIMIT 10"
     results = await db.fetch(query, *query_params)
-    # print(query)
+    print(query_params)
     return results
 
 
