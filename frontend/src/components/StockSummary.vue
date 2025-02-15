@@ -1,6 +1,6 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title-2">{{ ticker }}</h3>
+    <h3 class="summary-title-2">{{ ticker.toUpperCase() }}</h3>
     <!-- INfo labels -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-12">
         <div class="mt-2" v-for="(item, indx) in stockData" :key="indx">
