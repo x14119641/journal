@@ -83,6 +83,12 @@
 .datatable-cell-link{
   @apply text-lime-300 hover:underline;
 }
+.navbar-title{
+  @apply text-lime-500 font-bazooka text-2xl font-semibold whitespace-nowrap;
+}
+.navbar-text{
+  @apply text-lime-500 font-bazooka inline self-center font-semibold whitespace-nowrap;
+}
 
 /* Special Styles */
 .dolar-style{
@@ -102,6 +108,12 @@
 }
 .money-negative-style {
   @apply text-red-300;
+}
+.dropdown-style {
+ @apply bg-gray-700  border border-lime-300 rounded-lg shadow-lg z-10;
+}
+.dropdown-text{
+  @apply text-indigo-300 hover:bg-gray-100 hover:text-gray-800;
 }
 
 
