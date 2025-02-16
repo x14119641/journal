@@ -16,7 +16,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-full overflow-hidden">
+      <div class="slate-container">
         <!-- Main content, table -->
         <DataTable title="Latest Transactions" :headers="tableHeaders" :rows="tableData" />
       </div>

@@ -24,7 +24,7 @@
           :values="chartValues"
         />
       </div>
-      <div class="bg-gray-800 p-6 rounded-lg shadow-lg overflow-hidden">
+      <div class="slate-container">
         <!-- Box 5 content goes here -->
         <DataTable :headers="tableHeaders" :rows="tableData" />
       </div>
