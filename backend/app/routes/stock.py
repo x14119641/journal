@@ -100,12 +100,15 @@ async def get_dividends_calendar(
     month: int,
     db: Database = Depends(get_db)
 ):
-    start_month = datetime(day=1, month=month, year=datetime.today().year)
-    end_month = last_day_of_month(start_month)
+    # start_month = datetime(day=1, month=month, year=)
+    # end_month = last_day_of_month(start_month)
+    
     results = await db.fetch("""
-                            SELECT d.ticker, d.amount, d.paymentDate FROM dividends d
-                            WHERE d.paymentDate BETWEEN ($1) AND ($2);
-                             """, start_month, end_month)
+                            SELECT d.ticker, d.amount, d.paymentDate as "paymentDate" FROM dividends d
+                            WHERE EXTRACT(YEAR FROM d.paymentDate) = ($1) 
+                                AND EXTRACT(MONTH FROM d.paymentDate) =($2);
+                             """, datetime.today().year, month)
+    print(results)
     return results
 
 

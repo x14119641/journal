@@ -109,7 +109,7 @@ export interface DividendCalendar {
     ticker: string;
     amount:NumericLiteral,
     name: number;
-    payment_date:string;
+    paymentDate:string;
 }
 
 export interface Transaction {
