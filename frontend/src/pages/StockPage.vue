@@ -2,17 +2,20 @@
   <div class="flex flex-col items-center space-y-6">
     <!-- Top row -->
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-      <div class="slate-container col-span-2">
+      <div class="slate-container col-span-2 row-span-2 ">
         <StockSummary />
       </div>
-      <div class="slate-container">
+      <div class="slate-container ">
         <FundsHeader />
       </div>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-      <div class="slate-container col-span-2">
+      <div class="slate-container col-span-2 row-span-2 w-full">
         <DataTable :headers="tableHeaders" :rows="stockDividends" />
          <!-- <p>{{ stockDividends }}</p> -->
+      </div>
+      <div class="slate-container">
+        <RiskCalculator />
       </div>
     </div>
   </div>
@@ -21,6 +24,7 @@
 <script setup lang="ts">
 import StockSummary from "../components/StockSummary.vue";
 import DataTable from "../components/DataTable.vue";
+import RiskCalculator from '../components/RiskCalculator.vue';
 import { ref, onMounted, computed } from "vue";
 import FundsHeader from "../components/FundsHeader.vue";
 import { type StockDividend } from "../models/models";
