@@ -19,6 +19,9 @@ async def get_portfolio(
 
 
 
+
+
+
 @router.get("/summary")
 async def get_summary_external(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
@@ -41,6 +44,24 @@ async def get_summary_external(
     # print(list(stocks))
     return res
 
+
+@router.get("/summary/{ticker}")
+async def get_portfolio_ticker_aggregate(
+        ticker:str,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetchrow(
+        """SELECT 
+                sum(totalvalue) as "totalValue",
+                sum(quantity) as "totalQuantity",
+                MIN(price) as "minPrice", 
+                MAX(price) as "maxPrice",
+                sum(totalvalue)/sum(quantity) as breakeven 
+                FROM portfolio 
+            where user_id = ($1)
+            AND ticker =($2);
+        ;""", current_user.id, ticker)
+    return results
 
 @router.get("/funds")
 async def get_total_funds(

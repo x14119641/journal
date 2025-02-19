@@ -6,7 +6,8 @@
         <StockSummary />
       </div>
       <div class="slate-container ">
-        <FundsHeader />
+        <!-- <FundsHeader /> -->
+        <StockInPortfolio :ticker="ticker"/>
       </div>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
@@ -25,6 +26,7 @@
 import StockSummary from "../components/StockSummary.vue";
 import DataTable from "../components/DataTable.vue";
 import RiskCalculator from '../components/RiskCalculator.vue';
+import StockInPortfolio from "../components/StockInPortfolio.vue";
 import { ref, onMounted, computed } from "vue";
 import FundsHeader from "../components/FundsHeader.vue";
 import { type StockDividend } from "../models/models";

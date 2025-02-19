@@ -27,6 +27,13 @@ export interface PortfolioItem {
     totalValue: Decimal;
     totalQuantity: number;
 }
+export interface PortfolioItemAgreggate {
+    totalValue: number;
+    totalQuantity: number; 
+    minPrice: number; 
+    maxPrice: number;
+    breakeven: number; 
+}
 
 export interface AllocationRecord {
     ticker: string;

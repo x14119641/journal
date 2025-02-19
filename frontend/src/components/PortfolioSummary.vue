@@ -58,7 +58,7 @@ const unRealizedGains = computed(() => portfolioStore.getUnrealizedGains);
 
 onMounted(async () => {
   try {
-    await portfolioStore.getPortSummary();
+    await portfolioStore.getPortfolioSummary();
   } catch (error) {
     console.error("Error fetching funds:", error);
   }
