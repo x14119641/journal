@@ -252,6 +252,7 @@ async def get_stock_by_ticker(
     ticker: str,
     db: Database = Depends(get_db)
 ):
+    print('ticker:', ticker)
     query = """
         with latest_institutional  as (
             SELECT ticker, sharesoutstandingpct, 
@@ -267,13 +268,14 @@ async def get_stock_by_ticker(
         m.earningspershare, m.annualizeddividend, m.yield, 
         l.sharesoutstandingpct, l.ratioholdersbuysold
         FROM metadata m
-        JOIN latest_institutional  l ON l.ticker = m.ticker
-        JOIN tickers t ON l.ticker=t.ticker
+        LEFT JOIN latest_institutional  l ON l.ticker = m.ticker
+        LEFT JOIN tickers t ON l.ticker=t.ticker
         WHERE m.ticker = ($1)
         ORDER BY m.inserted DESC LIMIT 1;
     """
 
     results = await db.fetchrow(query, ticker.upper())
+
     if not results:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found.")
