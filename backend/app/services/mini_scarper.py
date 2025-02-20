@@ -7,7 +7,9 @@ from ..schema import TickerPrice, TickerSharesOutstanding
 def get_current_price_ticker(ticker:str) -> TickerPrice:
     try:
         stock = yf.Ticker(ticker)
-        return TickerPrice(ticker=ticker, price=round(stock.fast_info['lastPrice'],2))
+
+        # return TickerPrice(ticker=ticker, price=round(stock.fast_info['lastPrice'],2))
+        return {'ticker':ticker, 'price':round(stock.fast_info['lastPrice'],2)}
     except Exception:
         pass
 

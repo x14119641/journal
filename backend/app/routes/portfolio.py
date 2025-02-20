@@ -29,20 +29,35 @@ async def get_summary_external(
     results = await db.fetch(
         "SELECT * FROM get_portfolio_summary(($1))", 
         current_user.id)
-
-    tickers = [item['ticker']  for item in results if item['ticker'] != 'Money']
-
-    stocks =  mini_scarper.get_current_price_tickers(tickers)
-    price_mapping = {item.ticker: Decimal(item.price) for item in stocks}
-    res = []
-    for item in results:
-        ticker = item['ticker']
-        if ticker != 'Money':
-            market_value = price_mapping[ticker] * item['totalQuantity']
-            new_record = {**item, "marketValue":market_value}
-            res.append(new_record)
-    # print(list(stocks))
-    return res
+    tickers = [item['ticker'] for item in results if item['ticker'] != 'Money']
+    
+    # Get current prices for the tickers
+    stocks = mini_scarper.get_current_price_tickers(tickers)
+    
+    # Build a dictionary mapping ticker to price (only include those with a valid price)
+    price_map = {stock['ticker']: stock['price'] for stock in stocks if stock['price'] is not None}
+    
+    clean_result = []
+    
+    for row in results:
+        ticker = row.get('ticker')
+        # Skip if ticker is 'Money' or missing from our price_map
+        if ticker and ticker in price_map:
+            # Ensure that totalQuantity is valid and convert to Decimal if necessary
+            quantity = row.get('totalQuantity')
+            if quantity is not None:
+                try:
+                    # Calculate market value: price * quantity
+                    row["marketValue"] = Decimal(price_map[ticker]) * Decimal(quantity)
+                    clean_result.append(row)
+                except Exception as e:
+                    print(f"Error calculating market value for ticker {ticker}: {e}")
+            else:
+                print(f"No totalQuantity for ticker {ticker}")
+        else:
+            if ticker not in price_map:
+                print(f"Price not found for ticker {ticker} (or price is None).")
+    return clean_result
 
 
 @router.get("/summary/{ticker}")
