@@ -9,6 +9,9 @@
         <!-- <FundsHeader /> -->
         <StockInPortfolio :ticker="ticker"/>
       </div>
+      <div v-if="quantityToBuy"  class="slate-container ">
+        <RiskDataHeader />
+      </div>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
       <div class="slate-container col-span-2 row-span-2 w-full">
@@ -28,10 +31,19 @@ import DataTable from "../components/DataTable.vue";
 import RiskCalculator from '../components/RiskCalculator.vue';
 import StockInPortfolio from "../components/StockInPortfolio.vue";
 import { ref, onMounted, computed } from "vue";
-import FundsHeader from "../components/FundsHeader.vue";
+import RiskDataHeader from "../components/RiskDataHeader.vue";
 import { type StockDividend } from "../models/models";
 import api from "../services/api";
 import { useRoute } from "vue-router";
+import { usePortfolioStore } from "../stores/portfolioStore";
+
+
+// Check if we have data in the portoflio to show the riskData
+const portfolioStore = usePortfolioStore();
+const quantityToBuy = computed(
+  () => portfolioStore.riskCalculatorValues.quantity
+);
+
 
 const route = useRoute();
 const ticker = ref<String>(route.params.ticker as string);

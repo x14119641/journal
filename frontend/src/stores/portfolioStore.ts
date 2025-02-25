@@ -3,7 +3,8 @@ import api from "../services/api";
 import {
     type Fund, type Ticker, type PortfolioItem,
     type AllocationRecord, type PortfolioItemAgreggate,
-    type BarChartDataItem, type TickerPrice
+    type BarChartDataItem, type TickerPrice,
+    type RiskCalculatorRecord
 } from "../models/models";
 
 import Decimal from "decimal.js";
@@ -20,6 +21,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         portfolio_barchart_data: [] as BarChartDataItem[],
         portfolio_summary: [] as TickerPrice[],
         realized_gains: 0,
+        riskCalculatorValues: [] as RiskCalculatorRecord[],
         ticker_portfolio_summary: [] as PortfolioItemAgreggate[],
         default_limit: 10
     }),
@@ -127,6 +129,16 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 await api.post(`portfolio/funds/withdraw?amount=${total_funds_to_remove}`);
                 await this.getFunds()
+            } catch (error) {
+                throw error;
+            }
+        },
+        async getRiskPortfolioTicker(stockPrice:number, capital: number, riskPortfolio=1, riskPercent=10) {
+            try {
+
+                this.riskCalculatorValues.quantity = ((capital * (riskPortfolio / 100)) / stockPrice).toFixed(2);
+                this.riskCalculatorValues.stopLoss = (stockPrice - stockPrice * (riskPercent / 100)).toFixed(2);
+                this.riskCalculatorValues.willingToLose = ((this.riskCalculatorValues.stopLoss-stockPrice)*this.riskCalculatorValues.quantity).toFixed(2)
             } catch (error) {
                 throw error;
             }

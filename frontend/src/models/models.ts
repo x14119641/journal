@@ -126,3 +126,9 @@ export interface Transaction {
     transaction_type: string;
     fee: number;
   }
+
+  export interface RiskCalculatorRecord {
+    quantity: number;
+    stopLoss: string;
+    willingToLose:number
+}
