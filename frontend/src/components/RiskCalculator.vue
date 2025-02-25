@@ -66,6 +66,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
+import { useRiskHeaderStore } from "../stores/riskHeaderStore";
+
 
 // If i dont set as string can not show :placeholder
 const capital = ref<number | string>("");
@@ -73,9 +75,11 @@ const stockPrice = ref<number | null>(null);
 const riskPortfolio = ref<number>(1);
 // How much % i want to lose
 const riskPercent = ref<number>(10);
-
 const errorMessage = ref<string>("");
+
 const portfolioStore = usePortfolioStore();
+const riskHeaderStore = useRiskHeaderStore();
+
 const accountValue = computed(() => portfolioStore.accountValue);
 const capital_placeholder = computed(
   () => `Default is your capital: ${portfolioStore.accountValue}`
@@ -84,6 +88,7 @@ const capital_placeholder = computed(
 onMounted(async () => {
   try {
     await portfolioStore.getFundsTotals();
+    
   } catch (error) {
     console.error(error);
   }
@@ -99,7 +104,7 @@ const calculate = async () => {
       return
     }
     await portfolioStore.getRiskPortfolioTicker(stockPrice.value, capital.value, riskPortfolio.value, riskPercent.value)
-    
+    riskHeaderStore.setShowRiskHeader(true)
   } catch (error) {
     errorMessage.value = "Error"
   }

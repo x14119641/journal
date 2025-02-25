@@ -1,15 +1,16 @@
 <template>
   <div class="flex flex-col items-center space-y-6">
+    
     <!-- Top row -->
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
       <div class="slate-container col-span-2 row-span-2 ">
-        <StockSummary />
+        <StockSummary :ticker="ticker" />
       </div>
       <div class="slate-container ">
         <!-- <FundsHeader /> -->
         <StockInPortfolio :ticker="ticker"/>
       </div>
-      <div v-if="quantityToBuy"  class="slate-container ">
+      <div v-if="showRiskHeader"  class="slate-container ">
         <RiskDataHeader />
       </div>
     </div>
@@ -24,52 +25,58 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import StockSummary from "../components/StockSummary.vue";
 import DataTable from "../components/DataTable.vue";
 import RiskCalculator from '../components/RiskCalculator.vue';
 import StockInPortfolio from "../components/StockInPortfolio.vue";
-import { ref, onMounted, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import RiskDataHeader from "../components/RiskDataHeader.vue";
 import { type StockDividend } from "../models/models";
 import api from "../services/api";
 import { useRoute } from "vue-router";
 import { usePortfolioStore } from "../stores/portfolioStore";
+import { useRiskHeaderStore } from "../stores/riskHeaderStore";
 
-
-// Check if we have data in the portoflio to show the riskData
+// Portfolio store
 const portfolioStore = usePortfolioStore();
-const quantityToBuy = computed(
-  () => portfolioStore.riskCalculatorValues.quantity
-);
+const quantityToBuy = computed(() => portfolioStore.riskCalculatorValues.quantity);
 
-
+const riskHeaderStore = useRiskHeaderStore();
+const showRiskHeader = computed(() => riskHeaderStore.showRiskHeader)
+// Route Handling
 const route = useRoute();
-const ticker = ref<String>(route.params.ticker as string);
+const ticker = computed(() => route.params.ticker as string); 
 
+// Data Variables
 const stockDividends = ref<StockDividend[]>([]);
-// const tableHeaders = ["Ex. DeclarationDate", "PaymentDate", "Amount", "DeclarationDate","RecordDate", "PaymentDate", "Currency"]
-const tableHeaders = computed(() => {
-  if (stockDividends.value.length > 0) {
-    return Object.keys(stockDividends.value[0]);
-  }
-  return [];
-});
 const error_message = ref<String>("");
 
-onMounted(async () => {
-  try {
-    const response = await api.get(`/stocks/dividends/${ticker.value}`);
+// Table Headers
+const tableHeaders = computed(() => {
+  return stockDividends.value.length > 0 ? Object.keys(stockDividends.value[0]) : [];
+});
 
+// Fetch Stock Data
+const fetchStockDividends = async () => {
+  if (!ticker.value) return; // Prevent API call if ticker is empty
+  try {
+    console.log("Fetching data for:", ticker.value); // Debugging
+    const response = await api.get(`/stocks/dividends/${ticker.value}`);
     stockDividends.value = response.data;
+    error_message.value = "";
   } catch (error) {
-    console.error("Errro to getch data: ", error);
-    error_message.value = "Failed to load message";
+    console.error("Error fetching data:", error);
+    error_message.value = "Failed to load data";
   }
+};
+
+// Fetch data when the component first loads
+fetchStockDividends();
+
+// ✅ Watch `ticker` and fetch new data whenever it changes
+watch(ticker, () => {
+  fetchStockDividends();
+  riskHeaderStore.setShowRiskHeader(false);
 });
 </script>
-
-<style scoped>
-/* You can add additional custom styles here */
-</style>

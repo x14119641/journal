@@ -91,7 +91,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         async getPortfolioTickerAggregate(ticker:string) {
             try {
                 const response = await api.get(`/portfolio/summary/${ticker}`)
-                this.ticker_portfolio_summary = response.data
+                return response.data
             } catch (error) {
                 throw error;
             }

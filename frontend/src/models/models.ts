@@ -101,6 +101,11 @@ export interface Ticker {
     name: number;
 }
 
+export interface TickerName {
+    ticker: string;
+    companyName: string;
+}
+
 export interface TickerPrice {
     id:Int16Array;
     price:Decimal;

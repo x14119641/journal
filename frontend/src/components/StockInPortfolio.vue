@@ -1,55 +1,66 @@
 <template>
-    <div class="p-6 text-center">
-        <h3 class="summary-title-2">Portfolio</h3>
+  <div class="p-6 text-center">
+      <h3 class="summary-title-2">Portfolio</h3>
 
-          <div class="flex justify-between ">
-            <span class="summary-label">Capital</span>
-            <span class="summary-value-2">{{ totalValue }}</span>
-          </div>
-          <div class="flex justify-between ">
-            <span class="summary-label">Quantity</span>
-            <span class="summary-value-2">{{ stockData?.totalQuantity }}</span>
-          </div>
-          <div class="flex justify-between ">
-            <span class="summary-label">Min Price</span>
-            <span class="summary-value-2">{{ stockData?.minPrice }}</span>
-          </div>
-          <div class="flex justify-between ">
-            <span class="summary-label">Max Price</span>
-            <span class="summary-value-2">{{ stockData?.maxPrice }}</span>
-          </div>
-          <div class="flex justify-between ">
-            <span class="summary-label">BreakEven</span>
-            <span class="summary-value-2">{{ stockData?.breakeven }}</span>
-          </div>
-
-
-    </div>
+      <div class="flex justify-between">
+          <span class="summary-label">Capital</span>
+          <span class="summary-value-2">{{ totalValue }}</span>
+      </div>
+      <div class="flex justify-between">
+          <span class="summary-label">Quantity</span>
+          <span class="summary-value-2">{{ stockData?.totalQuantity  }}</span>
+      </div>
+      <div class="flex justify-between">
+          <span class="summary-label">Min Price</span>
+          <span class="summary-value-2">{{ stockData?.minPrice  }}</span>
+      </div>
+      <div class="flex justify-between">
+          <span class="summary-label">Max Price</span>
+          <span class="summary-value-2">{{ stockData?.maxPrice  }}</span>
+      </div>
+      <div class="flex justify-between">
+          <span class="summary-label">BreakEven</span>
+          <span class="summary-value-2">{{ stockData?.breakeven  }}</span>
+      </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
-import { usePortfolioStore } from '../stores/portfolioStore';
-import { type PortfolioItemAgreggate } from '../models/models';
+import { computed, ref, onMounted, watch } from "vue";
+import { usePortfolioStore } from "../stores/portfolioStore";
+import { type PortfolioItemAgreggate } from "../models/models";
+import { useRoute } from "vue-router";
 
-// const stockData = ref<PortfolioItemAgreggate | null>(null);
+console.log("Portfolio Component Mounted");
 
+const props = defineProps<{ ticker?: string }>();
+const route = useRoute();
 
-const props = defineProps<{
-    ticker: string;
-}>();
+const ticker = computed(() => props.ticker || (route.params.ticker as string));
 
 const portfolioStore = usePortfolioStore();
-let stockData = computed(() => portfolioStore.ticker_portfolio_summary || []);
-const totalValue = computed(() => portfolioStore.accountValue)
+const stockData = ref<PortfolioItemAgreggate | null>(null);
+const totalValue = computed(() => portfolioStore.accountValue);
 
-onMounted(async () =>{
-    try {
-        await portfolioStore.getFundsTotals()
-        const response = await portfolioStore.getPortfolioTickerAggregate(props.ticker)
-        stockData = response
-    } catch (error) {
-        console.error(error)
-    }
-})
+const fetchStockAggregate = async () => {
+
+  if (!ticker.value) {
+      console.error("No ticker provided!");
+      return;
+  }
+
+  try {
+      await portfolioStore.getFundsTotals();
+      const response = await portfolioStore.getPortfolioTickerAggregate(ticker.value);
+      stockData.value = response;
+  } catch (error) {
+
+  }
+};
+
+onMounted(fetchStockAggregate);
+
+watch(ticker, () => {
+  fetchStockAggregate();
+});
 </script>
