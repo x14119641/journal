@@ -52,42 +52,11 @@
         @click="toggleSidebar"
         class="absolute top-1 -right-9 cursor-pointer"
       >
-        <svg
-          version="1.1"
-          id="Capa_1"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          viewBox="0 0 15.741 15.741"
-          xml:space="preserve"
-          class="w-10 h-10"
-        >
-          <g>
-            <g>
-              <path
-                style="fill: #44ff57"
-                d="M8.472,0l-1.28,0.003c-2.02,0.256-3.679,1.104-4.671,2.386C1.685,3.47,1.36,4.78,1.553,6.283
-                  c0.37,2.87,2.773,6.848,4.674,8.486c0.475,0.41,1.081,0.794,1.353,0.899c0.129,0.044,0.224,0.073,0.333,0.073
-                  c0.11,0,0.217-0.031,0.319-0.091c1.234-0.603,2.438-1.88,3.788-4.02c0.936-1.485,2.032-3.454,2.2-5.495
-                  C14.492,2.843,12.295,0.492,8.472,0z M8.435,0.69c3.431,0.447,5.337,2.462,5.097,5.391c-0.156,1.913-1.271,3.875-2.097,5.182
-                  c-1.278,2.027-2.395,3.226-3.521,3.777c-0.005,0.002-0.009,0.004-0.012,0.005c-0.029-0.006-0.068-0.021-0.087-0.027
-                  c-0.149-0.057-0.706-0.401-1.135-0.771c-1.771-1.525-4.095-5.375-4.44-8.052C2.07,4.879,2.348,3.741,3.068,2.812
-                  c0.878-1.135,2.363-1.889,4.168-2.12L8.435,0.69z"
-              />
-              <path
-                :fill="isSidebarOpen ? '#FA2488' : '#44FF57'"
-                d="M3.504,6.83C3.421,6.857,3.37,6.913,3.373,7.024c0.308,1.938,1.616,3.536,3.842,3.126
-                  C7.002,8.019,5.745,6.933,3.504,6.83z"
-              /> 
-              <path
-                :fill="isSidebarOpen ? '#44FF57' : '#FA2488'"
-                d="M8.778,10.215c2.196-0.125,3.61-1.379,3.776-3.319C10.321,6.727,8.55,7.923,8.778,10.215z"
-              />
-            </g>
-          </g>
-          <!-- Dollar Sign on Forehead -->
-          <text class="cursor-pointer select-none" x="8" y="5" font-size="4" font-weight="bold" text-anchor="middle" :fill="isSidebarOpen ? '#FA2488' : '#44FF57'">$</text>
+      <IconAlien class="w-10 h-10" alt="Icon" 
+      base-color="#2ed422"
+      :fill-color="isSidebarOpen ? '#2ed422' : '#e635e0'"
+      :fill-color2="isSidebarOpen ? '#e635e0' : '#2ed422'"/>
 
-        </svg>
       </div>
       <!-- Items in menu -->
       <div>
@@ -97,7 +66,8 @@
           >
             <router-link to="/demo" class="flex items-center w-full">
               <span class="text-2xl block float-left ">
-                <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" />
+                <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
+                <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/>
               </span>
               <span
                 class="text-base font-medium flex-1 ml-3"
@@ -107,21 +77,7 @@
             </router-link>
           </li>
 
-          <li
-            class="text-sm flex items-center select-none cursor-pointer p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
-          >
-            <router-link to="/hello" class="flex items-center w-full">
-              <span class="text-2xl block float-left">
-                <img :src="bubbleMessageIcon" class="w-10 h-10" alt="Icon" />
-              </span>
-              <span
-                class="text-base font-medium flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
-                >Hello</span
-              >
-            </router-link>
-          </li>
-
+<!-- 
           <li
             class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
@@ -135,14 +91,15 @@
                 >Table</span
               >
             </router-link>
-          </li>
+          </li> -->
 
           <li
             class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
             <router-link to="/profile" class="flex items-center w-full">
               <span class="text-2xl block float-left">
-                <img :src="accountAvatarIcon" class="w-10 h-10" alt="Icon" />
+                <!-- <img :src="accountAvatarIcon" class="w-10 h-10" alt="Icon" /> -->
+                <IconProfile class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/>
               </span>
               <span
                 class="text-base font-medium flex-1 ml-3"
@@ -157,7 +114,8 @@
           >
             <router-link to="/dividends" class="flex items-center w-full">
               <span class="text-2xl block float-left">
-                <img :src="moneyIcon" class="w-10 h-10" alt="Icon" />
+                <!-- <img :src="moneyIcon" class="w-10 h-10" alt="Icon" /> -->
+                <IconDollar class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/>
               </span>
               <span
                 class="text-base font-medium flex-1 ml-3"
@@ -172,7 +130,8 @@
           >
             <router-link to="/calendar" class="flex items-center w-full">
               <span class="text-2xl block float-left">
-                <img :src="calendarIcon" class="w-10 h-10" alt="Icon" />
+                <!-- <img :src="calendarIcon" class="w-10 h-10" alt="Icon" /> -->
+                <IconCalendar class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/>
               </span>
               <span
                 class="text-base font-medium flex-1 ml-3"
@@ -186,7 +145,8 @@
           >
             <router-link to="/screener" class="flex items-center w-full">
               <span class="text-2xl block float-left">
-                <img :src="binocularsIcon" class="w-10 h-10" alt="Icon" />
+                <!-- <img :src="binocularsIcon" class="w-10 h-10" alt="Icon" /> -->
+                <IconSearch class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/>
               </span>
               <span
                 class="text-base font-medium flex-1 ml-3"
@@ -210,7 +170,12 @@ import alienHeadIcon from "@/assets/img/alien-head-svgrepo-com.svg";
 import accountAvatarIcon from "@/assets/img/account-avatar-profile-user-3-svgrepo-com.svg";
 import moneyIcon from "@/assets/img/money-svgrepo-com.svg";
 import calendarIcon from "@/assets/img/calendar-svgrepo-com.svg";
-import binocularsIcon from "@/assets/img/binoculars-find-svgrepo-com.svg";
+import IconSearch from "./IconScreener.vue";
+import IconDollar from "./IconDividends.vue";
+import IconProfile from "./IconProfile.vue";
+import IconCalendar from "./IconCalendar.vue";
+import IconDemo from "./IconDemo.vue";
+import IconAlien from "./IconAlien.vue";
 
 
 // Access the store
