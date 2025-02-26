@@ -7,7 +7,7 @@
       <div v-if="stockData" class="mt-2" v-for="(value, key) in stockData" :key="key">
         <div class="flex justify-between">
           <span class="summary-label">{{ key }}</span>
-          <span class="summary-value-2">{{ value }}</span>
+          <span class="summary-value">{{ value }}</span>
         </div>
       </div>
       <div v-else class="text-gray-500 text-sm">

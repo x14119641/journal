@@ -45,7 +45,7 @@
                  @click.stop>  <!-- Stop propagation here -->
               <span class="select-none">Theme</span>
               <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" v-model="isDarkMode" @change="toggleDarkMode" />
+                <input type="checkbox" class="sr-only peer" />
                 <DarkModeToggle />
             </label>
             </div>

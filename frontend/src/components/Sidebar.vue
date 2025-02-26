@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="bg-gray-800 text-white p-4"
+    class="sidebar-style p-4"
     :class="isSidebarOpen ? 'w-72' : 'w-20'"
   >
     <div class="relative">
@@ -62,7 +62,7 @@
       <div>
         <ul class="my-10 pt-2 space-y-4">
           <li
-            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="sidebar-li-style flex items-center cursor-pointer select-none p-1  rounded mt-2"
           >
             <router-link to="/demo" class="flex items-center w-full">
               <span class="text-2xl block float-left ">
@@ -79,7 +79,7 @@
 
 
           <li
-            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="sidebar-li-style flex items-center cursor-pointer select-none p-1 rounded mt-2"
           >
             <router-link to="/colors" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -94,7 +94,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="sidebar-li-style flex items-center cursor-pointer select-none p-1 rounded mt-2"
           >
             <router-link to="/profile" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -110,7 +110,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="sidebar-li-style flex items-center cursor-pointer select-none p-1 rounded mt-2"
           >
             <router-link to="/dividends" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -126,7 +126,7 @@
           </li>
 
           <li
-            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="sidebar-li-style flex items-center cursor-pointer select-none p-1 rounded mt-2"
           >
             <router-link to="/calendar" class="flex items-center w-full">
               <span class="text-2xl block float-left">
@@ -141,7 +141,7 @@
             </router-link>
           </li>
           <li
-            class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
+            class="sidebar-li-style flex items-center cursor-pointer select-none p-1 rounded mt-2"
           >
             <router-link to="/screener" class="flex items-center w-full">
               <span class="text-2xl block float-left">

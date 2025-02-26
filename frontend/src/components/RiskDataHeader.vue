@@ -5,13 +5,13 @@
       <div class="">
         <div class="flex justify-between">
           <span class=" summary-label">quantityToBuy</span>
-          <span class="summary-value-2">{{ quantityToBuy }}</span>
+          <span class="summary-value">{{ quantityToBuy }}</span>
 
           <span class="summary-label">stopLoss</span>
-          <span class="summary-value-2">{{ stopLoss }}</span>
+          <span class="summary-value">{{ stopLoss }}</span>
 
           <span class="summary-label">willingToLose</span>
-          <span class="summary-value-2">${{ willingToLose }}</span>
+          <span class="summary-value">${{ willingToLose }}</span>
         </div>
       </div>
     </div>

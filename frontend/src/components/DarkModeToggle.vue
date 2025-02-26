@@ -3,7 +3,7 @@
       <button
         @click="toggleDarkMode"
         class="relative inline-flex items-center h-6 w-12 rounded-full focus:outline-none"
-        :class="isDark ? 'bg-gray-700' : 'bg-gray-300'"
+        :class="isDark ? 'bg-gray-300' : 'bg-gray-400'"
       >
         <!-- The toggle knob -->
         <span

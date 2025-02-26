@@ -5,11 +5,11 @@
       <div class="w-full overflow-x-auto">
         <table class="w-full table-fixed text-center border-collapse">
           <thead>
-            <tr class="bg-gray-800 datatable-cell-title">
+            <tr class=" datatable-cell-title">
               <th
                 v-for="(header, headerIndex) in headers"
                 :key="headerIndex"
-                class="py-3 px-6 border-b border-lime-300 text-sm font-medium tracking-wider uppercase"
+                class="py-3 px-6 border-b border-lime-300 text-sm font-medium tracking-wider "
               >
                 {{ header }}
               </th>

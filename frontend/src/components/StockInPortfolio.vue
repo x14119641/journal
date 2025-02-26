@@ -4,23 +4,23 @@
 
       <div class="flex justify-between">
           <span class="summary-label">Capital</span>
-          <span class="summary-value-2">{{ totalValue }}</span>
+          <span class="summary-value">{{ totalValue }}</span>
       </div>
       <div class="flex justify-between">
           <span class="summary-label">Quantity</span>
-          <span class="summary-value-2">{{ stockData?.totalQuantity  }}</span>
+          <span class="summary-value">{{ stockData?.totalQuantity  }}</span>
       </div>
       <div class="flex justify-between">
           <span class="summary-label">Min Price</span>
-          <span class="summary-value-2">{{ stockData?.minPrice  }}</span>
+          <span class="summary-value">{{ stockData?.minPrice  }}</span>
       </div>
       <div class="flex justify-between">
           <span class="summary-label">Max Price</span>
-          <span class="summary-value-2">{{ stockData?.maxPrice  }}</span>
+          <span class="summary-value">{{ stockData?.maxPrice  }}</span>
       </div>
       <div class="flex justify-between">
           <span class="summary-label">BreakEven</span>
-          <span class="summary-value-2">{{ stockData?.breakeven  }}</span>
+          <span class="summary-value">{{ stockData?.breakeven  }}</span>
       </div>
   </div>
 </template>

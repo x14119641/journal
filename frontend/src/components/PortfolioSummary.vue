@@ -7,10 +7,11 @@
           <span class="summary-label">Stocks</span>
           <span class="text-green-400">
             <template v-for="(stock, index) in stocks" :key="index">
-              <router-link :to="`/stocks/${stock}`" class="summary-link">{{
+              <router-link :to="`/stocks/${stock}`" 
+              class="ticker-link">{{
                 stock 
               }}</router-link
-              ><span v-if="index < stocks.length - 1">, </span>
+              ><span class="select-none ticker-commas" v-if="index < stocks.length - 1">, </span>
             </template>
           </span>
         </div>
