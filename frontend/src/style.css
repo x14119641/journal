@@ -173,5 +173,5 @@ Must Need (layouts)
 
 /* slate box with rounded borders and shadow */
 .slate-container{
-  @apply bg-gray-800 rounded-lg shadow-lg min-w-full md:min-w-0 sm:min-w-48
+  @apply bg-white rounded-lg shadow-lg min-w-full md:min-w-0 sm:min-w-48 dark:bg-gray-800 
 }

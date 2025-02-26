@@ -6,6 +6,7 @@ import router from './router';
 import { useAuthStore } from './stores/authStore';
 import VueClickAway from "vue3-click-away";
 
+
 const app = createApp(App)
 app.use(createPinia()).use(VueClickAway)
 
@@ -16,3 +17,5 @@ authStore.fetchUser().then(() => {
   app.use(router);
   app.mount('#app');
 });
+
+

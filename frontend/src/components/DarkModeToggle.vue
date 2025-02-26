@@ -23,19 +23,25 @@
         </span>
       </button>
     </div>
+    
   </template>
   
   <script setup lang="ts">
-  import { ref } from "vue";
+  import { ref, onMounted } from "vue";
   import sunIcon from "@/assets/img/sun-svgrepo-com.svg";
   import moonIcon from "@/assets/img/moon-svgrepo-com.svg";
-  
-  const isDark = ref(false);
+  import { applyTheme, getUserTheme } from "../services/theme";
+
+  const isDark = ref(getUserTheme() ==="dark")
   
   const toggleDarkMode = () => {
-    isDark.value = !isDark.value;
-    document.documentElement.classList.toggle("dark", isDark.value);
-  };
+    const newTheme = isDark.value ? "light" : "dark";  applyTheme(newTheme);
+    applyTheme(newTheme);
+    isDark.value = newTheme === "dark";
+};
+onMounted(() => {
+  isDark.value = getUserTheme() === "dark";
+});
   </script>
   
   <style scoped>
