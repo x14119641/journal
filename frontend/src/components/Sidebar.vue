@@ -77,21 +77,21 @@
             </router-link>
           </li>
 
-<!-- 
+
           <li
             class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
           >
-            <router-link to="/table" class="flex items-center w-full">
+            <router-link to="/colors" class="flex items-center w-full">
               <span class="text-2xl block float-left">
-                <img :src="alienHeadIcon" class="w-10 h-10" alt="Icon" />
+                <IconColors class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/>
               </span>
               <span
                 class="text-base font-medium flex-1 ml-3"
                 :class="isSidebarOpen ? '' : 'hidden'"
-                >Table</span
+                >Colors</span
               >
             </router-link>
-          </li> -->
+          </li>
 
           <li
             class="text-sm flex items-center cursor-pointer select-none p-1 text-blue-300 hover:bg-green-500 rounded mt-2"
@@ -176,6 +176,7 @@ import IconProfile from "./IconProfile.vue";
 import IconCalendar from "./IconCalendar.vue";
 import IconDemo from "./IconDemo.vue";
 import IconAlien from "./IconAlien.vue";
+import IconColors from "./IconColors.vue";
 
 
 // Access the store
