@@ -116,6 +116,21 @@ class Database:
         except Exception as e:
             db_logger.error(f"Error in create_schema. <Error> {str(e)}")
 
+    
+    async def insert_test_data(self):
+        """Inserts test data from sql."""
+        query = self.read_sql('mock_data')
+        if not query:
+            db_logger.error("Mock data failed: SQL file is empty or not found.")
+            return
+
+        try:
+            await self.execute(query)
+            db_logger.info("Data Inserted!")
+        except Exception as e:
+            db_logger.error(f"Error in insert test_data. <Error> {str(e)}")
+            
+            
     def read_sql(self, file_name):
         """Read an SQL file and return its contents."""
         file_dir = os.path.dirname(os.path.realpath(__file__))

@@ -23,6 +23,25 @@ async def test_create_schema(db):
     # print('result: ', result)
     assert len(result) == 1, "Table 'users' was not created"
     
+# Insert some raw data
+pytest.mark.asyncio
+async def test_insert_some_data(db):
+    await db.insert_test_data()
+    result = await db.fetch(
+        """
+        SELECT *
+        FROM tickers
+        """
+    )
+    assert len(result) == 6, "Not all tickers are in tickers"
+    await db.insert_test_data()
+    result = await db.fetch(
+        """
+        SELECT *
+        FROM institutional_holdings
+        """
+    )
+    assert len(result) == 6, "Not all tickers are in institutuional_holdings"
     
 @pytest.mark.asyncio
 async def test_create_test_user(db):

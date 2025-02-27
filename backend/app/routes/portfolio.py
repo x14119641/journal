@@ -18,10 +18,6 @@ async def get_portfolio(
     return results
 
 
-
-
-
-
 @router.get("/summary")
 async def get_summary_external(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],

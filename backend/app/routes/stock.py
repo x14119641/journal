@@ -14,7 +14,11 @@ router = APIRouter(prefix='/stocks', tags=["Stocks"])
 
 @router.get("/tickers")
 async def get_tickers(db: Database = Depends(get_db)):
-    results = await db.fetch('SELECT ticker, companyName as "companyName" FROM tickers ORDER BY ticker')
+    results = await db.fetch(
+        """SELECT ticker, companyName as "companyName" 
+        FROM tickers ORDER BY ticker"""
+    )
+    print("Results: ", results)
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not tickers")
