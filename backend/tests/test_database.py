@@ -1,23 +1,9 @@
-import pytest, pytest_asyncio
-from ..services.database import Database
-from ..config import Settings
+import pytest
 import asyncio
 
 
-@pytest_asyncio.fixture(scope='session', loop_scope='session')
-async def db():
-    database = Database(**Settings.read_file('test_config.json'))
-    await database.create_pool()
-    
-    # Safety check
-    db_name = await database.fetchone("SElect current_database();")
-    assert db_name == "test_db", "Tests only in test db!!"
-    
-    yield database
-    await database.close_pool()
 
-
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio
 async def test_create_schema(db):
     await db.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 
@@ -38,9 +24,9 @@ async def test_create_schema(db):
     assert len(result) == 1, "Table 'users' was not created"
     
     
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio
 async def test_create_test_user(db):
-    # await db.create_pool()
+    await db.create_pool()
     await db.execute("INSERT INTO users VALUES (1, 'test', 'test@email.com', 'test')")
     # Verify if any table is created
     result = await db.fetchone(
@@ -53,15 +39,21 @@ async def test_create_test_user(db):
     assert result ==1, "Test user not created"
     
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio
 async def test_fetchone(db):
     # await db.create_pool()
     val = await db.fetchone("SELECT 1+1")
     # Verify if any table is created
     assert val ==2, "FetchVal is not working"
     
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio
 async def test_fetchrow(db):
     # await db.create_pool()
     row = await db.fetchrow("SELECT * FROM users LIMIT 1")
     assert  isinstance(row,dict), "Fetchrow is not retuurining a single dict"
+    
+@pytest.mark.asyncio
+async def test_remove_user(db):
+    # await db.create_pool()
+    row = await db.fetchrow("DELETE FROM users WHERE username='test'")
+    assert row is None

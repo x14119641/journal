@@ -10,7 +10,7 @@ from typing import Annotated
 router = APIRouter(prefix="/users", tags=["Users"]) 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=User)
-async def create_post(user:UserCreate, db:Database=Depends(get_db)):
+async def create_user(user:UserCreate, db:Database=Depends(get_db)):
     # email an user validiations
     email_exists = await db.fetchone("SELECT email FROM users WHERE email=($1)", user.email)
     if email_exists:
@@ -19,7 +19,7 @@ async def create_post(user:UserCreate, db:Database=Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": "Email already registered."})
         
-    
+    # print("email_exists: ", email_exists)
     username_exists = await db.fetchone("SELECT username FROM users WHERE username=($1)", user.username)
     if username_exists:
         # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User already registered.')
@@ -28,13 +28,15 @@ async def create_post(user:UserCreate, db:Database=Depends(get_db)):
             content={"detail": "Username already registered."}
         )
     
-    
+
     hashed_pwd = password_hash.hash(user.password)
     
     row = await db.fetchrow(
         "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *", 
         user.username, user.email, hashed_pwd,)
+
     data = await db.fetchrow("SELECT * FROM users WHERE id = ($1)", row['id'],)
+
     return data
 
 
