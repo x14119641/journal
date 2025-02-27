@@ -34,7 +34,7 @@ async def test_create_schema(db):
         WHERE table_name = 'users'
         """
     )
-    print('result: ', result)
+    # print('result: ', result)
     assert len(result) == 1, "Table 'users' was not created"
     
     
@@ -51,3 +51,17 @@ async def test_create_test_user(db):
         """
     )
     assert result ==1, "Test user not created"
+    
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_fetchone(db):
+    # await db.create_pool()
+    val = await db.fetchone("SELECT 1+1")
+    # Verify if any table is created
+    assert val ==2, "FetchVal is not working"
+    
+@pytest.mark.asyncio(loop_scope="session")
+async def test_fetchrow(db):
+    # await db.create_pool()
+    row = await db.fetchrow("SELECT * FROM users LIMIT 1")
+    assert  isinstance(row,dict), "Fetchrow is not retuurining a single dict"
