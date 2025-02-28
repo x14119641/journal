@@ -23,9 +23,6 @@ async def get_user(username: str) -> UserLogin:
     """
     async for db in get_db():
         data = await db.fetchrow("SELECT * FROM users WHERE username = ($1) OR email = ($2)", username, username)
-        
-        print(username, username)
-        print('THE DATA: ', data)
         if data:
             return UserLogin(**data)
 

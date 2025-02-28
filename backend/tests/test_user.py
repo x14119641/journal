@@ -1,7 +1,7 @@
 import pytest
 
 @pytest.mark.asyncio
-async def test_create_user(test_client, db):
+async def test_create_user(test_client,):
     response = await test_client.post("/users/",
                                 json={
                                     "username":"new_user",
@@ -12,7 +12,7 @@ async def test_create_user(test_client, db):
 
 
 @pytest.mark.asyncio
-async def test_user_already_there(test_client, db):
+async def test_user_already_there(test_client):
     response = await test_client.post("/users/",
                                 json={
                                     "username":"new_user",
@@ -22,7 +22,7 @@ async def test_user_already_there(test_client, db):
     assert response.status_code == 400
 
 @pytest.mark.asyncio
-async def test_wrong_email(test_client, db):
+async def test_wrong_email(test_client):
     response = await test_client.post("/users/",
                                 json={
                                     "username":"new_user2",

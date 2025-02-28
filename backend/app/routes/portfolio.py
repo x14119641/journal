@@ -79,7 +79,11 @@ async def get_total_funds(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db),
         limit: int = 10):
-    results = await db.fetch("SELECT * FROM funds WHERE user_id = ($1) ORDER BY created_at DESC LIMIT ($2)", current_user.id, limit)
+    results = await db.fetch("""
+                             SELECT * FROM funds 
+                             WHERE user_id = ($1) 
+                             ORDER BY created_at DESC LIMIT ($2)""", 
+                             current_user.id, limit)
     return results
 
 
@@ -112,7 +116,7 @@ async def get_portfolio_barchart_data(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
     results = await db.fetch(
-        """SELECT ticker, SUM(totalValue) AS "totalValue" 
+        """SELECT ticker, SUM(total_value) AS "totalValue" 
             FROM portfolio
             WHERE user_id = ($1)
             GROUP BY ticker;""", 
@@ -135,7 +139,7 @@ async def add_funds(amount: int,
 
 
 @router.post("/funds/withdraw")
-async def add_funds(amount: int,
+async def remove_funds(amount: int,
                     current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
     portfolio = await db.fetchrow("SELECT * FROM calculate_portfolio_totals(($1))", current_user.id)
     if portfolio:

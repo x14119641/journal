@@ -24,8 +24,9 @@ async def test_create_schema(db):
     assert len(result) == 1, "Table 'users' was not created"
     
 # Insert some raw data
-pytest.mark.asyncio
+@pytest.mark.asyncio
 async def test_insert_some_data(db):
+    # await db.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
     await db.insert_test_data()
     result = await db.fetch(
         """
@@ -34,7 +35,6 @@ async def test_insert_some_data(db):
         """
     )
     assert len(result) == 6, "Not all tickers are in tickers"
-    await db.insert_test_data()
     result = await db.fetch(
         """
         SELECT *

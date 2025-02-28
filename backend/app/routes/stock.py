@@ -15,10 +15,10 @@ router = APIRouter(prefix='/stocks', tags=["Stocks"])
 @router.get("/tickers")
 async def get_tickers(db: Database = Depends(get_db)):
     results = await db.fetch(
-        """SELECT ticker, companyName as "companyName" 
+        """SELECT ticker, company_name as "companyName" 
         FROM tickers ORDER BY ticker"""
     )
-    print("Results: ", results)
+    # print("Results: ", results)
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not tickers")
@@ -27,7 +27,11 @@ async def get_tickers(db: Database = Depends(get_db)):
 
 @router.get("/dividends")
 async def get_dividends(db: Database = Depends(get_db)):
-    results = await db.fetch("SELECT * FROM dividends WHERE ex_dividend_date IS NOT NULL AND declaration_date IS NOT NULL ORDER BY ex_dividend_date DESC LIMIT 100")
+    results = await db.fetch("""
+                             SELECT * FROM dividends 
+                             WHERE ex_dividend_date IS NOT NULL 
+                             AND declaration_date IS NOT NULL 
+                             ORDER BY ex_dividend_date DESC LIMIT 100""")
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not dividends")
@@ -62,7 +66,8 @@ async def remove_favorites(
     await db.execute("""
                             DELETE FROM favorites 
                             WHERE user_id = ($1) 
-                            AND ticker = ($2)""", current_user.id, ticker)
+                            AND ticker = ($2)""", 
+                            current_user.id, ticker)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -73,7 +78,9 @@ async def add_favorites(
     db: Database = Depends(get_db)
 ):
     results = await db.fetch("""
-                            INSERT INTO favorites(ticker, user_id) VALUES ($1,$2) RETURNING 1""", ticker, current_user.id)
+                            INSERT INTO favorites(ticker, user_id) 
+                            VALUES ($1,$2) RETURNING 1""", 
+                            ticker, current_user.id)
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="There are not dividends")
@@ -86,12 +93,13 @@ async def get_dividends_by_ticker(
     current_user: Annotated[UserLogin, Depends(get_current_active_user)],
     db: Database = Depends(get_db)
 ):
+    print("ticker: ", ticker)
     results = await db.fetch("""
-                             SELECT exoreffdate, paymenttype, amount, declarationdate, 
-                             recorddate, paymentdate, currency 
+                             SELECT ex_date, payment_type, amount, 
+                             declaration_date, record_date, payment_date, currency 
                              FROM dividends 
                              WHERE ticker = ($1) 
-                             ORDER BY exoreffdate DESC""", ticker.upper()
+                             ORDER BY ex_date DESC""", ticker.upper()
                              )
     if results is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -108,17 +116,18 @@ async def get_dividends_calendar(
     # end_month = last_day_of_month(start_month)
     
     results = await db.fetch("""
-                            SELECT d.ticker, d.amount, d.paymentDate as "paymentDate" FROM dividends d
-                            WHERE EXTRACT(YEAR FROM d.paymentDate) = ($1) 
-                                AND EXTRACT(MONTH FROM d.paymentDate) =($2);
+                            SELECT d.ticker, d.amount, d.payment_date as "paymentDate" 
+                            FROM dividends d
+                            WHERE EXTRACT(YEAR FROM d.payment_date) = ($1) 
+                                AND EXTRACT(MONTH FROM d.payment_date) =($2);
                              """, datetime.today().year, month)
-    print(results)
+    # print(results)
     return results
 
 
 # stocks/screener
 @router.get("/screener")
-async def get_stock_by_ticker(
+async def get_stock_by_screener(
     numDividends: Optional[int] = None,
     amountAbove: Optional[Decimal] = None,
     exDateMonth: Optional[int] = None,
@@ -141,15 +150,15 @@ async def get_stock_by_ticker(
     # We build the query dinamically as i dont want to query a lot of data a lot of time and then filter
     The query looks like:
         WITH DividendCount AS (
-            SELECT ticker, COUNT(ticker) AS numDividends, amount
+            SELECT ticker, COUNT(ticker) AS "numDividends", amount
             FROM dividends 
             bla bla
         ),
         FindExDate AS (
-            SELECT ticker, MIN(declarationdate) AS declarationdate
+            SELECT ticker, MIN(declaration_date) AS "declarationDate"
             FROM dividends
-            WHERE EXTRACT(YEAR FROM declarationdate) = EXTRACT(YEAR FROM CURRENT_DATE)
-            -- Conditional -- AND EXTRACT(MONTH FROM declarationdate) = {month}
+            WHERE EXTRACT(YEAR FROM declaration_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                AND EXTRACT(MONTH FROM declaration_date) = {month}
         )
         SELECT bla bla bla
         FROM DividendCount dd
@@ -164,18 +173,18 @@ async def get_stock_by_ticker(
     param_counter = 1
     query = f"""
         WITH DividendCount AS (
-            SELECT ticker, COUNT(ticker) AS numDividends, amount 
+            SELECT ticker, COUNT(ticker) AS "numDividends", amount 
             FROM dividends 
-            WHERE EXTRACT(YEAR FROM paymentDate) = {this_year}
+            WHERE EXTRACT(YEAR FROM payment_date) = {this_year}
             GROUP BY ticker, amount
         ),
         FindExDate AS (
-            SELECT ticker, MIN(declarationdate) AS declarationdate
+            SELECT ticker, MIN(declaration_date) AS "declarationDate"
             FROM dividends
-            WHERE EXTRACT(YEAR FROM declarationdate) = EXTRACT(YEAR FROM CURRENT_DATE)
+            WHERE EXTRACT(YEAR FROM declaration_date) = EXTRACT(YEAR FROM CURRENT_DATE)
     """
     if exDateMonth:
-        query += f" AND EXTRACT(MONTH FROM declarationdate) = ${param_counter}"
+        query += f" AND EXTRACT(MONTH FROM declaration_date) = ${param_counter}"
         query_params.append(exDateMonth)
         param_counter += 1
     # Close cte
@@ -184,16 +193,16 @@ async def get_stock_by_ticker(
         SELECT dd.ticker,
             dd.numDividends,
             dd.amount,
-            f.declarationdate,
+            f.declarationDate,
             m.sector, 
-            m.marketcap, 
-            m.peratio, 
-            m.forwardpe1yr, 
-            m.earningspershare, 
-            m.annualizeddividend, 
+            m.market_cap, 
+            m.pe_ratio, 
+            m.forward_pe_1yr, 
+            m.earnings_per_share, 
+            m.annualized_dividend, 
             m.yield,
-            ih.sharesoutstandingpct,
-            NULLIF(ih.newpositionsholders, 0) / NULLIF(ih.soldoutpositionsholders, 0) as ratioholdersbuysold
+            ih.shares_outstanding_pct,
+            NULLIF(ih.newpositionsholders, 0) / NULLIF(ih.soldoutpositionsholders, 0) as "ratioHoldersBuySold"
         FROM DividendCount dd
         JOIN FindExDate f ON f.ticker = dd.ticker
         JOIN metadata m ON m.ticker = dd.ticker
@@ -212,24 +221,24 @@ async def get_stock_by_ticker(
         query_params.append(sector)
         param_counter += 1
     if marketcap is not None:
-        query += f" AND m.marketcap >= ${param_counter}"
+        query += f" AND m.market_cap >= ${param_counter}"
         query_params.append(marketcap)
         param_counter += 1
     if peratio is not None:
-        query += f" AND m.peratio >= ${param_counter}"
+        query += f" AND m.pe_ratio >= ${param_counter}"
         query_params.append(peratio)
         param_counter += 1
 
     if forwardpe1yr is not None:
-        query += f" AND m.forwardpe1yr >= ${param_counter}"
+        query += f" AND m.forward_pe_1yr >= ${param_counter}"
         query_params.append(forwardpe1yr)
         param_counter += 1
     if earningspershare is not None:
-        query += f" AND m.earningspershare >= ${param_counter}"
+        query += f" AND m.earnings_pershare >= ${param_counter}"
         query_params.append(earningspershare)
         param_counter += 1
     if annualizeddividend is not None:
-        query += f" AND m.annualizeddividend >= ${param_counter}"
+        query += f" AND m.annualized_dividend >= ${param_counter}"
         query_params.append(annualizeddividend)
         param_counter += 1
     if annualyield is not None:
@@ -237,11 +246,11 @@ async def get_stock_by_ticker(
         query_params.append(annualyield)
         param_counter += 1
     if sharesoutstandingpct is not None:
-        query += f" AND m.sharesoutstandingpct >= ${param_counter}"
+        query += f" AND m.shares_outstanding_pct >= ${param_counter}"
         query_params.append(sharesoutstandingpct)
         param_counter += 1
     if ratioholdersbuysold is not None:
-        query += f" AND NULLIF(ih.newpositionsholders, 0) / NULLIF(ih.soldoutpositionsholders, 0) >= ${param_counter}"
+        query += f" AND NULLIF(ih.new_positions_holders, 0) / NULLIF(ih.sold_out_positions_holders, 0) >= ${param_counter}"
         query_params.append(ratioholdersbuysold)
         param_counter += 1
 
@@ -259,18 +268,18 @@ async def get_stock_by_ticker(
     print('ticker:', ticker)
     query = """
         with latest_institutional  as (
-            SELECT ticker, sharesoutstandingpct, 
-                NULLIF(newpositionsholders, 0) / NULLIF(soldoutpositionsholders, 0) as ratioholdersbuysold
+            SELECT ticker, shares_outstanding_pct, 
+                NULLIF(new_positions_holders, 0) / NULLIF(sold_out_positions_holders, 0) as ratioHoldersBuySold
             FROM institutional_holdings
             WHERE ticker = ($1)
             ORDER BY inserted DESC
             LIMIT 1
         )
-        SELECT t.companyName, isNasdaq100,
-        m.exchange, m.sector, m.industry, m.oneyrtarget, m.averagevolume,
-        m.fiftTwoWeekHighLow, m.marketcap, m.peratio, m.forwardpe1yr, 
-        m.earningspershare, m.annualizeddividend, m.yield, 
-        l.sharesoutstandingpct, l.ratioholdersbuysold
+        SELECT t.company_name, is_nasdaq100,
+        m.exchange, m.sector, m.industry, m.one_yr_target, m.average_volume,
+        m.fiftytwo_week_high_low, m.market_cap, m.pe_ratio, m.forward_pe_1yr, 
+        m.earnings_per_share, m.annualized_dividend, m.yield, 
+        l.shares_outstanding_pct, l.ratioHoldersBuySold as "ratioHoldersBuySold"
         FROM metadata m
         LEFT JOIN latest_institutional  l ON l.ticker = m.ticker
         LEFT JOIN tickers t ON l.ticker=t.ticker

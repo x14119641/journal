@@ -1,5 +1,5 @@
 -- Tickers
-INSERT INTO tickers (id, ticker, companyname, stocktype, exchange, assetclass, isnasdaqlisted, isnasdaq100, isheld) 
+INSERT INTO tickers (id, ticker, company_name, stock_type, exchange, asset_class, is_nasdaq_listed, is_nasdaq100, is_held) 
 VALUES 
 (14, 'AAPL', 'Apple Inc. Common Stock', 'Common Stock', 'NASDAQ-GS', 'STOCKS', true, true, false),
 (41, 'ABVE', 'Above Food Ingredients Inc. Common Stock', 'Common Stock', 'NASDAQ-GM', 'STOCKS', true, false, false),
@@ -9,11 +9,10 @@ VALUES
 (4116, 'MTG', 'MGIC Investment Corporation Common Stock', 'Common Stock', 'NYSE', 'STOCKS', false, false, false);
 
 INSERT INTO institutional_holdings (
-    id, ticker, sharesoutstandingpct, sharesoutstandingtotal, totalholdingsvalue, 
-    increasedpositionsholders, increasedpositionsshares, decreasedpositionsholders, 
-    decreasedpositionsshares, heldpositionsholders, heldpositionsshares, 
-    totalpositionsholders, totalpositionsshares, newpositionsholders, 
-    newpositionsshares, soldoutpositionsholders, soldoutpositionsshares, inserted
+    id, ticker, shares_outstanding_pct, shares_outstanding_total, total_holdings_value, increased_positions_holders, 
+    increased_positions_shares, decreased_positions_holders, decreased_positions_shares, held_positions_holders, 
+    held_positions_shares, total_positions_holders, total_positions_shares, new_positions_holders, new_positions_shares, 
+    sold_out_positions_holders, sold_out_positions_shares, inserted
 ) 
 VALUES 
 (13, 'AAPL', 62.21, 15022, 2127364, 2319, 333713428, 2836, 485238050, 305, 8526756916, 5460, 9345708394, 336, 51264786, 139, 41819975, '2025-02-09 20:51:09.806233'),
@@ -24,12 +23,12 @@ VALUES
 (3767, 'MTG', 96.15, 253, 6154, 181, 10808595, 202, 15246738, 66, 217565148, 449, 243620481, 44, 2051490, 40, 3781176, '2025-02-09 21:21:25.634445');
 
 
-
 INSERT INTO metadata(
-    id, ticker, exchange, sector, industry, oneyrtarget, todayhighlow, sharevolume, 
-    averagevolume, previousclose, fiftTwoWeekHighLow, marketcap, peratio, forwardpe1yr, 
-    earningspershare, annualizeddividend, exdividenddate, dividendpaymentdate, yield, 
-    specialdividenddate, specialdividendamount, specialdividendpaymentdate, inserted
+    id, ticker, exchange, sector, industry, one_yr_target, today_high_low, share_volume, 
+    average_volume, previous_close, fiftytwo_week_high_low, market_cap, pe_ratio, 
+    forward_pe_1yr, earnings_per_share, annualized_dividend, ex_dividend_date, 
+    dividend_payment_date, yield, special_dividend_date, special_dividend_amount, 
+    special_dividend_payment_date, inserted
 ) 
 VALUES 
 (14, 'AAPL', 'NASDAQ-GS', 'Technology', 'Computer Manufacturing', 260.00, NULL, 39707224, 51636127, 233.22, 
@@ -56,7 +55,8 @@ VALUES
  NULL, NULL, NULL, '2025-02-09 22:15:27.607276');
 
 
-INSERT INTO dividends (id, ticker, exoreffdate, paymenttype, amount, declarationdate, recorddate, paymentdate, currency, inserted) VALUES
+
+INSERT INTO dividends (id, ticker, ex_date, payment_type, amount, declaration_date, record_date, payment_date, currency, inserted) VALUES
 (223, 'AAPL', '2025-02-10', 'Cash', 0.25, '2025-01-30', '2025-02-10', '2025-02-13', 'USD', '2025-02-09 23:00:10.128089'),
 (224, 'AAPL', '2024-11-08', 'Cash', 0.25, '2024-10-31', '2024-11-11', '2024-11-14', 'USD', '2025-02-09 23:00:10.128089'),
  (225, 'AAPL', '2024-08-12', 'Cash', 0.25, '2024-08-01', '2024-08-12', '2024-08-15', 'USD', '2025-02-09 23:00:10.128089'),
@@ -495,4 +495,3 @@ INSERT INTO dividends (id, ticker, exoreffdate, paymenttype, amount, declaration
  (126537, 'MTG', '1995-11-08', 'Cash', 0.04, '1995-10-26', '1995-11-10', '1995-12-01', 'USD', '2025-02-09 23:30:39.01453'),
  (126538, 'MTG', '1995-08-09', 'Cash', 0.04, '1995-07-27', '1995-08-11', '1995-09-01', 'USD', '2025-02-09 23:30:39.01453'),
  (126539, 'MTG', '1995-05-12', 'Cash', 0.04, '1995-05-04', '1995-05-18', '1995-06-02', 'USD', '2025-02-09 23:30:39.01453');
-

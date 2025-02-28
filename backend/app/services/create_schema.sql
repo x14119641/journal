@@ -34,13 +34,13 @@ CREATE TABLE IF NOT EXISTS votes (
 CREATE TABLE IF NOT EXISTS tickers (
     id SERIAL PRIMARY KEY,
     ticker TEXT UNIQUE NOT NULL,
-    companyName TEXT,
-    stockType TEXT,
+    company_name TEXT,
+    stock_type TEXT,
     exchange TEXT,
-    assetClass TEXT,
-    isNasdaqListed BOOLEAN,
-    isNasdaq100 BOOLEAN,
-    isHeld BOOLEAN
+    asset_class TEXT,
+    is_nasdaq_listed BOOLEAN,
+    is_nasdaq100 BOOLEAN,
+    is_held BOOLEAN
 );
 
 CREATE INDEX IF NOT EXISTS idx_ticker_tickers ON tickers (ticker);
@@ -51,23 +51,23 @@ CREATE TABLE IF NOT EXISTS metadata (
     exchange TEXT,
     sector TEXT,
     industry TEXT,
-    oneYrTarget NUMERIC(12, 2),
-    todayHighLow TEXT,
-    shareVolume BIGINT,
-    averageVolume BIGINT,
-    previousClose NUMERIC(12,2),
-    fiftTwoWeekHighLow TEXT,
-    marketCap BIGINT,
-    PERatio NUMERIC(12,2),
-    forwardPE1Yr  NUMERIC(12,2),
-    earningsPerShare  NUMERIC(12,2),
-    annualizedDividend  NUMERIC(12,2),
-    exDividendDate DATE,
-    dividendPaymentDate DATE,
+    one_yr_target NUMERIC(12, 2),
+    today_high_low TEXT,
+    share_volume BIGINT,
+    average_volume BIGINT,
+    previous_close NUMERIC(12,2),
+    fiftytwo_week_high_low TEXT,
+    market_cap BIGINT,
+    pe_ratio NUMERIC(12,2),
+    forward_pe_1yr  NUMERIC(12,2),
+    earnings_per_share  NUMERIC(12,2),
+    annualized_dividend  NUMERIC(12,2),
+    ex_dividend_date DATE,
+    dividend_payment_date DATE,
     yield  NUMERIC(12,2),
-    specialDividendDate DATE,
-    specialDividendAmount  NUMERIC(12,2),
-    specialDividendPaymentDate DATE,
+    special_dividend_date DATE,
+    special_dividend_amount  NUMERIC(12,2),
+    special_dividend_payment_date DATE,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticker) REFERENCES tickers (ticker)
 );
@@ -77,16 +77,16 @@ CREATE INDEX IF NOT EXISTS idx_metadata_ticker ON metadata (ticker);
 CREATE TABLE IF NOT EXISTS dividends (
     id SERIAL PRIMARY KEY,
     ticker TEXT NOT NULL,
-    exOrEffDate DATE,
-    paymentType TEXT,
+    ex_date DATE,
+    payment_type TEXT,
     amount NUMERIC(12, 2),
-    declarationDate DATE,
-    recordDate DATE,
-    paymentDate DATE,
+    declaration_date DATE,
+    record_date DATE,
+    payment_date DATE,
     currency TEXT,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticker) REFERENCES tickers (ticker),
-    CONSTRAINT unique_ticker_dividend UNIQUE (ticker, exOrEffDate, paymentType, amount, declarationDate, recordDate, paymentDate, currency)
+    CONSTRAINT unique_ticker_dividend UNIQUE (ticker, ex_date, payment_type, amount, declaration_date, record_date, payment_date, currency)
 );
 
 CREATE INDEX IF NOT EXISTS idx_dividends_ticker ON dividends (ticker);
@@ -94,35 +94,26 @@ CREATE INDEX IF NOT EXISTS idx_dividends_ticker ON dividends (ticker);
 CREATE TABLE IF NOT EXISTS institutional_holdings (
     id SERIAL PRIMARY KEY,
     ticker text NOT NULL,
-    sharesOutstandingPCT NUMERIC(12,2),
-    sharesOutstandingTotal BIGINT,
-    totalHoldingsValue BIGINT,
-    increasedPositionsHolders BIGINT,
-    increasedPositionsShares BIGINT,
-    decreasedPositionsHolders BIGINT,
-    decreasedPositionsShares BIGINT,
-    heldPositionsHolders BIGINT,
-    heldPositionsShares BIGINT,
-    totalPositionsHolders BIGINT,
-    totalPositionsShares BIGINT,
-    newPositionsHolders  BIGINT,
-    newPositionsShares BIGINT,
-    soldOutPositionsHolders BIGINT,
-    soldOutPositionsShares BIGINT,
+    shares_outstanding_pct NUMERIC(12,2),
+    shares_outstanding_total BIGINT,
+    total_holdings_value BIGINT,
+    increased_positions_holders BIGINT,
+    increased_positions_shares BIGINT,
+    decreased_positions_holders BIGINT,
+    decreased_positions_shares BIGINT,
+    held_positions_holders BIGINT,
+    held_positions_shares BIGINT,
+    total_positions_holders BIGINT,
+    total_positions_shares BIGINT,
+    new_positions_holders  BIGINT,
+    new_positions_shares BIGINT,
+    sold_out_positions_holders BIGINT,
+    sold_out_positions_shares BIGINT,
     inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticker) REFERENCES tickers (ticker)
 );
 
 CREATE INDEX IF NOT EXISTS idx_institutional_holdings_ticker ON institutional_holdings (ticker);
-
--- Relational tables
-CREATE TABLE IF NOT EXISTS favorites (
-    ticker text NOT NULL,
-    user_id INT NOT NULL,
-    PRIMARY KEY (ticker, user_id),
-    FOREIGN KEY (ticker) REFERENCES tickers(ticker),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
 
 -- Create Portfolio and its relations
 CREATE TABLE IF NOT EXISTS portfolio (
@@ -133,7 +124,7 @@ CREATE TABLE IF NOT EXISTS portfolio (
     quantity BIGINT,
     fee NUMERIC(19, 2) DEFAULT 2,
     -- Calculated column: price * quantity + fee
-    totalValue NUMERIC(19, 2) GENERATED ALWAYS AS (price * quantity + fee) STORED, 
+    total_value NUMERIC(19, 2) GENERATED ALWAYS AS (price * quantity + fee) STORED, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, ticker, fee, created_at)
 );
@@ -146,8 +137,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     ticker TEXT REFERENCES tickers(ticker),
     price NUMERIC(19,2),
     quantity BIGINT,
-    transactionType TEXT,
+    transaction_type TEXT,
     fee NUMERIC DEFAULT 0,
+    details TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_transcations_user_ticker ON transactions (user_id, ticker);
@@ -202,7 +194,7 @@ BEGIN
 	INTO total_gains
 	FROM transactions
 	WHERE user_id = user_id_input
-	AND transactionType='sell';
+	AND transaction_type='sell';
 
     RETURN QUERY SELECT total_funds, total_spent,total_gains;
 END;
@@ -221,11 +213,11 @@ AS $BODY$
 WITH totals AS (
   SELECT
     COALESCE((SELECT SUM(amount) FROM funds WHERE user_id = user_id_input), 0) AS total_funds,
-    COALESCE((SELECT SUM(totalValue) FROM portfolio WHERE user_id = user_id_input), 0) AS total_spent
+    COALESCE((SELECT SUM(total_value) FROM portfolio WHERE user_id = user_id_input), 0) AS total_spent
 )
 SELECT 
   ticker,
-  SUM(totalValue) AS "totalValue",
+  SUM(total_value) AS "totalValue",
   SUM(quantity) AS "totalQuantity"
 FROM public.portfolio
 WHERE user_id = user_id_input
@@ -238,4 +230,112 @@ SELECT
   (t.total_funds - t.total_spent) AS "totalValue",  
   NULL::numeric AS "totalQuantity"
 FROM totals t;
+$BODY$;
+
+
+-- Add transaction
+CREATE OR REPLACE FUNCTION public.add_transaction(
+	user_id_input integer,
+	ticker_input text,
+	price_input numeric,
+	quantity_input numeric,
+	transaction_type_input text,
+	fee_input numeric DEFAULT 2,
+    details_input text default ''
+    )
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+    available_funds NUMERIC;
+    return_message TEXT;
+    ticker_exists BOOLEAN;
+    total_transaction NUMERIC;
+    total_quantity_stock NUMERIC;
+	remaining_quantity NUMERIC; -- Placeholder to use in FIFO deletion
+	record RECORD; -- record variable to hold the row data
+BEGIN
+
+    SELECT COALESCE(SUM(amount), 0)
+    INTO available_funds
+    FROM funds
+    WHERE user_id = user_id_input;
+
+    SELECT EXISTS (SELECT 1 FROM tickers WHERE ticker = ticker_input) INTO ticker_exists;
+
+    IF ticker_exists THEN
+        IF LOWER(transaction_type_input) = 'buy' THEN
+			-- If you buy you pay the fee
+			total_transaction := price_input * quantity_input + fee_input;
+            IF available_funds >= total_transaction THEN
+                -- If enough funds, buy, "insert ignore" if ticker not in portfolio 
+                INSERT INTO portfolio (user_id, ticker, price, quantity, fee) 
+                SELECT user_id_input, ticker_input, price_input, quantity_input, fee_input
+                ;
+				
+                INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details) 
+                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input, details_input);
+                -- Add the fund 'transaction' in order to keep record of the funds, total transaction in negative!
+				INSERT INTO funds (user_id, amount, description) 
+                VALUES (user_id_input, -total_transaction, 'Bought ' || quantity_input || ' of ' || ticker_input || ' at ' || price_input);
+				return_message := 'Transaction BUY added successfully.';
+            ELSE
+                return_message := 'Insufficient funds.';
+            END IF;
+        ELSIF LOWER(transaction_type_input) = 'sell' THEN
+            SELECT SUM(quantity) INTO total_quantity_stock FROM transactions WHERE user_id = user_id_input AND ticker = ticker_input;
+            -- If you sell the fee is negative
+			total_transaction := price_input * quantity_input - fee_input;
+			IF total_quantity_stock >= quantity_input THEN
+			    -- Quantity must be negative
+                INSERT INTO transactions (user_id, ticker, price, quantity, transactionType, fee, details) 
+                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input, details_input);
+                
+				-- DELETE ticker in portfolio in FIFO
+                remaining_quantity := quantity_input;
+				FOR record IN 
+					SELECT price, quantity, fee, created_at
+					FROM portfolio
+					WHERE user_id = user_id_input AND ticker = ticker_input
+					ORDER BY created_at
+					FOR UPDATE SKIP LOCKED
+				LOOP
+					-- If the current quantity is less than or equal to the remaining quantity to sell, remove the whole row
+					IF record.quantity <= remaining_quantity THEN
+						DELETE FROM portfolio
+						WHERE user_id = user_id_input AND ticker = ticker_input
+						AND price = record.price AND fee = record.fee AND created_at= record.created_at;
+						-- Decrease the remaining quantity to sell
+                        remaining_quantity := remaining_quantity - record.quantity;
+					-- If the current quantity is more than the remaining quantity to sell, update the quantity
+					ELSE
+						UPDATE portfolio
+						SET quantity = record.quantity - remaining_quantity
+						WHERE user_id = user_id_input AND ticker = ticker_input
+						AND price =record.price AND fee = record.fee AND created_at = record.created_at;
+						remaining_quantity := 0;
+					END IF;
+					-- Exit the loop if the remaining quantity to sell has been fulfilled
+                    IF remaining_quantity = 0 THEN
+                        EXIT;
+                    END IF;
+                END LOOP;
+				-- Add the the sell, quantity is positive!
+ 				INSERT INTO funds (user_id, amount, description) 
+                VALUES (user_id_input, total_transaction, 'Sold ' || quantity_input || ' of ' || ticker_input || ' at ' || price_input);
+                return_message := 'Transaction SELL added successfully.';
+            ELSE
+                return_message := 'There is not enough stock to sell.';
+            END IF;
+        ELSE
+            return_message := 'Invalid transaction type.';
+        END IF;
+    ELSE
+        return_message := 'Ticker does not exist.';
+    END IF;
+
+    RETURN return_message;
+END;
 $BODY$;
