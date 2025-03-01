@@ -34,6 +34,7 @@ class Database:
         except Exception as e:
             db_logger.error(f"Error in create_pool. <Error> {str(e)}")
             self.pool = None
+            raise
     
     async def close_pool(self):
         """Close the connection pool."""
@@ -56,6 +57,7 @@ class Database:
                     return await conn.execute(query, *args)
             except Exception as e:
                 db_logger.error(f"Error exequting the query: {query}. <Error> {str(e)}")
+                raise
 
     async def fetch(self, query, *args):
         """Execute a query and return results."""
@@ -70,7 +72,7 @@ class Database:
                     return [dict(record) for record in records] if records else None
             except Exception as e:
                 db_logger.error(f"Error fetching the query: {query}. <Error> {str(e)}")
-                return None
+                raise
  
     
     async def fetchone(self, query, *args):
@@ -85,7 +87,7 @@ class Database:
                     return await conn.fetchval(query, *args)
             except Exception as e:
                 db_logger.error(f"Error fetching one value: {query}. <Error> {str(e)}")
-                return None
+                raise
     
     async def fetchrow(self, query, *args):
         """Execute a query returning a row."""
@@ -101,7 +103,7 @@ class Database:
                     return dict(record) if record else None
             except Exception as e:
                 db_logger.error(f"Error fetching row: {query}. <Error> {str(e)}")
-                return None
+                raise
 
     async def create_schema(self):
         """Create the database schema."""
@@ -115,6 +117,7 @@ class Database:
             db_logger.info("Database schema created successfully.")
         except Exception as e:
             db_logger.error(f"Error in create_schema. <Error> {str(e)}")
+            raise
 
     
     async def insert_test_data(self):
@@ -129,6 +132,7 @@ class Database:
             db_logger.info("Data Inserted!")
         except Exception as e:
             db_logger.error(f"Error in insert test_data. <Error> {str(e)}")
+            raise
             
             
     def read_sql(self, file_name):
@@ -139,4 +143,4 @@ class Database:
                 return f.read()
         except FileNotFoundError:
             db_logger.error(f"SQL file {file_name}.sql not found.")
-            return None
+            raise
