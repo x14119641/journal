@@ -2,7 +2,7 @@ from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from fastapi.middleware.cors import CORSMiddleware
 from .schema import Post, PostOut, PostCreate, User, UserCreate, UserResponse
-from .dependencies import oauth2_scheme, password_hash
+from .dependencies import oauth2_scheme, password_hash, UnicornException, unicorn_exception_handler
 from typing import List
 import random
 from .routes import post, user, auth, stock, portfolio, transaction
@@ -32,12 +32,5 @@ app.include_router(stock.router)
 app.include_router(portfolio.router)
 app.include_router(transaction.router)
 
+app.add_exception_handler(UnicornException, unicorn_exception_handler)
 
-
-@app.get("/hello")
-async def hello():
-    return {"message": "Message from fastapi !!!!"}
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
