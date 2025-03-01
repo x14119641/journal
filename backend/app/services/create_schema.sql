@@ -115,227 +115,553 @@ CREATE TABLE IF NOT EXISTS institutional_holdings (
 
 CREATE INDEX IF NOT EXISTS idx_institutional_holdings_ticker ON institutional_holdings (ticker);
 
--- Create Portfolio and its relations
-CREATE TABLE IF NOT EXISTS portfolio (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    ticker TEXT REFERENCES tickers(ticker),
-    price NUMERIC(19, 2),
-    quantity BIGINT,
-    fee NUMERIC(19, 2) DEFAULT 2,
-    -- Calculated column: price * quantity + fee
-    total_value NUMERIC(19, 2) GENERATED ALWAYS AS (price * quantity + fee) STORED, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, ticker, fee, created_at)
+-- Create Balance, I think we will need it
+CREATE TABLE IF NOT EXISTS balance (
+    user_id INT PRIMARY KEY REFERENCES users(id),
+    total_balance NUMERIC(19,6) DEFAULT 0
 );
-CREATE INDEX IF NOT EXISTS idx_portfolio_user_ticker ON portfolio (user_id, ticker);
-CREATE INDEX IF NOT EXISTS idx_portfolio_fifo ON portfolio (user_id, ticker, fee, created_at);
+CREATE INDEX IF NOT EXISTS idx_balance_user_id ON balance (user_id);
 
+-- Stores buy/sell transactions
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY, 
     user_id INT REFERENCES users(id),
     ticker TEXT REFERENCES tickers(ticker),
-    price NUMERIC(19,2),
-    quantity BIGINT,
+    price NUMERIC(19,6),
+    quantity NUMERIC(19,6),
     transaction_type TEXT,
     fee NUMERIC DEFAULT 0,
+	realized_profit_loss NUMERIC(19,6) DEFAULT 0,
     details TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_transcations_user_ticker ON transactions (user_id, ticker);
 
+-- Create a balance history
+CREATE TABLE IF NOT EXISTS balance_history (
+	id serial PRIMARY KEY,
+	user_id INT REFERENCES users(id),
+	change_amount NUMERIC(19, 2),
+    new_balance NUMERIC(19,6),
+	reason TEXT,
+	transaction_id INT REFERENCES transactions(id) ON DELETE SET NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_balance_history_user_id ON balance_history (user_id);
 
-CREATE TABLE IF NOT EXISTS funds (
+-- Create Portfolio and its relations
+CREATE TABLE IF NOT EXISTS portfolio_lots (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
-    amount NUMERIC(19,2),
-    description TEXT,
+    ticker TEXT REFERENCES tickers(ticker),
+    buy_price NUMERIC(19, 2),
+    quantity NUMERIC(19, 2),
+	remaining_quantity NUMERIC(19, 2),
+    fee NUMERIC(19, 2) DEFAULT 2,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_funds_user ON funds (user_id);
+CREATE INDEX IF NOT EXISTS idx_portfolio_lots_user_ticker ON portfolio_lots (user_id, ticker);
 
 
-CREATE TABLE dividend_transactions (
-  id SERIAL PRIMARY KEY,
-  user_id INT REFERENCES users(id),
-  ticker TEXT REFERENCES tickers(ticker),
-  dividend NUMERIC,
-  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+
+-- HEre will store the "deposits" withraws" or something that extracts or puts money in it the deposi
+-- We dont need it anymore because we store everything in ransactions, balance and balance_history
+-- CREATE TABLE IF NOT EXISTS funds (
+--     id SERIAL PRIMARY KEY,
+--     user_id INT REFERENCES users(id),
+--     amount NUMERIC(19,6),
+-- 	fund_type TEXT,
+--     description TEXT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+-- CREATE INDEX IF NOT EXISTS idx_funds_user ON funds (user_id);
+
+-- I guess I will need to store the fees
+CREATE TABLE IF NOT EXISTS fees (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    ticker TEXT REFERENCES tickers(ticker),
+    transaction_id INT REFERENCES transactions(id) ON DELETE CASCADE,
+    type TEXT,
+    fee NUMERIC(19,6),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_dividend_transactions_user_ticker ON dividend_transactions (user_id, ticker);
 
--- Create Some functions or porcedures we might need
-CREATE OR REPLACE FUNCTION public.calculate_portfolio_totals(
-	user_id_input integer)
-    RETURNS TABLE(total_funds numeric, total_spent numeric, total_gains numeric) 
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-    ROWS 1000
+CREATE OR REPLACE FUNCTION buy_stock(
+	_user_id INT,
+	_ticker TEXT,
+	_buy_price NUMERIC(19,6),
+	_quantity NUMERIC(19,6),
+	_fee NUMERIC(19,6)
+) RETURNS TEXT LANGUAGE 'plpgsql' AS $$
 
-AS $BODY$
 DECLARE
-    total_funds NUMERIC;
-    total_spent NUMERIC;
-	total_gains NUMERIC;
-BEGIN
+	_total_cost NUMERIC(19,6);
+	_current_balance NUMERIC(19,6);
+	_new_balance NUMERIC(19,6);
+BEGIN 
+    --Check if ticker exists in the database
+    IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker=_ticker) THEN
+		RAISE EXCEPTION 'Ticker not in db';
+	END IF;
 
-    SELECT COALESCE(SUM(amount), 0)
-    INTO total_funds
-    FROM funds
-    WHERE user_id = user_id_input;
+	-- Calculate total cost of the purchase
+	_total_cost := (_buy_price * _quantity) + _fee;
 
-    SELECT COALESCE(sum(totalValue), 0)
-	INTO total_spent
-	FROM portfolio
-	WHERE user_id = 2	;
+	-- Get current balance
+	SELECT total_balance INTO _current_balance 
+	FROM balance WHERE user_id = _user_id;
 
-	SELECT COALESCE(SUM(price*quantity+fee), 0)
-	INTO total_gains
-	FROM transactions
-	WHERE user_id = user_id_input
-	AND transaction_type='sell';
+	-- Ensure sufficient funds
+	IF _current_balance < _total_cost THEN
+		RAISE EXCEPTION 'Insufficient funds';
+	END IF;
 
-    RETURN QUERY SELECT total_funds, total_spent,total_gains;
+	-- Insert transaction record for the buy action
+	INSERT INTO transactions(user_id, ticker, price, quantity, transaction_type, fee, created_at)
+	VALUES(_user_id, _ticker, _buy_price, _quantity, 'BUY', _fee, NOW());
+
+	-- Insert into portfolio (FIFO tracking)
+	INSERT INTO portfolio_lots(user_id, ticker, buy_price, quantity, remaining_quantity, fee, created_at)
+	VALUES(_user_id, _ticker, _buy_price, _quantity, _quantity, _fee, NOW());
+
+	-- Subtract the cost from the balance
+	_new_balance := _current_balance - _total_cost;
+	UPDATE balance SET total_balance = _new_balance WHERE user_id = _user_id;
+
+	-- ✅ Insert transaction into balance history
+	INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
+	VALUES (_user_id, -_total_cost, _new_balance, 'BUY', NOW());
+
+	RETURN 'Stock purchased';
 END;
-$BODY$;
+$$;
 
+CREATE OR REPLACE FUNCTION sell_stock(
+    _user_id INT,
+    _ticker TEXT,
+    _price NUMERIC(19,6),  
+    _quantity NUMERIC(19,6),  
+    _fee NUMERIC(19,6)
+) RETURNS TEXT LANGUAGE plpgsql AS $$
 
-
-CREATE OR REPLACE FUNCTION get_portfolio_summary(user_id_input INTEGER)
-RETURNS TABLE(
-	ticker TEXT,
-	"totalValue" NUMERIC,
-	"totalQuantity" NUMERIC
-)
-LANGUAGE sql
-AS $BODY$
-WITH totals AS (
-  SELECT
-    COALESCE((SELECT SUM(amount) FROM funds WHERE user_id = user_id_input), 0) AS total_funds,
-    COALESCE((SELECT SUM(total_value) FROM portfolio WHERE user_id = user_id_input), 0) AS total_spent
-)
-SELECT 
-  ticker,
-  SUM(total_value) AS "totalValue",
-  SUM(quantity) AS "totalQuantity"
-FROM public.portfolio
-WHERE user_id = user_id_input
-GROUP BY ticker
-
-UNION ALL
-
-SELECT
-  'Money' AS ticker,
-  (t.total_funds - t.total_spent) AS "totalValue",  
-  NULL::numeric AS "totalQuantity"
-FROM totals t;
-$BODY$;
-
-
--- Add transaction
-CREATE OR REPLACE FUNCTION public.add_transaction(
-	user_id_input integer,
-	ticker_input text,
-	price_input numeric,
-	quantity_input numeric,
-	transaction_type_input text,
-	fee_input numeric DEFAULT 2,
-    details_input text default ''
-    )
-    RETURNS text
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
 DECLARE
-    available_funds NUMERIC;
-    return_message TEXT;
-    ticker_exists BOOLEAN;
-    total_transaction NUMERIC;
-    total_quantity_stock NUMERIC;
-	remaining_quantity NUMERIC; -- Placeholder to use in FIFO deletion
-	record RECORD; -- record variable to hold the row data
+    _lot RECORD;
+    _total_sell_value NUMERIC(19,6) := 0;
+    _total_cost_basis NUMERIC(19,6) := 0;
+    _total_allocated_fee NUMERIC(19,6) := 0;
+    _profit_loss NUMERIC(19,6) := 0;
+    _current_balance NUMERIC(19,6);
+    _new_balance NUMERIC(19,6);
+    _quantity_sold NUMERIC(19,6) := 0;
+    _transaction_id INT;
+    _remaining_to_sell NUMERIC(19,6) := _quantity;
 BEGIN
-
-    SELECT COALESCE(SUM(amount), 0)
-    INTO available_funds
-    FROM funds
-    WHERE user_id = user_id_input;
-
-    SELECT EXISTS (SELECT 1 FROM tickers WHERE ticker = ticker_input) INTO ticker_exists;
-
-    IF ticker_exists THEN
-        IF LOWER(transaction_type_input) = 'buy' THEN
-			-- If you buy you pay the fee
-			total_transaction := price_input * quantity_input + fee_input;
-            IF available_funds >= total_transaction THEN
-                -- If enough funds, buy, "insert ignore" if ticker not in portfolio 
-                INSERT INTO portfolio (user_id, ticker, price, quantity, fee) 
-                SELECT user_id_input, ticker_input, price_input, quantity_input, fee_input
-                ;
-				
-                INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details) 
-                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input, details_input);
-                -- Add the fund 'transaction' in order to keep record of the funds, total transaction in negative!
-				INSERT INTO funds (user_id, amount, description) 
-                VALUES (user_id_input, -total_transaction, 'Bought ' || quantity_input || ' of ' || ticker_input || ' at ' || price_input);
-				return_message := 'Transaction BUY added successfully.';
-            ELSE
-                return_message := 'Insufficient funds.';
-            END IF;
-        ELSIF LOWER(transaction_type_input) = 'sell' THEN
-            SELECT SUM(quantity) INTO total_quantity_stock FROM transactions WHERE user_id = user_id_input AND ticker = ticker_input;
-            -- If you sell the fee is negative
-			total_transaction := price_input * quantity_input - fee_input;
-			IF total_quantity_stock >= quantity_input THEN
-			    -- Quantity must be negative
-                INSERT INTO transactions (user_id, ticker, price, quantity, transactionType, fee, details) 
-                VALUES (user_id_input, ticker_input, price_input, quantity_input, transaction_type_input, fee_input, details_input);
-                
-				-- DELETE ticker in portfolio in FIFO
-                remaining_quantity := quantity_input;
-				FOR record IN 
-					SELECT price, quantity, fee, created_at
-					FROM portfolio
-					WHERE user_id = user_id_input AND ticker = ticker_input
-					ORDER BY created_at
-					FOR UPDATE SKIP LOCKED
-				LOOP
-					-- If the current quantity is less than or equal to the remaining quantity to sell, remove the whole row
-					IF record.quantity <= remaining_quantity THEN
-						DELETE FROM portfolio
-						WHERE user_id = user_id_input AND ticker = ticker_input
-						AND price = record.price AND fee = record.fee AND created_at= record.created_at;
-						-- Decrease the remaining quantity to sell
-                        remaining_quantity := remaining_quantity - record.quantity;
-					-- If the current quantity is more than the remaining quantity to sell, update the quantity
-					ELSE
-						UPDATE portfolio
-						SET quantity = record.quantity - remaining_quantity
-						WHERE user_id = user_id_input AND ticker = ticker_input
-						AND price =record.price AND fee = record.fee AND created_at = record.created_at;
-						remaining_quantity := 0;
-					END IF;
-					-- Exit the loop if the remaining quantity to sell has been fulfilled
-                    IF remaining_quantity = 0 THEN
-                        EXIT;
-                    END IF;
-                END LOOP;
-				-- Add the the sell, quantity is positive!
- 				INSERT INTO funds (user_id, amount, description) 
-                VALUES (user_id_input, total_transaction, 'Sold ' || quantity_input || ' of ' || ticker_input || ' at ' || price_input);
-                return_message := 'Transaction SELL added successfully.';
-            ELSE
-                return_message := 'There is not enough stock to sell.';
-            END IF;
-        ELSE
-            return_message := 'Invalid transaction type.';
-        END IF;
-    ELSE
-        return_message := 'Ticker does not exist.';
+    -- Check if ticker exists
+    IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker = _ticker) THEN
+        RAISE EXCEPTION 'Ticker not in db';
     END IF;
 
-    RETURN return_message;
+    -- Check if shares exist
+    IF NOT EXISTS (SELECT 1 FROM portfolio_lots WHERE user_id = _user_id AND ticker = _ticker AND remaining_quantity > 0) THEN
+        RAISE EXCEPTION 'No shares available to sell';
+    END IF;
+
+    -- Process FIFO sales
+    WHILE _remaining_to_sell > 0 LOOP
+        -- Get the oldest available lot
+        SELECT * INTO _lot FROM portfolio_lots
+        WHERE user_id = _user_id 
+          AND ticker = _ticker 
+          AND remaining_quantity > 0
+        ORDER BY created_at ASC
+        LIMIT 1;
+
+        -- Check if a lot exists
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Not enough shares to sell';
+        END IF;
+
+        -- Determine quantity to sell
+        IF _lot.remaining_quantity <= _remaining_to_sell THEN
+            -- Selling entire lot
+            _quantity_sold := _lot.remaining_quantity;
+            _remaining_to_sell := _remaining_to_sell - _quantity_sold;
+            _total_allocated_fee := _total_allocated_fee + _lot.fee; -- Full fee
+
+            -- Calculate profit/loss
+            _total_sell_value := _total_sell_value + (_price * _quantity_sold);
+            _total_cost_basis := _total_cost_basis + (_lot.buy_price * _quantity_sold);
+
+            -- Delete fully sold lot
+            DELETE FROM portfolio_lots WHERE id = _lot.id;
+        ELSE
+            -- Selling partial lot
+            _quantity_sold := _remaining_to_sell;
+            _remaining_to_sell := 0;
+
+            -- Calculate proportional fee allocation
+            _total_allocated_fee := _total_allocated_fee + ((_quantity_sold / _lot.quantity) * _lot.fee);
+
+            -- Calculate profit/loss
+            _total_sell_value := _total_sell_value + (_price * _quantity_sold);
+            _total_cost_basis := _total_cost_basis + (_lot.buy_price * _quantity_sold);
+
+            -- Update lot
+            UPDATE portfolio_lots 
+            SET remaining_quantity = remaining_quantity - _quantity_sold, 
+                fee = fee - ((_quantity_sold / _lot.quantity) * _lot.fee)
+            WHERE id = _lot.id;
+        END IF;
+    END LOOP;
+
+    -- Calculate final profit/loss
+    _profit_loss := (_total_sell_value - _total_cost_basis - _total_allocated_fee);
+
+    -- Insert transaction record
+    INSERT INTO transactions(user_id, ticker, price, quantity, transaction_type, fee, realized_profit_loss, created_at)
+    VALUES (_user_id, _ticker, _price, _quantity, 'SELL', _total_allocated_fee, _profit_loss, NOW())
+    RETURNING id INTO _transaction_id;
+
+    -- Update balance
+    SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
+    _new_balance := _current_balance + _total_sell_value;
+
+    UPDATE balance 
+    SET total_balance = _new_balance
+    WHERE user_id = _user_id;
+
+    -- Insert into balance history
+    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, transaction_id, created_at)
+    VALUES (_user_id, _total_sell_value, _new_balance, 'SELL', _transaction_id, NOW());
+
+    -- Return success message
+    RETURN FORMAT('Success: Sold %s shares of %s. Profit/Loss: %s', _quantity, _ticker, _profit_loss);
 END;
-$BODY$;
+$$;
+
+
+
+CREATE OR REPLACE PROCEDURE deposit_funds(
+    IN _user_id INT,
+    IN _amount NUMERIC(19,6),
+    IN _description TEXT
+)
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+    -- Ensure the amount is positive
+    IF _amount <= 0 THEN
+        RAISE EXCEPTION 'Deposit amount must be positive';
+    END IF;
+
+    -- If the user has no balance record, insert a new one
+    INSERT INTO balance (user_id, total_balance)
+    VALUES (_user_id, _amount)
+    ON CONFLICT (user_id) -- If user_id already exists, do nothing
+    DO UPDATE SET total_balance = balance.total_balance + _amount;
+
+    -- Insert transaction record for deposit
+    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
+    VALUES (_user_id, NULL, NULL, NULL, 'DEPOSIT', 0, _description, NOW());
+
+    -- Insert balance history
+    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
+    VALUES (_user_id, _amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT', NOW());
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE withdraw_funds(
+    _user_id INT,
+    _amount NUMERIC(19,6),
+    _description TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _current_balance NUMERIC(19,6);
+BEGIN
+    -- Fetch the current balance
+    SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
+
+    -- Prevent negative withdrawals
+    IF _amount <= 0 THEN
+        RAISE EXCEPTION 'Invalid withdrawal amount';
+    END IF;
+
+    -- Prevent insert when nulls 
+    IF _current_balance IS NULL THEN
+        RAISE EXCEPTION 'There is no balance';
+    END IF;
+
+    -- Check if the user has enough funds
+    IF _current_balance < _amount THEN
+        RAISE EXCEPTION 'Insufficient funds for withdrawal';
+    END IF;
+
+    -- Deduct balance
+    UPDATE balance
+    SET total_balance = total_balance - _amount
+    WHERE user_id = _user_id;
+
+    -- Insert transaction record for withdrawal
+    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
+    VALUES (_user_id, NULL, NULL, NULL, 'WITHDRAW', 0, _description, NOW());
+
+    -- Insert into balance history
+    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
+    VALUES (_user_id, -_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', NOW());
+
+EXCEPTION WHEN OTHERS THEN
+    -- Ensure the error is properly raised
+    RAISE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_balance(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE plpgsql AS $$
+DECLARE
+    _current_balance NUMERIC(19,6);
+BEGIN
+    SELECT ROUND(COALESCE(total_balance, 0), 6) 
+    INTO _current_balance 
+    FROM balance WHERE user_id = _user_id;
+    
+    RETURN _current_balance;
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION get_total_fees(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
+DECLARE
+    _total_fees NUMERIC(19,6);
+BEGIN
+    SELECT COALESCE(ROUND(SUM(fee), 6), 0) INTO _total_fees
+    FROM fees
+    WHERE user_id = _user_id;
+
+    RETURN _total_fees;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION get_portfolio(_user_id INT)
+RETURNS TABLE(
+    ticker TEXT,
+    remaining_quantity NUMERIC(19,6),
+    buy_price NUMERIC(19,6),
+    total_value NUMERIC(19,6)
+) LANGUAGE 'plpgsql' AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.ticker,
+        ROUND(p.remaining_quantity, 6) AS remaining_quantity,
+        ROUND(p.buy_price, 6) AS buy_price,
+        ROUND(p.remaining_quantity * p.buy_price, 6) AS total_value
+    FROM portfolio_lots p
+    WHERE p.user_id = _user_id AND p.remaining_quantity > 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_total_money_invested(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
+DECLARE
+    _total_invested NUMERIC(19,6);
+BEGIN
+    -- Force rounding at every level
+    SELECT COALESCE(
+        ROUND(SUM(
+            ROUND(buy_price * remaining_quantity, 6) + 
+            ROUND(fee, 6)
+        ), 6), 0)
+    INTO _total_invested
+    FROM portfolio_lots
+    WHERE user_id = _user_id AND remaining_quantity > 0;
+
+    RETURN _total_invested;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION get_total_money_earned(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
+DECLARE
+    _total_earned NUMERIC(19,6);
+BEGIN
+    SELECT ROUND(COALESCE(SUM(price * quantity - fee), 0), 6)
+    INTO _total_earned
+    FROM transactions
+    WHERE user_id = _user_id AND transaction_type = 'SELL';
+
+    RETURN _total_earned;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_current_portfolio_value(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
+DECLARE
+    _portfolio_value NUMERIC(19,6);
+BEGIN
+    -- Sum total value of all stocks in portfolio
+    SELECT COALESCE(ROUND(SUM(remaining_quantity * buy_price), 6), 0) 
+    INTO _portfolio_value
+    FROM portfolio_lots
+    WHERE user_id = _user_id AND remaining_quantity > 0;
+
+    RETURN _portfolio_value;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_net_profit_loss(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
+DECLARE
+    _realized_profit NUMERIC(19,6);
+    _unrealized_profit NUMERIC(19,6);
+    _net_profit NUMERIC(19,6);
+BEGIN
+    SELECT ROUND(COALESCE(SUM(realized_profit_loss), 0), 6)
+    INTO _realized_profit
+    FROM transactions 
+    WHERE user_id = _user_id 
+    AND transaction_type = 'SELL';
+
+    SELECT ROUND(get_current_portfolio_value(_user_id) - get_total_money_invested(_user_id), 6) 
+    INTO _unrealized_profit;
+
+    _net_profit := ROUND(_realized_profit + _unrealized_profit, 6);
+
+    RETURN _net_profit;
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION get_transaction_history(_user_id INT)
+RETURNS TABLE(
+    transaction_id INT,
+    ticker TEXT,
+    transaction_type TEXT,
+    price NUMERIC(19,6),
+    quantity NUMERIC(19,6),
+    fee NUMERIC(19,6),
+    realized_profit_loss NUMERIC(19,6),
+    details TEXT,
+    created_at TIMESTAMP
+) LANGUAGE 'plpgsql' AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        t.id AS transaction_id,
+        t.ticker,
+        t.transaction_type,
+        t.price,
+        t.quantity,
+        t.fee,
+        t.realized_profit_loss,
+        t.details,
+        t.created_at
+    FROM transactions t
+    WHERE t.user_id = _user_id
+    ORDER BY t.created_at DESC;
+END;
+$$ ;
+
+CREATE OR REPLACE FUNCTION get_monthly_performance(
+    _user_id INT,
+    _month INT,
+    _year INT
+) RETURNS TABLE(
+    total_invested NUMERIC(19,6),
+    total_earned NUMERIC(19,6),
+    total_fees NUMERIC(19,6),
+    net_profit_loss NUMERIC(19,6)
+) LANGUAGE 'plpgsql' AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        -- Sum 'buys', total invested
+        COALESCE(SUM(CASE WHEN t.transaction_type = 'BUY' THEN (t.price * t.quantity + t.fee) ELSE 0 END), 0) AS total_invested,
+        -- Sum sellls, total_earned
+        COALESCE(SUM(CASE WHEN t.transaction_type = 'SELL' THEN (t.price * t.quantity - t.fee) ELSE 0 END), 0) AS total_earned,
+        COALESCE(SUM(t.fee), 0) AS total_fees,
+        
+        -- Only sum realized profit loss column  of the sells
+        COALESCE(SUM(CASE WHEN t.transaction_type IN ('SELL') THEN t.realized_profit_loss ELSE 0 END), 0) AS net_profit_loss
+        
+    FROM transactions t
+    WHERE t.user_id = _user_id
+    AND EXTRACT(MONTH FROM t.created_at) = _month
+    AND EXTRACT(YEAR FROM t.created_at) = _year;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION get_unrealized_money(_user_id INT)
+RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
+DECLARE
+    _current_value NUMERIC(19,6);
+    _cost_basis NUMERIC(19,6);
+    _unrealized_profit NUMERIC(19,6);
+BEGIN
+    -- Get current market value of remaining stocks
+    SELECT COALESCE(ROUND(SUM(remaining_quantity * buy_price), 6), 0) 
+    INTO _current_value
+    FROM portfolio_lots
+    WHERE user_id = _user_id AND remaining_quantity > 0;
+
+    -- Get total cost of remaining stocks (excluding sold stocks)
+    SELECT COALESCE(ROUND(SUM(buy_price * remaining_quantity), 6), 0) 
+    INTO _cost_basis
+    FROM portfolio_lots
+    WHERE user_id = _user_id AND remaining_quantity > 0;
+
+    -- Unrealized profit calculation
+    _unrealized_profit := ROUND((_current_value - _cost_basis), 6);
+
+    RETURN _unrealized_profit;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_ticker_portfolio_summary(_user_id INT, _ticker TEXT)
+RETURNS TABLE(
+    ticker TEXT,
+    remaining_quantity NUMERIC(19,6),
+    total_value NUMERIC(19,6),
+    min_price NUMERIC(19,6),
+    max_price NUMERIC(19,6),
+    avg_buy_price NUMERIC(19,6),
+    breakeven_price NUMERIC(19,6),
+    total_fees NUMERIC(19,6)
+) LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.ticker,
+        ROUND(COALESCE(SUM(p.remaining_quantity), 0), 6) AS remaining_quantity,
+        ROUND(COALESCE(SUM(p.remaining_quantity * p.buy_price), 0), 6) AS total_value,
+        ROUND(COALESCE(MIN(p.buy_price), 0), 6) AS min_price,
+        ROUND(COALESCE(MAX(p.buy_price), 0), 6) AS max_price,
+        -- Weighted average buy price
+        ROUND(COALESCE(SUM(p.buy_price * p.remaining_quantity) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS avg_buy_price,
+        -- Breakeven price
+        ROUND(COALESCE((SUM(p.buy_price * p.remaining_quantity) + SUM(p.fee)) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS breakeven_price,
+        ROUND(COALESCE(SUM(p.fee), 0), 6) AS total_fees
+    FROM portfolio_lots p
+    WHERE p.user_id = _user_id AND p.ticker = _ticker
+    GROUP BY p.ticker;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE reset_user_data(_user_id INT) LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM portfolio_lots WHERE user_id = _user_id;
+    DELETE FROM transactions WHERE user_id = _user_id;
+    DELETE FROM balance_history WHERE user_id = _user_id;
+    DELETE FROM fees WHERE user_id = _user_id;
+    UPDATE balance SET total_balance = 0 WHERE user_id = _user_id;
+END;
+$$;

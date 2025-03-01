@@ -82,14 +82,26 @@ class StockDividendRecord(BaseModel):
     currency:str
     
 
-class Transaction(BaseModel):
+class BuyStock(BaseModel):
+    ticker:str
+    buy_price:Decimal
+    quantity:Decimal
+    fee: Decimal=Field(2)
+
+class SellStock(BaseModel):
     ticker:str
     price:Decimal
     quantity:Decimal
-    transaction_type:str
     fee: Decimal=Field(2)
-    details:str
-
+    
+    
+class TransactionAmountDescription(BaseModel):
+    amount:Decimal
+    description:str
+    
+    
+    
+    
 class Ticker(BaseModel):
     ticker:str
     price:Decimal
