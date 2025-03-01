@@ -10,12 +10,114 @@ from decimal import Decimal
 router = APIRouter(prefix='/portfolio', tags=["Portfolio",])
 
 
-@router.get("/")
+@router.get("/get_balance")
+async def get_balance(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    current_balance = await db.fetchone("SELECT get_balance(($1))", current_user.id)
+    return {'value': current_balance}
+
+@router.get("/get_portfolio")
 async def get_portfolio(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
-    results = await db.fetch("SELECT * FROM get_portfolio_summary(($1))", current_user.id)
+    results = await db.fetch("SELECT * FROM get_portfolio(($1))", current_user.id)
+
+    if not results: 
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+                            detail="Portfolio is empty")
+
     return results
+
+
+
+
+@router.get("/get_total_fees")
+async def get_total_fees(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetchone("SELECT * FROM get_total_fees(($1))", current_user.id)
+    # print(results)
+    # if not results:
+    #     raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+    #                             detail="Noo fees")
+    return {"value": results}
+
+
+@router.get("/get_total_money_invested")
+async def get_total_money_invested(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    money_invested = await db.fetchone("SELECT get_total_money_invested(($1))", 
+                                        current_user.id)
+    # print(money_invested)
+    return {"value": money_invested}
+
+
+@router.get("/get_total_money_earned")
+async def get_total_money_invested(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    earnings_from_selling = await db.fetchone("SELECT get_total_money_earned(($1))", 
+                                        current_user.id)
+    # print(earnings_from_selling)
+    return {"value": earnings_from_selling}
+
+
+@router.get("/get_current_portfolio_value")
+async def get_current_portfolio_value(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    current_portfolio_value = await db.fetchone("SELECT get_current_portfolio_value(($1))", 
+                                        current_user.id)
+    # print(current_portfolio_value)
+    return {"value": current_portfolio_value}
+
+
+@router.get("/get_net_profit_loss")
+async def get_net_profit_loss(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    net_profit_loss = await db.fetchone("SELECT get_net_profit_loss(($1))", 
+                                        current_user.id)
+    print(net_profit_loss)
+    return {"value": net_profit_loss}
+
+@router.get("/ticker/{ticker}")
+async def get_ticker_portfolio_summary(
+        ticker: str,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetchrow("SELECT * FROM get_ticker_portfolio_summary($1, $2)", 
+                             current_user.id, ticker)
+
+    if not results: 
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+                            detail="Ticker not in Portfolio")
+
+    return results
+
+
+@router.get("/get_monthly_performance/{month}/{year}")
+async def get_monthly_performance(
+        month: int, year: int,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetchrow("""
+                             SELECT * FROM get_monthly_performance(($1), ($2), ($3))""", 
+                             current_user.id, month, year)
+
+    return results
+
+
+@router.get("/get_unrealized_money")
+async def get_unrealized_money(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    net_profit_loss = await db.fetchone("SELECT get_unrealized_money(($1))", 
+                                        current_user.id)
+    print(net_profit_loss)
+    return {"value": net_profit_loss}
 
 
 @router.get("/summary")
@@ -74,17 +176,20 @@ async def get_portfolio_ticker_aggregate(
         ;""", current_user.id, ticker)
     return results
 
-@router.get("/funds")
-async def get_total_funds(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db),
-        limit: int = 10):
-    results = await db.fetch("""
-                             SELECT * FROM funds 
-                             WHERE user_id = ($1) 
-                             ORDER BY created_at DESC LIMIT ($2)""", 
-                             current_user.id, limit)
-    return results
+# @router.get("/funds")
+# async def get_funds(
+#         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+#         db: Database = Depends(get_db),
+#         limit: int = 10):
+#     results = await db.fetch("""
+#                              SELECT * FROM funds 
+#                              WHERE user_id = ($1) 
+#                              ORDER BY created_at DESC LIMIT ($2)""", 
+#                              current_user.id, limit)
+#     if results is None:
+#         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+#                                 detail="Not Portfolio")
+#     return results
 
 
 @router.get("/allocation")
@@ -111,41 +216,54 @@ async def get_allocation_funds(
     return results
 
 
-@router.get("/allocation/inital_cost")
-async def get_portfolio_barchart_data(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch(
-        """SELECT ticker, SUM(total_value) AS "totalValue" 
-            FROM portfolio
-            WHERE user_id = ($1)
-            GROUP BY ticker;""", 
-        current_user.id)
-    return results
+# @router.get("/allocation/inital_cost")
+# async def get_portfolio_barchart_data(
+#         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+#         db: Database = Depends(get_db)):
+#     results = await db.fetch(
+#         """SELECT ticker, SUM(total_value) AS "totalValue" 
+#             FROM portfolio
+#             WHERE user_id = ($1)
+#             GROUP BY ticker;""", 
+#         current_user.id)
+#     return results
 
 
-@router.get("/funds/totals")
-async def get_total_funds(current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
-    results = await db.fetchrow("SELECT * FROM calculate_portfolio_totals(($1))", current_user.id)
-    return results
+# @router.get("/funds/totals")
+# async def get_total_funds(current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
+#     """HEre we are supposed to get the following values:
+#     total_funds: avalaible funds to invest. I guess i will change the name too
+#     total_spent: amount invested right now (not as market), I guess i will change that too
+#     total_gains: realized gains (i think i will change the name)
+#     """
+#     results = await db.fetchrow("""
+#                                 SELECT * FROM calculate_portfolio_totals(($1))""", 
+#                                 current_user.id)
+#     return results
 
 
-@router.post("/funds/add")
-async def add_funds(amount: int,
-                    current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
-    print(amount)
-    results = await db.fetch("INSERT INTO funds(user_id, amount, description) VALUES (($1), ($2), 'Deposit')", current_user.id, amount)
-    return results
+# @router.post("/funds/add", status_code=status.HTTP_201_CREATED)
+# async def add_funds(amount: int,
+#                     current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
+#     # print(amount)
+#     results = await db.fetchrow("""
+#                              INSERT INTO funds(user_id, amount, description) 
+#                              VALUES (($1), ($2), 'Deposit') RETURNING * """, current_user.id, amount)
+#     print('RESULTS money: ', results)
+#     return results
 
 
-@router.post("/funds/withdraw")
-async def remove_funds(amount: int,
-                    current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
-    portfolio = await db.fetchrow("SELECT * FROM calculate_portfolio_totals(($1))", current_user.id)
-    if portfolio:
-        if amount > portfolio["total_funds"]:
-            print('Not enough funds')
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                                detail="Not enough funds")
-    results = await db.fetch("INSERT INTO funds(user_id, amount, description) VALUES (($1), ($2), 'Withraw')", current_user.id, -amount)
-    return results
+# @router.post("/funds/withdraw", status_code=status.HTTP_201_CREATED)
+# async def withdraw_funds(amount: int,
+#                     current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
+#     portfolio = await db.fetchrow(
+#         "SELECT * FROM calculate_portfolio_totals(($1))", current_user.id)
+#     if portfolio:
+#         if amount > portfolio["total_funds"]:
+#             print('Not enough funds')
+#             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                                 detail="Not enough funds")
+#     results = await db.fetchrow("""INSERT INTO funds(user_id, amount, description) 
+#                              VALUES (($1), ($2), 'Withdraw') RETURNING *""", 
+#                              current_user.id, -amount)
+#     return results
