@@ -1,44 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { setActivePinia, createPinia } from "pinia";
-import { useAuthStore } from "../stores/authStore";
+import { describe, it, expect, vi } from "vitest";
+import { useAuthStore } from "@/stores/authStore";
 import type { MockedFunction } from "vitest";
-import api from "../services/api";
-import { useSSRContext } from "vue";
+import api from "@/services/api";
 
-// Mock `api.ts`
-vi.mock("../services/api", () => {
-  const apiMock = {
-    post: vi.fn(),
-    get: vi.fn(),
-    delete: vi.fn(),
-    put: vi.fn(),
-    interceptors: {
-      request: { use: vi.fn() },
-      response: { use: vi.fn() },
-    },
-  };
-  return { default: apiMock };
-});
 
-beforeEach(() => {
-  vi.resetAllMocks();
-  setActivePinia(createPinia());
 
-  // Mock `localStorage`
-  Object.defineProperty(globalThis, "localStorage", {
-    value: {
-      getItem: vi.fn(),
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-      length: 0,
-      key: vi.fn(),
-    },
-    writable: true,
-  });
-});
-
-describe("Auth Store", () => {
+describe("authStore Test", () => {
   const validMockJWT =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
     "eyJleHAiOjI0MDE5MjAwMDB9." +

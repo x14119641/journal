@@ -5,7 +5,7 @@ export const useNavBarStore = defineStore('navBar', {
         isDropdownOpen: false, // close by default
     }),
     actions: {
-        toogleDropdown() {
+        toggleDropdown() {
             this.isDropdownOpen = !this.isDropdownOpen;
         },
         closeDropdown() {
