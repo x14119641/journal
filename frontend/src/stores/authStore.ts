@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '../services/api';
 import router from '../router';
 import { jwtDecode } from 'jwt-decode';
 
@@ -19,12 +19,13 @@ export const useAuthStore = defineStore('auth', {
         },
         async login(username: string, password: string) {
             try {
-                const response = await axios.post(
+                console.log("Login function called");
+                const response = await api.post(
                     'http://localhost:8000/login',
                     new URLSearchParams({username,password,}),
                     {headers: {'Content-Type': 'application/x-www-form-urlencoded',},
                 });
-
+                console.log("API Response:", response.data); 
                 this.token = response.data.access_token;
                 localStorage.setItem('token', this.token);
                 await this.fetchUser();
@@ -40,7 +41,7 @@ export const useAuthStore = defineStore('auth', {
                 return;
             }
             try {
-                const response = await axios.get('http://localhost:8000/users/me', {
+                const response = await api.get('http://localhost:8000/users/me', {
                     headers: {Authorization: `Bearer ${this.token}`,},
                 });
                 console.log(response)

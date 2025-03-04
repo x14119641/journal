@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, createMemoryHistory  } from 'vue-router';
 import DemoPage from '../pages/DemoPage.vue';
 import HelloPage from '../pages/HelloPage.vue';
 import LoginPage from '../pages/LoginPage.vue';
@@ -13,6 +13,10 @@ import RegisterPage from '../pages/RegisterPage.vue';
 import ManageFundsPage from '../pages/ManageFundsPage.vue';
 import TransactionsPage from '../pages/TransactionsPage.vue';
 import ColorsPAge from '../pages/ColorsPAge.vue';
+
+
+const isTest = process.env.NODE_ENV ==="test";
+
 
 const routes = [
   { path: '/', name: 'Demo0', component: DemoPage, meta: { requiresAuth: false }},
@@ -36,7 +40,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: isTest ? createMemoryHistory() : createWebHistory(), // Use memory history when tests
   routes,
 });
 
