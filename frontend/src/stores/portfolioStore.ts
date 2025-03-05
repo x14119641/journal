@@ -76,6 +76,7 @@ export const usePortfolioStore = defineStore('portfolio', {
         async getPortfolio() {
             try {
                 const response = await api.get('portfolio/get_portfolio')
+                // console.log(response.data)
                 this.portfolio = [...response.data]
             } catch (error) {
                 this.errorMessage = "Portfolio is empty"

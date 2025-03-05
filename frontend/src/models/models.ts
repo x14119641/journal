@@ -156,12 +156,30 @@ export interface DividendCalendar {
     paymentDate:string;
 }
 
-export interface Transaction {
-    ticker: string;
-    price: number;
-    quantity: number;
-    transaction_type: string;
-    fee: number;
+export interface StockTransaction {
+    ticker:string
+    buy_price:Decimal
+    quantity:Decimal
+    fee: Decimal
+    created_at: Date
+  }
+
+  export interface TransactionHistoryRecord {
+    transactionId: number; 
+    ticker:string; 
+    transactionType:string; 
+    price:Decimal;
+    quantity:Decimal; 
+    fee:Decimal;
+    realizedProfitLoss:Decimal; 
+    details:string; 
+    created_at:Date
+  }
+
+  export interface FundsTransaction {
+    amount: Decimal;
+    description: string;
+    created_at: Date;
   }
 
   export interface RiskCalculatorRecord {
