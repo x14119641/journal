@@ -30,8 +30,6 @@ async def get_portfolio(
     return results
 
 
-
-
 @router.get("/get_total_fees")
 async def get_total_fees(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
@@ -158,48 +156,15 @@ async def get_summary_external(
     return clean_result
 
 
-@router.get("/summary/{ticker}")
-async def get_portfolio_ticker_aggregate(
-        ticker:str,
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetchrow(
-        """SELECT 
-                sum(totalvalue) as "totalValue",
-                sum(quantity) as "totalQuantity",
-                MIN(price) as "minPrice", 
-                MAX(price) as "maxPrice",
-                sum(totalvalue)/sum(quantity) as breakeven 
-                FROM portfolio 
-            where user_id = ($1)
-            AND ticker =($2);
-        ;""", current_user.id, ticker)
-    return results
 
-# @router.get("/funds")
-# async def get_funds(
-#         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-#         db: Database = Depends(get_db),
-#         limit: int = 10):
-#     results = await db.fetch("""
-#                              SELECT * FROM funds 
-#                              WHERE user_id = ($1) 
-#                              ORDER BY created_at DESC LIMIT ($2)""", 
-#                              current_user.id, limit)
-#     if results is None:
-#         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
-#                                 detail="Not Portfolio")
-#     return results
-
-
-@router.get("/allocation")
+@router.get("/allocation/sector")
 async def get_allocation_funds(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
     results = await db.fetch("""
                             with cte as (
                                 SELECT ticker,
-                                SUM(quantity) AS quantity 
+                                SUM(remaining_qunatity) AS quantity 
                                 FROM portfolio 
                                 WHERE user_id = ($1)
                                 GROUP BY ticker

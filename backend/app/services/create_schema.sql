@@ -448,24 +448,26 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION get_portfolio(_user_id INT)
-RETURNS TABLE(
-    ticker TEXT,
-    remaining_quantity NUMERIC(19,6),
-    buy_price NUMERIC(19,6),
-    total_value NUMERIC(19,6)
-) LANGUAGE 'plpgsql' AS $$
+CREATE OR REPLACE FUNCTION public.get_portfolio(
+	_user_id integer)
+    RETURNS TABLE(ticker text, remainingQuantity numeric, buyPrice numeric, totalValue numeric) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 BEGIN
     RETURN QUERY
     SELECT 
         p.ticker,
-        ROUND(p.remaining_quantity, 6) AS remaining_quantity,
-        ROUND(p.buy_price, 6) AS buy_price,
-        ROUND(p.remaining_quantity * p.buy_price, 6) AS total_value
+        ROUND(p.remaining_quantity, 6) AS "remainingQuantity",
+        ROUND(p.buy_price, 6) AS "buyPrice",
+        ROUND(p.remaining_quantity * p.buy_price, 6) AS "totalValue"
     FROM portfolio_lots p
     WHERE p.user_id = _user_id AND p.remaining_quantity > 0;
 END;
-$$;
+$BODY$;
 
 CREATE OR REPLACE FUNCTION get_total_money_invested(_user_id INT)
 RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
@@ -570,34 +572,35 @@ BEGIN
 END;
 $$ ;
 
-CREATE OR REPLACE FUNCTION get_monthly_performance(
-    _user_id INT,
-    _month INT,
-    _year INT
-) RETURNS TABLE(
-    total_invested NUMERIC(19,6),
-    total_earned NUMERIC(19,6),
-    total_fees NUMERIC(19,6),
-    net_profit_loss NUMERIC(19,6)
-) LANGUAGE 'plpgsql' AS $$
+CREATE OR REPLACE FUNCTION public.get_monthly_performance(
+	_user_id integer,
+	_month integer,
+	_year integer)
+    RETURNS TABLE(totalInvested numeric, totalEarned numeric, totalFees numeric, netProfitLoss numeric) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 BEGIN
     RETURN QUERY
     SELECT 
         -- Sum 'buys', total invested
-        COALESCE(SUM(CASE WHEN t.transaction_type = 'BUY' THEN (t.price * t.quantity + t.fee) ELSE 0 END), 0) AS total_invested,
+        COALESCE(SUM(CASE WHEN t.transaction_type = 'BUY' THEN (t.price * t.quantity + t.fee) ELSE 0 END), 0) AS "totalInvested",
         -- Sum sellls, total_earned
-        COALESCE(SUM(CASE WHEN t.transaction_type = 'SELL' THEN (t.price * t.quantity - t.fee) ELSE 0 END), 0) AS total_earned,
-        COALESCE(SUM(t.fee), 0) AS total_fees,
+        COALESCE(SUM(CASE WHEN t.transaction_type = 'SELL' THEN (t.price * t.quantity - t.fee) ELSE 0 END), 0) AS "totalEarned",
+        COALESCE(SUM(t.fee), 0) AS "totalFees",
         
         -- Only sum realized profit loss column  of the sells
-        COALESCE(SUM(CASE WHEN t.transaction_type IN ('SELL') THEN t.realized_profit_loss ELSE 0 END), 0) AS net_profit_loss
+        COALESCE(SUM(CASE WHEN t.transaction_type IN ('SELL') THEN t.realized_profit_loss ELSE 0 END), 0) AS "netProfitLoss"
         
     FROM transactions t
     WHERE t.user_id = _user_id
     AND EXTRACT(MONTH FROM t.created_at) = _month
     AND EXTRACT(YEAR FROM t.created_at) = _year;
 END;
-$$;
+$BODY$;
 
 
 CREATE OR REPLACE FUNCTION get_unrealized_money(_user_id INT)
@@ -626,35 +629,34 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION get_ticker_portfolio_summary(_user_id INT, _ticker TEXT)
-RETURNS TABLE(
-    ticker TEXT,
-    remaining_quantity NUMERIC(19,6),
-    total_value NUMERIC(19,6),
-    min_price NUMERIC(19,6),
-    max_price NUMERIC(19,6),
-    avg_buy_price NUMERIC(19,6),
-    breakeven_price NUMERIC(19,6),
-    total_fees NUMERIC(19,6)
-) LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION public.get_ticker_portfolio_summary(
+	_user_id integer,
+	_ticker text)
+    RETURNS TABLE(ticker text, remainingQuantity numeric, totalValue numeric, minPrice numeric, maxPrice numeric, avgBuyPrice numeric, breakeven numeric, totalFees numeric) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 BEGIN
     RETURN QUERY
     SELECT 
         p.ticker,
-        ROUND(COALESCE(SUM(p.remaining_quantity), 0), 6) AS remaining_quantity,
-        ROUND(COALESCE(SUM(p.remaining_quantity * p.buy_price), 0), 6) AS total_value,
-        ROUND(COALESCE(MIN(p.buy_price), 0), 6) AS min_price,
-        ROUND(COALESCE(MAX(p.buy_price), 0), 6) AS max_price,
+        ROUND(COALESCE(SUM(p.remaining_quantity), 0), 6) AS "remainingQuantity",
+        ROUND(COALESCE(SUM(p.remaining_quantity * p.buy_price), 0), 6) AS "totalValue",
+        ROUND(COALESCE(MIN(p.buy_price), 0), 6) AS "minPrice",
+        ROUND(COALESCE(MAX(p.buy_price), 0), 6) AS "maxPrice",
         -- Weighted average buy price
-        ROUND(COALESCE(SUM(p.buy_price * p.remaining_quantity) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS avg_buy_price,
+        ROUND(COALESCE(SUM(p.buy_price * p.remaining_quantity) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS "avgBuyPrice",
         -- Breakeven price
-        ROUND(COALESCE((SUM(p.buy_price * p.remaining_quantity) + SUM(p.fee)) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS breakeven_price,
-        ROUND(COALESCE(SUM(p.fee), 0), 6) AS total_fees
+        ROUND(COALESCE((SUM(p.buy_price * p.remaining_quantity) + SUM(p.fee)) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS "breakeven",
+        ROUND(COALESCE(SUM(p.fee), 0), 6) AS "totalFees"
     FROM portfolio_lots p
     WHERE p.user_id = _user_id AND p.ticker = _ticker
     GROUP BY p.ticker;
 END;
-$$;
+$BODY$;
 
 CREATE OR REPLACE PROCEDURE reset_user_data(_user_id INT) LANGUAGE plpgsql AS $$
 BEGIN

@@ -1,29 +1,39 @@
 import { defineStore } from "pinia";
 import api from "../services/api";
-import {
-    type Fund, type Ticker, type PortfolioItem,
-    type AllocationRecord, type PortfolioItemAgreggate,
-    type BarChartDataItem, type TickerPrice,
-    type RiskCalculatorRecord
+import type {
+     Fund,  Ticker,  PortfolioItem,
+     SectorAllocationRecord,  PortfolioItemSummary,
+     BarChartDataItem,  TickerPrice,
+     RiskCalculatorRecord,
+     PortfolioItemMontly,
+     PortfolioItemSummaryExternal
 } from "../models/models";
 
 import Decimal from "decimal.js";
 
 
+
 export const usePortfolioStore = defineStore('portfolio', {
     state: () => ({
-        accountValue: 0,
-        total_spent: 0,
+        balance: 0,
+        totalFees: 0,
+        totalMoneyInvested: 0,
+        currentPortfolioValue:0,
+        netProfitLoss:0,
+        unrealizedMoney:0,
         cash: 0,
         latest_funds_transactions: [] as Fund[],
         portfolio: [] as PortfolioItem[],
-        allocation_portfolio: [] as AllocationRecord[],
+        sector_allocation_portfolio: [] as SectorAllocationRecord[],
         portfolio_barchart_data: [] as BarChartDataItem[],
         portfolio_summary: [] as TickerPrice[],
         realized_gains: 0,
         riskCalculatorValues: [] as RiskCalculatorRecord[],
-        ticker_portfolio_summary: [] as PortfolioItemAgreggate[],
-        default_limit: 10
+        ticker_portfolio_summary: [] as PortfolioItemSummary[],
+        portfolio_monthly_summary: {} as PortfolioItemMontly,
+        portfolio_external_summary: {} as PortfolioItemSummaryExternal,
+        default_limit: 10,
+        errorMessage:""
     }),
     getters: {
         // Sum the totalValue field from portfolio_summary
@@ -54,6 +64,108 @@ export const usePortfolioStore = defineStore('portfolio', {
         },
     },
     actions: {
+        async getBalance() {
+            try {
+                const response = await api.get('/portfolio/get_balance')
+                this.balance = response.data.value
+            } catch (error) {
+                this.errorMessage = "Error in balance"
+                throw error;
+            }
+        },
+        async getPortfolio() {
+            try {
+                const response = await api.get('portfolio/get_portfolio')
+                this.portfolio = [...response.data]
+            } catch (error) {
+                this.errorMessage = "Portfolio is empty"
+                throw error;
+            }
+        },
+        async getTotalFees() {
+            try {
+                const response = await api.get('/portfolio/get_total_fees')
+                this.totalFees = response.data.value
+            } catch (error) {
+                this.errorMessage = "Error in TotalFees"
+                throw error;
+            }
+        },
+        async getTotalMoneyInvested() {
+            try {
+                const response = await api.get('/portfolio/get_total_money_invested')
+                this.totalMoneyInvested = response.data.value
+            } catch (error) {
+                this.errorMessage = "Error in get_total_money_invested"
+                throw error;
+            }
+        },
+        async getCurrentPortfolioValue() {
+            try {
+                const response = await api.get('/portfolio/get_current_portfolio_value')
+                this.currentPortfolioValue = response.data.value
+            } catch (error) {
+                this.errorMessage = "Error in getCurrentPortfolioValue"
+                throw error;
+            }
+        },
+        async getNetProfitLoss() {
+            try {
+                const response = await api.get('/portfolio/get_net_profit_loss')
+                this.netProfitLoss = response.data.value
+            } catch (error) {
+                this.errorMessage = "Error in getNetProfitLoss"
+                throw error;
+            }
+        },
+        async getTickerPortfolioSummary() {
+            try {
+                const response = await api.get('/portfolio/get_ticker_portfolio_summary')
+                this.ticker_portfolio_summary = [...response.data]
+            } catch (error) {
+                this.errorMessage = "Error in getTickerPortfolioSummary"
+                throw error;
+            }
+        },
+        async getMonthlyPerformance() {
+            try {
+                const response = await api.get('/portfolio/get_monthly_performance')
+                this.portfolio_monthly_summary = response.data
+                
+            } catch (error) {
+                this.errorMessage = "Error in getMonthlyPerformance"
+                throw error;
+            }
+        },
+        async getSummaryExternal() {
+            try {
+                const response = await api.get('/portfolio/get_summary_external')
+                this.portfolio_external_summary = response.data
+                
+            } catch (error) {
+                this.errorMessage = "Error in get_summary_external"
+                throw error;
+            }
+        },
+        async getUnrealizedMoney() {
+            try {
+                const response = await api.get('/portfolio/get_unrealized_money')
+                this.unrealizedMoney = response.data.value
+                
+            } catch (error) {
+                this.errorMessage = "Error in get_unrealized_money"
+                throw error;
+            }
+        },
+        async getPortfolioAllocationSector() {
+            try {
+                const response = await api.get('/portfolio/allocation/sector')
+                this.sector_allocation_portfolio = [...response.data]
+            } catch (error) {
+                this.errorMessage = "Error in getPortfolioAllocation"
+                throw error;
+            }
+        },
         async getFunds(limit?: number) {
             const finalLimit = limit || this.default_limit
             try {
@@ -64,22 +176,7 @@ export const usePortfolioStore = defineStore('portfolio', {
                 throw error;
             }
         },
-        async getPortfolio() {
-            try {
-                const response = await api.get('/portfolio/')
-                this.portfolio = [...response.data]
-            } catch (error) {
-                throw error;
-            }
-        },
-        async getPortfolioAllocation() {
-            try {
-                const response = await api.get('/portfolio/allocation')
-                this.allocation_portfolio = [...response.data]
-            } catch (error) {
-                throw error;
-            }
-        },
+        
         async getPortfolioSummary() {
             try {
                 const response = await api.get('/portfolio/summary')

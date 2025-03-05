@@ -24,8 +24,9 @@ export interface Fund {
 
 export interface PortfolioItem {
     ticker: string;
+    remainingQuantity: Decimal;
+    buyPrice: Decimal;
     totalValue: Decimal;
-    totalQuantity: number;
 }
 export interface PortfolioItemAgreggate {
     totalValue: number;
@@ -34,8 +35,39 @@ export interface PortfolioItemAgreggate {
     maxPrice: number;
     breakeven: number; 
 }
+export interface PortfolioItemSummary {
+    ticker: number;
+    remainingQuantity: Decimal;
+    totalValue: Decimal;
+    minPrice: Decimal; 
+    maxPrice: Decimal;
+    avgBuyPrice:Decimal;
+    breakeven: Decimal;
+    totalFees:Decimal; 
+}
 
-export interface AllocationRecord {
+export interface PortfolioItemSummaryExternal {
+    ticker: number;
+    remainingQuantity: Decimal;
+    totalValue: Decimal;
+    minPrice: Decimal; 
+    maxPrice: Decimal;
+    avgBuyPrice:Decimal;
+    breakeven: Decimal;
+    totalFees:Decimal; 
+    marketValue:Decimal;
+}
+
+export interface PortfolioItemMontly {
+    totalInvested: Decimal;
+    totalEarned: Decimal;
+    totalFees: Decimal; 
+    netProfitLoss: Decimal;
+}
+
+
+
+export interface SectorAllocationRecord {
     ticker: string;
     quantity: number;
     sector: string;

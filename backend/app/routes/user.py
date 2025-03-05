@@ -36,7 +36,7 @@ async def create_user(user:UserCreate, db:Database=Depends(get_db)):
         user.username, user.email, hashed_pwd,)
 
     data = await db.fetchrow("SELECT * FROM users WHERE id = ($1)", row['id'],)
-
+    print(data)
     return data
 
 
