@@ -1,5 +1,8 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, vi } from "vitest";
+import { config } from "@vue/test-utils";
+import { createRouter, createMemoryHistory } from "vue-router";
+
 
 // Mock `api.ts`
 vi.mock("@/services/api", () => {
@@ -17,7 +20,7 @@ vi.mock("@/services/api", () => {
   });
   
 
-// ✅ Mock localStorage globally
+// Mock localStorage globally
 Object.defineProperty(globalThis, "localStorage", {
     value: {
         getItem: vi.fn(),
@@ -29,6 +32,23 @@ Object.defineProperty(globalThis, "localStorage", {
     },
     writable: true,
 });
+
+// Mock Vue Router
+const router = createRouter({
+  history:createMemoryHistory(),
+  routes:[]
+});
+config.global.plugins = [router];
+// Stub components like `router-link` to avoid errors
+config.global.stubs = {
+  "router-link": {
+    template: "<a><slot /></a>", // Renders links properly
+  },
+  "router-view": true, // Prevents `router-view` errors
+};
+
+// Mock console.warn to avoid spammy logs during tests
+vi.spyOn(console, "warn").mockImplementation(() => {});
 
 beforeEach(() => {
     vi.resetAllMocks();
