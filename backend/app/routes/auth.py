@@ -11,7 +11,7 @@ import jwt
 
 router = APIRouter(tags=['Authentification'])
 
-
+ 
 async def get_user(username: str) -> UserLogin:
     """Gets user by username or email from db.
 
@@ -92,7 +92,7 @@ async def get_current_active_user(
 
 @router.post("/login")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
-    print('HEre')
+
     user = await authenticate_user(form_data.username, form_data.password)
 
     if not user:

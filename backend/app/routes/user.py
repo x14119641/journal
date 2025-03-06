@@ -6,7 +6,7 @@ from ..schema import (User, UserBase, UserCreate, UserLogin, UserResponse)
 from ..dependencies import get_db, oauth2_scheme, password_hash
 from typing import Annotated
 
-
+ 
 router = APIRouter(prefix="/users", tags=["Users"]) 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=User)
@@ -36,7 +36,6 @@ async def create_user(user:UserCreate, db:Database=Depends(get_db)):
         user.username, user.email, hashed_pwd,)
 
     data = await db.fetchrow("SELECT * FROM users WHERE id = ($1)", row['id'],)
-    print(data)
     return data
 
 
@@ -55,7 +54,7 @@ async def read_own_items(
 ):
     # Find user
     user = await db.fetchrow("SELECT * FROM users WHERE id=($1) LIMIT 1", current_user.id,)
-    print(user)
+
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='ID not found ')
     return user

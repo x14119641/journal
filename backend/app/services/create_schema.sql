@@ -343,13 +343,13 @@ $$;
 
 
 
-CREATE OR REPLACE PROCEDURE deposit_funds(
-    IN _user_id INT,
-    IN _amount NUMERIC(19,6),
-    IN _description TEXT
-)
+CREATE OR REPLACE PROCEDURE public.deposit_funds(
+	IN _user_id integer,
+	IN _amount numeric,
+	IN _description text,
+	IN _created_at TIMESTAMP DEFAULT NOW())
 LANGUAGE 'plpgsql'
-AS $$
+AS $BODY$
 BEGIN
     -- Ensure the amount is positive
     IF _amount <= 0 THEN
@@ -364,21 +364,21 @@ BEGIN
 
     -- Insert transaction record for deposit
     INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
-    VALUES (_user_id, NULL, NULL, NULL, 'DEPOSIT', 0, _description, NOW());
+    VALUES (_user_id, NULL, NULL, NULL, 'DEPOSIT', 0, _description, _created_at);
 
     -- Insert balance history
     INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, _amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT', NOW());
+    VALUES (_user_id, _amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT', _created_at);
 END;
-$$;
+$BODY$;
 
-CREATE OR REPLACE PROCEDURE withdraw_funds(
-    _user_id INT,
-    _amount NUMERIC(19,6),
-    _description TEXT
-)
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE PROCEDURE public.withdraw_funds(
+	IN _user_id integer,
+	IN _amount numeric,
+	IN _description text,
+	IN _created_at DATETIME DEFAULT NOW())
+LANGUAGE 'plpgsql'
+AS $BODY$
 DECLARE
     _current_balance NUMERIC(19,6);
 BEGIN
@@ -407,17 +407,17 @@ BEGIN
 
     -- Insert transaction record for withdrawal
     INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
-    VALUES (_user_id, NULL, NULL, NULL, 'WITHDRAW', 0, _description, NOW());
+    VALUES (_user_id, NULL, NULL, NULL, 'WITHDRAW', 0, _description, _created_at);
 
     -- Insert into balance history
     INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, -_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', NOW());
+    VALUES (_user_id, -_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', _created_at);
 
 EXCEPTION WHEN OTHERS THEN
     -- Ensure the error is properly raised
     RAISE;
 END;
-$$;
+$BODY$;
 
 CREATE OR REPLACE FUNCTION get_balance(_user_id INT)
 RETURNS NUMERIC(19,6) LANGUAGE plpgsql AS $$
@@ -542,35 +542,32 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION get_transaction_history(_user_id INT)
-RETURNS TABLE(
-    transaction_id INT,
-    ticker TEXT,
-    transaction_type TEXT,
-    price NUMERIC(19,6),
-    quantity NUMERIC(19,6),
-    fee NUMERIC(19,6),
-    realized_profit_loss NUMERIC(19,6),
-    details TEXT,
-    created_at TIMESTAMP
-) LANGUAGE 'plpgsql' AS $$
+CREATE OR REPLACE FUNCTION public.get_transaction_history(
+	_user_id integer)
+    RETURNS TABLE(transactionId integer, ticker text, transactionType text, price numeric, quantity numeric, fee numeric, realizedProfitLoss numeric, details text, created_at timestamp without time zone) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 BEGIN
     RETURN QUERY
     SELECT 
-        t.id AS transaction_id,
+        t.id as "transactionId",
         t.ticker,
-        t.transaction_type,
+        t.transaction_type as "transactionType",
         t.price,
         t.quantity,
         t.fee,
-        t.realized_profit_loss,
+        t.realized_profit_loss as "realizedProfitLoss",
         t.details,
         t.created_at
     FROM transactions t
     WHERE t.user_id = _user_id
     ORDER BY t.created_at DESC;
 END;
-$$ ;
+$BODY$;
 
 CREATE OR REPLACE FUNCTION public.get_monthly_performance(
 	_user_id integer,

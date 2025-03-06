@@ -5,7 +5,7 @@
 
   <div v-if="authStore.username" class="pr-2">
     <button
-      @click="toogleDropdown"
+      @click="toggleDropdown"
       :class="[
         'focus:outline-none',
         isDropdownOpen ? 'text-lime-300' : 'text-lime-500',
@@ -70,8 +70,8 @@ import DarkModeToggle from "./DarkModeToggle.vue";
 const authStore = useAuthStore();
 const navBarStore = useNavBarStore();
 const isDropdownOpen = computed(() => navBarStore.isDropdownOpen);
-const toogleDropdown = () => {
-  navBarStore.toogleDropdown();
+const toggleDropdown = () => {
+  navBarStore.toggleDropdown();
 };
 const closeDropdown = () => {
   navBarStore.closeDropdown();

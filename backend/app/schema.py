@@ -87,19 +87,24 @@ class BuyStock(BaseModel):
     buy_price:Decimal
     quantity:Decimal
     fee: Decimal=Field(2)
+    created_at: datetime
 
 class SellStock(BaseModel):
     ticker:str
     price:Decimal
     quantity:Decimal
     fee: Decimal=Field(2)
+    created_at: datetime
     
     
 class TransactionAmountDescription(BaseModel):
     amount:Decimal
     description:str
     
-    
+class TransactionFund(BaseModel):
+    amount:Decimal
+    description:str  
+    created_at: datetime;  
     
     
 class Ticker(BaseModel):

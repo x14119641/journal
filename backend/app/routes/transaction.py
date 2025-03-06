@@ -1,12 +1,11 @@
-from ..dependencies import get_db, UnicornException
+from ..dependencies import get_db
 from ..services.database import Database
-from ..schema import BuyStock, SellStock, TransactionAmountDescription, UserLogin
+from ..schema import BuyStock, SellStock, TransactionFund, UserLogin
 from .auth import get_current_active_user
-from fastapi import Depends, Response, status, APIRouter, HTTPException
+from fastapi import Depends, status, APIRouter, HTTPException
 from typing import Annotated
 from asyncpg.exceptions import PostgresError 
-
-import json
+from datetime import datetime
 
 
 router = APIRouter(prefix='/transactions', tags=["Transaction",])
@@ -15,15 +14,16 @@ router = APIRouter(prefix='/transactions', tags=["Transaction",])
 
 @router.post("/add_funds", status_code=status.HTTP_201_CREATED)
 async def add_funds(
-    transaction: TransactionAmountDescription,
+    transaction: TransactionFund,
     current_user: Annotated[UserLogin, Depends(get_current_active_user)],
     db: Database = Depends(get_db)
 ):
     try:
         # Use execute() instead of fetch() since we are calling a stored procedure
         await db.execute(
-            """CALL deposit_funds($1, $2, $3);""",
-            current_user.id, transaction.amount, transaction.description
+            """CALL deposit_funds($1, $2, $3, $4);""",
+            current_user.id, transaction.amount, transaction.description, 
+            transaction.created_at or datetime.now()
         )
 
         return {"message": "Funds added successfully"}
@@ -41,13 +41,14 @@ async def add_funds(
 
 @router.post("/withdraw_funds", status_code=status.HTTP_201_CREATED)
 async def withdraw_funds(
-    transaction:TransactionAmountDescription,
+    transaction:TransactionFund,
     current_user:Annotated[UserLogin, Depends(get_current_active_user)],
     db:Database=Depends(get_db)):
     try:
         await db.execute(
-            """CALL withdraw_funds($1, $2, $3);""",
-            current_user.id, transaction.amount, transaction.description
+            """CALL withdraw_funds($1, $2, $3, $4);""",
+            current_user.id, transaction.amount, transaction.description, 
+            transaction.created_at or datetime.now()
         )
 
         return {"message": "Funds withdrew successfully"}
@@ -66,12 +67,13 @@ async def withdraw_funds(
 @router.post("/buy_stock", status_code=status.HTTP_201_CREATED)
 async def buy_stock(transaction:BuyStock,current_user:Annotated[UserLogin, Depends(get_current_active_user)],db:Database=Depends(get_db) ):
     try:
-        return_msg = await db.fetchone("SELECT buy_stock(($1), ($2), ($3), ($4), ($5))", 
+        return_msg = await db.fetchone("SELECT buy_stock($1, $2, $3, $4, $5, $6)", 
                         current_user.id, transaction.ticker, transaction.buy_price, 
-                        transaction.quantity,transaction.fee)
+                        transaction.quantity,transaction.fee, transaction.created_at)
 
+        if return_msg is None:
+            return {"message": "Nothing to buy"}
         return {"message": return_msg}
-
     except PostgresError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -82,13 +84,14 @@ async def buy_stock(transaction:BuyStock,current_user:Annotated[UserLogin, Depen
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error")
     
+    
 @router.post("/sell_stock", status_code=status.HTTP_201_CREATED)
-async def buy_stock(transaction:SellStock,current_user:Annotated[UserLogin, Depends(get_current_active_user)],db:Database=Depends(get_db) ):
+async def sell_stock(transaction:SellStock,current_user:Annotated[UserLogin, Depends(get_current_active_user)],db:Database=Depends(get_db) ):
     try:
         return_msg = await db.fetchone("""
-                                       SELECT sell_stock(($1), ($2), ($3), ($4), ($5))""", 
+                                       SELECT sell_stock($1, $2, $3, $4, $5, $6)""", 
                                        current_user.id, transaction.ticker, transaction.price, 
-                                       transaction.quantity,transaction.fee)
+                                       transaction.quantity,transaction.fee, transaction.created_at)
 
         return {"message": return_msg}
 
@@ -117,18 +120,13 @@ async def get_transaction_history(
     return results
 
 
-
-
-
-
-
 @router.get("/latest")
 async def get_transactions(
     current_user:Annotated[UserLogin, Depends(get_current_active_user)],
     db:Database=Depends(get_db),
     limit:int=10):
     results = await db.fetch("""
-                             SELECT ticker, quantity, price, transaction_type, 
+                             SELECT ticker, quantity, price, transactionType, 
                              price*quantity as total, 
                              created_at 
                              FROM transactions WHERE user_id = ($1) LIMIT ($2)""",
