@@ -193,7 +193,8 @@ CREATE OR REPLACE FUNCTION buy_stock(
 	_ticker TEXT,
 	_buy_price NUMERIC(19,6),
 	_quantity NUMERIC(19,6),
-	_fee NUMERIC(19,6)
+	_fee NUMERIC(19,6),
+    _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) RETURNS TEXT LANGUAGE 'plpgsql' AS $$
 
 DECLARE
@@ -220,11 +221,11 @@ BEGIN
 
 	-- Insert transaction record for the buy action
 	INSERT INTO transactions(user_id, ticker, price, quantity, transaction_type, fee, created_at)
-	VALUES(_user_id, _ticker, _buy_price, _quantity, 'BUY', _fee, NOW());
+	VALUES(_user_id, _ticker, _buy_price, _quantity, 'BUY', _fee, _created_at);
 
 	-- Insert into portfolio (FIFO tracking)
 	INSERT INTO portfolio_lots(user_id, ticker, buy_price, quantity, remaining_quantity, fee, created_at)
-	VALUES(_user_id, _ticker, _buy_price, _quantity, _quantity, _fee, NOW());
+	VALUES(_user_id, _ticker, _buy_price, _quantity, _quantity, _fee, _created_at);
 
 	-- Subtract the cost from the balance
 	_new_balance := _current_balance - _total_cost;
@@ -232,7 +233,7 @@ BEGIN
 
 	-- ✅ Insert transaction into balance history
 	INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
-	VALUES (_user_id, -_total_cost, _new_balance, 'BUY', NOW());
+	VALUES (_user_id, -_total_cost, _new_balance, 'BUY', _created_at);
 
 	RETURN 'Stock purchased';
 END;
@@ -243,7 +244,8 @@ CREATE OR REPLACE FUNCTION sell_stock(
     _ticker TEXT,
     _price NUMERIC(19,6),  
     _quantity NUMERIC(19,6),  
-    _fee NUMERIC(19,6)
+    _fee NUMERIC(19,6),
+    _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) RETURNS TEXT LANGUAGE plpgsql AS $$
 
 DECLARE
@@ -321,7 +323,7 @@ BEGIN
 
     -- Insert transaction record
     INSERT INTO transactions(user_id, ticker, price, quantity, transaction_type, fee, realized_profit_loss, created_at)
-    VALUES (_user_id, _ticker, _price, _quantity, 'SELL', _total_allocated_fee, _profit_loss, NOW())
+    VALUES (_user_id, _ticker, _price, _quantity, 'SELL', _total_allocated_fee, _profit_loss, _created_at)
     RETURNING id INTO _transaction_id;
 
     -- Update balance
@@ -334,7 +336,7 @@ BEGIN
 
     -- Insert into balance history
     INSERT INTO balance_history (user_id, change_amount, new_balance, reason, transaction_id, created_at)
-    VALUES (_user_id, _total_sell_value, _new_balance, 'SELL', _transaction_id, NOW());
+    VALUES (_user_id, _total_sell_value, _new_balance, 'SELL', _transaction_id, _created_at);
 
     -- Return success message
     RETURN FORMAT('Success: Sold %s shares of %s. Profit/Loss: %s', _quantity, _ticker, _profit_loss);
@@ -347,7 +349,7 @@ CREATE OR REPLACE PROCEDURE public.deposit_funds(
 	IN _user_id integer,
 	IN _amount numeric,
 	IN _description text,
-	IN _created_at TIMESTAMP DEFAULT NOW())
+	IN _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
@@ -376,7 +378,7 @@ CREATE OR REPLACE PROCEDURE public.withdraw_funds(
 	IN _user_id integer,
 	IN _amount numeric,
 	IN _description text,
-	IN _created_at DATETIME DEFAULT NOW())
+	IN _created_at DATE DEFAULT CURRENT_TIMESTAMP)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE

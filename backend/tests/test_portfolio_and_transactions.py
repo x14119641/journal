@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime
 import pytest
 
 
@@ -6,7 +7,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_add_funds_invalid(test_client, auth_token):
     # Test negative amount
-    params = {'amount': -100, 'description': 'Invalid Deposit'}
+    params = {'amount': -100, 'description': 'Invalid Deposit',}
     response = await test_client.post(
         "/transactions/add_funds",
         json=params,
@@ -38,7 +39,7 @@ async def test_withdraw_funds_without_balance(test_client, auth_token):
 
 async def test_add_funds(test_client, auth_token):
     # Add 10000
-    params = {'amount': 10000, 'description': 'Initial Deposit'}
+    params = {'amount': 10000, 'description': 'Initial Deposit', 'created_at': datetime.now().isoformat()}
     response = await test_client.post(
         "/transactions/add_funds",
         json=params,
@@ -182,9 +183,10 @@ async def test_get_transaction_history(test_client, auth_token):
     # So far we did 1 deposit and 1 withdraw
     json_data = response.json()
     assert response.status_code == 200
+    print(json_data)
     assert len(json_data) == 2
-    assert json_data[0]['transaction_type'] == 'WITHDRAW'
-    assert json_data[1]['transaction_type'] == 'DEPOSIT'
+    assert json_data[0]['transactiontype'] == 'DEPOSIT'
+    assert json_data[1]['transactiontype'] == 'WITHDRAW'
 
 
 @pytest.mark.asyncio
@@ -212,10 +214,10 @@ async def test_get_empty_monthly_performance(test_client, auth_token):
     json_data = response.json()
 
     assert response.status_code == 200
-    assert json_data['total_invested'] == 0
-    assert json_data['total_earned'] == 0
-    assert json_data['total_fees'] == 0
-    assert json_data['net_profit_loss'] == 0
+    assert json_data['totalinvested'] == 0
+    assert json_data['totalearned'] == 0
+    assert json_data['totalfees'] == 0
+    assert json_data['netprofitloss'] == 0
 
 
 
@@ -298,8 +300,8 @@ async def test_get_ticker_portfolio_summary(test_client, auth_token):
     assert response.status_code == 200
     # assert response.text == ""
     assert json_data["ticker"] == ticker
-    assert json_data["remaining_quantity"] == 200
-    assert json_data["total_value"] == 5500
+    assert json_data["remainingquantity"] == 200
+    assert json_data["totalvalue"] == 5500
 
     
 @pytest.mark.asyncio
@@ -562,8 +564,8 @@ async def test_some_transactions(test_client, auth_token):
     # print(json_data)
     assert response.status_code == 200
     assert json_data["ticker"] == ticker_main
-    assert json_data["remaining_quantity"] == 200
-    assert json_data["total_value"] == 2500
+    assert json_data["remainingquantity"] == 200
+    assert json_data["totalvalue"] == 2500
     
     ticker_mtg = 'MTG'
     response = await test_client.get(
@@ -573,8 +575,8 @@ async def test_some_transactions(test_client, auth_token):
     # print(json_data)
     assert response.status_code == 200
     assert json_data["ticker"] == ticker_mtg
-    assert json_data["remaining_quantity"] == 150
-    assert json_data["total_value"] == 3375
+    assert json_data["remainingquantity"] == 150
+    assert json_data["totalvalue"] == 3375
     
     ticker_aapl = 'AAPL'
     response = await test_client.get(
@@ -584,8 +586,8 @@ async def test_some_transactions(test_client, auth_token):
     # print(json_data)
     assert response.status_code == 200
     assert json_data["ticker"] == ticker_aapl
-    assert json_data["remaining_quantity"] == 4
-    assert json_data["total_value"] == 200
+    assert json_data["remainingquantity"] == 4
+    assert json_data["totalvalue"] == 200
     
     # Last cash mush be 175
     response = await test_client.get("/portfolio/get_balance", headers=auth_token)
@@ -784,7 +786,7 @@ async def test_some_transactions(test_client, auth_token):
     # print('get_portfolio: ', json_data)
     assert response.status_code == 200  
     assert len(json_data) == 3
-    total_portfolio_value = sum(stock["total_value"] for stock in json_data)
+    total_portfolio_value = sum(stock["totalvalue"] for stock in json_data)
     response = await test_client.get("/portfolio/get_total_money_invested", headers=auth_token)
     json_data = response.json() 
     # print('get_balance: ', json_data)
@@ -813,7 +815,8 @@ async def test_stock_transactions_with_decimals(test_client, auth_token):
         "ticker": "AAPL",
         "buy_price": 145.75,
         "quantity": 12.5,
-        "fee": 1.25
+        "fee": 1.25,
+        "created_at": datetime.now().isoformat()
     }
     response = await test_client.post("/transactions/buy_stock/", 
                                       json=transactionBuy1, headers=auth_token)
@@ -874,7 +877,7 @@ async def test_stock_transactions_with_decimals(test_client, auth_token):
     json_data = response.json()
     # print("Remaining Portfolio:", json_data)
     assert response.status_code == 200
-    total_portfolio_value = Decimal(sum(stock["total_value"] for stock in json_data))
+    total_portfolio_value = Decimal(sum(stock["totalvalue"] for stock in json_data))
     response = await test_client.get("/portfolio/get_total_money_invested", headers=auth_token)
     json_data = response.json() 
     

@@ -164,8 +164,8 @@ async def get_allocation_funds(
     results = await db.fetch("""
                             with cte as (
                                 SELECT ticker,
-                                SUM(remaining_qunatity) AS quantity 
-                                FROM portfolio 
+                                SUM(remaining_quantity) AS quantity 
+                                FROM portfolio_lots 
                                 WHERE user_id = ($1)
                                 GROUP BY ticker
                             )
@@ -178,6 +178,7 @@ async def get_allocation_funds(
                             JOIN cte c
                             ON c.ticker = m.ticker;
                             """, current_user.id)
+    print("reskts")
     return results
 
 
