@@ -34,7 +34,7 @@
   const tableHeaders = ['amount', 'description', 'created_at'];
   
   const portfolioStore = usePortfolioStore();
-  onMounted(portfolioStore.getFunds)
+  onMounted(portfolioStore.getPortfolio)
 
   const tableData = computed(() => portfolioStore.latest_funds_transactions)
   </script>
