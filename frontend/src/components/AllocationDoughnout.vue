@@ -1,12 +1,16 @@
 <template>
   <div class="p-6 w-auto">
-    <div v-if="hasData" class="chart-container">
+    <div v-if="loading">
+      <LoadingComponent />
+    </div>
+    <div v-else-if="hasData" class="chart-container">
       <h3 class="chart-title">Sector Allocation</h3>
       <canvas class="pb-4" ref="chartCanvas"></canvas>
     </div>
-    <div v-else class="">
-      <LoadingComponent />
+    <div v-else class="text-center text-white text-negative-style">
+      <p>No data available. Start investing to see your portfolio allocation.</p>
     </div>
+
   </div>
 </template>
 
@@ -23,12 +27,14 @@ import { usePortfolioStore } from "../stores/portfolioStore";
 import chroma from "chroma-js";
 import LoadingComponent from "./LoadingComponent.vue";
 
+
+const loading = ref(true);
 // Register Chart.js components.
 Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
 
 const portfolioStore = usePortfolioStore();
 
-const rawData = computed(() => portfolioStore.allocation_portfolio || []);
+const rawData = computed(() => portfolioStore.sector_allocation_portfolio || []);
 const hasData = computed(() => rawData.value.length > 0);
 
 // --- Aggregate Data by Sector ---
@@ -71,7 +77,10 @@ const n_colors = computed(() => quantities.value.length);
 const scale_colors = ["#44ff57", "#ff44ad", "#7a808e"];
 
 onMounted(async () => {
-  await portfolioStore.getPortfolioAllocation();
+  try {
+    await portfolioStore.getPortfolioAllocationSector();
+
+  
   // Generate colors
   const colors = chroma
     .scale(scale_colors)
@@ -148,7 +157,12 @@ onMounted(async () => {
         },
       });
     }
+  };
+  } catch (error) {
+    loading.value = false;
   }
+  
+  
 });
 </script>
 

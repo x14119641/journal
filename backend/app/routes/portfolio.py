@@ -178,7 +178,6 @@ async def get_allocation_funds(
                             JOIN cte c
                             ON c.ticker = m.ticker;
                             """, current_user.id)
-    print("reskts")
     return results
 
 

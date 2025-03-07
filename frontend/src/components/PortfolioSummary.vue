@@ -55,11 +55,11 @@ const portfolioStore = usePortfolioStore();
 const stocks = computed(() => portfolioStore.getTickersPortfolio);
 const numberStocks = computed(() => portfolioStore.portfolio_summary.length);
 const stocksMarketValue = computed(() => portfolioStore.sumTotalValue);
-const unRealizedGains = computed(() => portfolioStore.getUnrealizedGains);
+const unRealizedGains = computed(() => portfolioStore.unrealizedMoney);
 
 onMounted(async () => {
   try {
-    await portfolioStore.getPortfolioSummary();
+    await portfolioStore.getPortfolio();
   } catch (error) {
     console.error("Error fetching funds:", error);
   }

@@ -1,14 +1,17 @@
 <template>
   <div class="p-6 w-auto">
-    <div v-if="hasData" class="chart-container">
+    <div v-if="loading">
+      <LoadingComponent />
+    </div>
+    <div v-else-if="hasData" class="chart-container">
       <h3 class="chart-title">
         <!-- <span class="dolar-style-title">$</span> -->
         Portfolio Allocation
       </h3>
       <canvas class="pb-2" ref="chartCanvas"></canvas>
     </div>
-    <div v-else class="">
-      <LoadingComponent />
+    <div v-else class="text-center text-white text-negative-style">
+      <p>No data available. Start investing to see your portfolio allocation.</p>
     </div>
   </div>
 </template>
@@ -38,6 +41,7 @@ Chart.register(
   Legend
 );
 
+const loading = ref(true);
 const portfolioStore = usePortfolioStore();
 
 const rawData = computed(() => portfolioStore.portfolio_barchart_data || []);
@@ -56,7 +60,8 @@ const n_colors = computed(() => tickers.value.length);
 const scale_colors = ["#ff9544", "#749fe5", "#293b1e"];
 
 onMounted(async () => {
-  await portfolioStore.getPortfolioAllocationInitialCost();
+  try {
+    await portfolioStore.getPortfolioAllocationInitialCost();
   // Generate colors
   const colors = chroma.scale(scale_colors).mode("lch").colors(n_colors.value);
   if (chartCanvas.value) {
@@ -130,6 +135,10 @@ onMounted(async () => {
       });
     }
   }
+  } catch (error) {
+    loading.value = false
+  }
+  
 });
 </script>
 

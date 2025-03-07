@@ -3,16 +3,16 @@
     <h3 class="summary-title">User Balance</h3>
     <div class="mt-2 space-y-2"> 
       <div class="flex justify-between">
-        <span class="summary-label">Account Value</span>
-        <span class="account-value-style">{{ accountValue }}</span>
+        <span class="summary-label">Balance</span>
+        <span class="account-value-style">{{ balance }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="summary-label">Positions</span>
-        <span class="summary-value money-negative-style">{{ totalSpent }}</span>
+        <span class="summary-label">Money Invested</span>
+        <span class="summary-value text-negative-style">{{ totalMoneyInvested }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="summary-label">Cash</span>
-        <span class="summary-value money-positive-style">{{ cash }}</span>
+        <span class="summary-label">unrealizedMoney</span>
+        <span class="summary-value money-positive-style">{{ unrealizedMoney }}</span>
       </div>
       <div class="flex justify-between">
         <span class="summary-label">Realized Gains</span>
@@ -20,7 +20,7 @@
           :class="
             realizedGains >= 0
               ? 'summary-value money-positive-style'
-              : 'summary-value money-positive-style'
+              : 'summary-value money-positive-style' 
           "
           >{{ realizedGains }}</span
         >
@@ -55,18 +55,18 @@ import { usePortfolioStore } from "../stores/portfolioStore";
 import { useRoute } from "vue-router";
 
 const portfolioStore = usePortfolioStore();
-
+ 
 const route = useRoute();
 const currentRoute = computed(() => route.path);
 
-const accountValue = computed(() => portfolioStore.accountValue);
-const totalSpent = computed(() => portfolioStore.total_spent);
-const cash = computed(() => portfolioStore.cash);
+const balance = computed(() => portfolioStore.balance);
+const totalMoneyInvested = computed(() => portfolioStore.totalMoneyInvested);
+const unrealizedMoney = computed(() => portfolioStore.unrealizedMoney);
 const realizedGains = computed(() => portfolioStore.realized_gains);
 
 onMounted(async () => {
   try {
-    await portfolioStore.getFundsTotals();
+    await portfolioStore.getPortfolio();
   } catch (error) {
     console.error("Error fetching funds:", error);
   }

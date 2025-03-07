@@ -38,7 +38,7 @@ const created_at = ref<string>("");
 onMounted(async () => {
   if (authStore.token) {
     try {
-      const response = await api.get("http://localhost:8000/users/me/items");
+      const response = await api.get("/users/me/items");
       id.value = response.data.id;
       username.value = response.data.username;
       email.value = response.data.email;

@@ -21,7 +21,6 @@ export const usePortfolioStore = defineStore('portfolio', {
         currentPortfolioValue:0,
         netProfitLoss:0,
         unrealizedMoney:0,
-        cash: 0,
         latest_funds_transactions: [] as Fund[],
         portfolio: [] as PortfolioItem[],
         sector_allocation_portfolio: [] as SectorAllocationRecord[],
@@ -50,7 +49,7 @@ export const usePortfolioStore = defineStore('portfolio', {
             }, 0);
         },
         getTickersPortfolio(state): Ticker[] {
-            return state.portfolio_summary.map((stock) => stock.ticker)
+            return state.portfolio.map((stock) => stock.ticker)
         },
         getTickerInPortfolio: (state) => {
             return (ticker: string): PortfolioItem[] => {
@@ -161,23 +160,15 @@ export const usePortfolioStore = defineStore('portfolio', {
         async getPortfolioAllocationSector() {
             try {
                 const response = await api.get('/portfolio/allocation/sector')
+                console.log(response)
+                if (response==undefined){console.log("WAWA")}
                 this.sector_allocation_portfolio = [...response.data]
             } catch (error) {
                 this.errorMessage = "Error in getPortfolioAllocation"
+                console.log('ERROR"')
                 throw error;
             }
-        },
-        async getFunds(limit?: number) {
-            const finalLimit = limit || this.default_limit
-            try {
-                const response = await api.get('/portfolio/funds', { params: { limit: finalLimit } })
-                this.latest_funds_transactions = [...response.data]
-                await this.getFundsTotals()
-            } catch (error) {
-                throw error;
-            }
-        },
-        
+        },        
         async getPortfolioSummary() {
             try {
                 const response = await api.get('/portfolio/summary')
@@ -202,46 +193,6 @@ export const usePortfolioStore = defineStore('portfolio', {
                 throw error;
             }
         },
-
-        async getFundsTotals() {
-            try {
-                const response = await api.get('/portfolio/funds/totals')
-
-                this.total_spent = response.data.total_spent
-                this.accountValue = response.data.total_funds
-                this.realized_gains = response.data.total_gains
-                this.cash = response.data.cash
-            } catch (error) {
-                throw error;
-            }
-        },
-        async addFunds(total_funds_to_add: number) {
-            try {
-                await api.post(`portfolio/funds/add?amount=${total_funds_to_add}`);
-                await this.getFunds()
-            } catch (error) {
-                throw error;
-            }
-        },
-        async removeFunds(total_funds_to_remove: number) {
-            try {
-                await api.post(`portfolio/funds/withdraw?amount=${total_funds_to_remove}`);
-                await this.getFunds()
-            } catch (error) {
-                throw error;
-            }
-        },
-        async getRiskPortfolioTicker(stockPrice:number, capital: number, riskPortfolio=1, riskPercent=10) {
-            try {
-
-                this.riskCalculatorValues.quantity = ((capital * (riskPortfolio / 100)) / stockPrice).toFixed(2);
-                this.riskCalculatorValues.stopLoss = (stockPrice - stockPrice * (riskPercent / 100)).toFixed(2);
-                this.riskCalculatorValues.willingToLose = ((this.riskCalculatorValues.stopLoss-stockPrice)*this.riskCalculatorValues.quantity).toFixed(2)
-            } catch (error) {
-                throw error;
-            }
-        },
-
     }
 })
 
