@@ -275,11 +275,14 @@ async def get_stock_by_ticker(
             ORDER BY inserted DESC
             LIMIT 1
         )
-        SELECT t.company_name, is_nasdaq100,
-        m.exchange, m.sector, m.industry, m.one_yr_target, m.average_volume,
-        m.fiftytwo_week_high_low, m.market_cap, m.pe_ratio, m.forward_pe_1yr, 
-        m.earnings_per_share, m.annualized_dividend, m.yield, 
-        l.shares_outstanding_pct, l.ratioHoldersBuySold as "ratioHoldersBuySold"
+        SELECT t.company_name as "Name", is_nasdaq100 as "IsNasdaq100",
+        m.exchange as "Exchange", m.sector as "Sector", m.industry as "Industry", 
+        m.one_yr_target as "1yTarget", m.average_volume as "AverageVolume",
+        m.fiftytwo_week_high_low as "52weekHighLow", m.market_cap as "MarketCap", 
+        m.pe_ratio as "PE", m.forward_pe_1yr as "ForwardPE1yr", 
+        m.earnings_per_share as "EarningsShare", m.annualized_dividend as "AnnualizedDividend", 
+        m.yield as "Yield", l.shares_outstanding_pct as "OutstandingShares%", 
+        l.ratioHoldersBuySold as "ratioHoldersBuySold"
         FROM metadata m
         LEFT JOIN latest_institutional  l ON l.ticker = m.ticker
         LEFT JOIN tickers t ON l.ticker=t.ticker

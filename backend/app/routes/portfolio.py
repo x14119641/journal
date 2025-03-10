@@ -130,7 +130,11 @@ async def get_summary(
                 ROUND(COALESCE(MIN(p.buy_price), 0), 6) AS "minPrice",
                 ROUND(COALESCE(MAX(p.buy_price), 0), 6) AS "maxPrice",
                 -- Weighted average buy price
-                ROUND(COALESCE(SUM(p.buy_price * p.remaining_quantity) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS "avgBuyPrice",
+                ROUND(COALESCE(
+                    CASE 
+                        WHEN COUNT(*) = 1 THEN MAX(p.buy_price) -- If one transaction, take that price
+                        ELSE SUM(p.buy_price * p.remaining_quantity) / NULLIF(SUM(p.remaining_quantity), 0)
+                    END, 0), 6) AS "avgBuyPrice",
                 -- Breakeven price
                 ROUND(COALESCE((SUM(p.buy_price * p.remaining_quantity) + SUM(p.fee)) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS "breakeven",
                 ROUND(COALESCE(SUM(p.fee), 0), 6) AS "totalFees"
