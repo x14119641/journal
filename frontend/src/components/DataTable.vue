@@ -11,7 +11,7 @@
                 :key="headerIndex"
                 class="py-3 px-6 border-b border-lime-300 text-sm font-medium tracking-wider "
               >
-                {{ header }}
+              {{ formattedHeaders ? formattedHeaders[headerIndex]:header }}
               </th>
             </tr>
           </thead>
@@ -72,10 +72,12 @@
     title?: string;
     headers: string[];
     rows: Record<string, any>[];
+    formattedHeaders?: string[];
+    pagingNumber?:number;
   }>();
   
   const currentPage = ref(1);
-  const itemsPerPage = ref(10);
+  const itemsPerPage = computed(() => props.pagingNumber || 10)
   
   const totalPages = computed(() => Math.ceil(props.rows.length / itemsPerPage.value) || 1);
   

@@ -20,7 +20,7 @@
           :class="
             realizedGains >= 0
               ? 'summary-value money-positive-style'
-              : 'summary-value money-positive-style' 
+              : 'summary-value money-negative-style' 
           "
           >{{ realizedGains }}</span
         >
@@ -29,7 +29,7 @@
         <router-link
           v-if="currentRoute !== '/funds'"
           to="/funds"
-          class="summary-link summary-link-separation"
+          class="summary-link summary-link-separation flex-col-reverse"
           >Manage funds</router-link
         >
         <router-link v-else to="/profile" class="summary-link summary-link-separation"
@@ -38,10 +38,10 @@
         <router-link
           v-if="currentRoute !== '/transactions'"
           to="/transactions"
-          class="summary-link summary-link-separation"
+          class="summary-link summary-link-separation "
           >Manage Transactions</router-link
         >
-        <router-link v-else to="/profile" class="summary-link summary-link-separation"
+        <router-link v-else to="/profile" class="summary-link summary-link-separation flex-col-reverse"
           >Back to Profile</router-link
         >
       </div>
@@ -62,7 +62,7 @@ const currentRoute = computed(() => route.path);
 const balance = computed(() => portfolioStore.balance);
 const totalMoneyInvested = computed(() => portfolioStore.totalMoneyInvested);
 const unrealizedMoney = computed(() => portfolioStore.unrealizedMoney);
-const realizedGains = computed(() => portfolioStore.realized_gains);
+const realizedGains = computed(() => portfolioStore.netProfitLoss);
 
 onMounted(async () => {
   try {

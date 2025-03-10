@@ -1,7 +1,7 @@
 <template>
-  <div class="p-6 w-auto">
-    <div v-if="hasData" class="chart-container">
-        <h3 v-if="title" class="text-center text-xl text-gray-200 ">{{ title }}</h3>
+  <div class="p-6 text-center w-auto">
+    <div v-if="hasData" class="chart-container pb-6">
+        <h3 v-if="title" class="summary-title">{{ title }}</h3>
       <canvas class="mt-2" ref="chartCanvas"></canvas>
     </div>
     <div v-else class="chart-container text-white">Loading chart...</div>

@@ -1,23 +1,25 @@
 <template>
   <div class="p-6 w-auto">
-    <div v-if="loading">
+    <!-- <div v-if="loading">
       <LoadingComponent />
     </div>
-    <div v-else-if="hasData" class="chart-container">
-      <h3 class="chart-title">
-        <!-- <span class="dolar-style-title">$</span> -->
-        Portfolio Allocation
-      </h3>
-      <canvas class="pb-2" ref="chartCanvas"></canvas>
-    </div>
-    <div v-else class="text-center text-white text-negative-style">
-      <p>No data available. Start investing to see your portfolio allocation.</p>
-    </div>
+    <div v-else> -->
+      <div v-if="hasData" class="chart-container">
+        <h3 class="chart-title">Portfolio Allocation</h3>
+        <canvas class="pb-4" ref="chartCanvas"></canvas>
+      </div>
+      <div v-else class="text-center text-negative-style">
+        <p>
+          No data available. Start investing to see your portfolio allocation.
+        </p>
+      </div>
+    <!-- </div> -->
   </div>
+  <!-- <p>{{ rawData }}</p> -->
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import {
   Chart,
   BarController,
@@ -41,11 +43,18 @@ Chart.register(
   Legend
 );
 
-const loading = ref(true);
+
 const portfolioStore = usePortfolioStore();
 
-const rawData = computed(() => portfolioStore.portfolio_barchart_data || []);
+// Register Chart.js components.
+Chart.register(BarController, BarElement, Tooltip, Legend);
+
+const rawData = computed(() => portfolioStore.portfolio_summary || []);
+// if chartdata then laoding true
+// const loading = computed(() => chartCanvas.value !== null);
+// If no data show message
 const hasData = computed(() => rawData.value.length > 0);
+
 
 // Compute arrays for x-axis labels (tickers) and y-axis values.
 const tickers = computed(() => rawData.value.map((item) => item.ticker));
@@ -54,33 +63,33 @@ const totalValues = computed(() =>
 );
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
-const chartInstance = ref<Chart | null>(null);
 
-const n_colors = computed(() => tickers.value.length);
-const scale_colors = ["#ff9544", "#749fe5", "#293b1e"];
 
+
+const colors = chroma
+  .scale(["#ff9544", "#749fe5", "#293b1e"])
+  .mode("lch")
+  .colors(tickers.value.length);
 onMounted(async () => {
   try {
-    await portfolioStore.getPortfolioAllocationInitialCost();
-  // Generate colors
-  const colors = chroma.scale(scale_colors).mode("lch").colors(n_colors.value);
-  if (chartCanvas.value) {
-    const ctx = chartCanvas.value.getContext("2d");
-    if (ctx) {
-      chartInstance.value = new Chart(ctx, {
-        type: "bar", // Specifies a bar chart.
-        data: {
-          labels: tickers.value, // X-axis labels.
-          datasets: [
-            {
-              // Use a proper string label for the dataset (not an array).
-              //   label: "Portfolio",
-              data: totalValues.value, // Y-axis values.
-              backgroundColor: colors, // Colors for each bar.
-            },
-          ],
-        },
-        options: {
+    await portfolioStore.getPortfolioSummary();
+    await nextTick();
+    if (hasData.value && chartCanvas.value) {
+      const ctx = chartCanvas.value.getContext("2d");
+
+      if (ctx) {
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: tickers.value,
+            datasets: [
+              {
+                data: totalValues.value,
+                backgroundColor: colors,
+              },
+            ],
+          },
+          options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
@@ -132,13 +141,12 @@ onMounted(async () => {
             mode: "nearest",
           },
         },
-      });
+        });
+      }
     }
-  }
   } catch (error) {
-    loading.value = false
+    console.log(error);
   }
-  
 });
 </script>
 
