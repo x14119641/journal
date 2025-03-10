@@ -1,12 +1,12 @@
 import { defineStore } from "pinia";
 import api from "../services/api";
 import type {
-     Fund,  Ticker,  PortfolioItem,
-     SectorAllocationRecord,  PortfolioItemSummary,
-     BarChartDataItem,  TickerPrice,
-     RiskCalculatorRecord,
-     PortfolioItemMontly,
-     PortfolioItemSummaryExternal
+    StockTransactionHistoryRecord, Ticker, PortfolioItem,
+    SectorAllocationRecord, PortfolioItemSummary,
+    BarChartDataItem, TickerPrice,
+    RiskCalculatorRecord,
+    PortfolioItemMontly,
+    PortfolioItemSummaryExternal
 } from "../models/models";
 
 import Decimal from "decimal.js";
@@ -18,21 +18,21 @@ export const usePortfolioStore = defineStore('portfolio', {
         balance: 0,
         totalFees: 0,
         totalMoneyInvested: 0,
-        currentPortfolioValue:0,
-        netProfitLoss:0,
-        unrealizedMoney:0,
-        latest_funds_transactions: [] as Fund[],
+        currentPortfolioValue: 0,
+        netProfitLoss: 0,
+        unrealizedMoney: 0,
+        
         portfolio: [] as PortfolioItem[],
         sector_allocation_portfolio: [] as SectorAllocationRecord[],
         portfolio_barchart_data: [] as BarChartDataItem[],
-        portfolio_summary: [] as TickerPrice[],
+        portfolio_summary: [] as PortfolioItemSummary[],
         realized_gains: 0,
         riskCalculatorValues: [] as RiskCalculatorRecord[],
         ticker_portfolio_summary: [] as PortfolioItemSummary[],
         portfolio_monthly_summary: {} as PortfolioItemMontly,
         portfolio_external_summary: {} as PortfolioItemSummaryExternal,
         default_limit: 10,
-        errorMessage:""
+        errorMessage: ""
     }),
     getters: {
         // Sum the totalValue field from portfolio_summary
@@ -49,11 +49,16 @@ export const usePortfolioStore = defineStore('portfolio', {
             }, 0);
         },
         getTickersPortfolio(state): Ticker[] {
-            return state.portfolio.map((stock) => stock.ticker)
+            return state.portfolio_summary.map((stock) => stock.ticker)
         },
         getTickerInPortfolio: (state) => {
             return (ticker: string): PortfolioItem[] => {
                 return state.portfolio.filter((stock) => stock.ticker === ticker);
+            };
+        },
+        getTotalValueByTickerInPortfolio: (state) => {
+            return (ticker: string): PortfolioItem[] => {
+                return state.portfolio_summary.filter((stock) => stock.ticker === ticker);
             };
         },
         getUnrealizedGains(state): number {
@@ -73,10 +78,23 @@ export const usePortfolioStore = defineStore('portfolio', {
             }
         },
         async getPortfolio() {
+            //When i call getPOrtfolio i will call ghe other aggregators
             try {
                 const response = await api.get('portfolio/get_portfolio')
                 // console.log(response.data)
+                // Object.assign(this.portfolio, response.data)
                 this.portfolio = [...response.data]
+                // Like this stores are updated
+                // Ensure all necessary properties update
+                await Promise.allSettled([
+                    this.getBalance(),
+                    this.getTotalMoneyInvested(),
+                    this.getCurrentPortfolioValue(),
+                    this.getUnrealizedMoney(),  
+                    this.getNetProfitLoss() ,
+                    this.getPortfolioSummary()
+                ]);
+                // await this.getCurrentPortfolioValue()
             } catch (error) {
                 this.errorMessage = "Portfolio is empty"
                 throw error;
@@ -131,7 +149,7 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 const response = await api.get('/portfolio/get_monthly_performance')
                 this.portfolio_monthly_summary = response.data
-                
+
             } catch (error) {
                 this.errorMessage = "Error in getMonthlyPerformance"
                 throw error;
@@ -141,7 +159,7 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 const response = await api.get('/portfolio/get_summary_external')
                 this.portfolio_external_summary = response.data
-                
+
             } catch (error) {
                 this.errorMessage = "Error in get_summary_external"
                 throw error;
@@ -151,7 +169,7 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 const response = await api.get('/portfolio/get_unrealized_money')
                 this.unrealizedMoney = response.data.value
-                
+
             } catch (error) {
                 this.errorMessage = "Error in get_unrealized_money"
                 throw error;
@@ -161,14 +179,14 @@ export const usePortfolioStore = defineStore('portfolio', {
             try {
                 const response = await api.get('/portfolio/allocation/sector')
                 console.log(response)
-                if (response==undefined){console.log("WAWA")}
+                if (response == undefined) { console.log("WAWA") }
                 this.sector_allocation_portfolio = [...response.data]
             } catch (error) {
                 this.errorMessage = "Error in getPortfolioAllocation"
                 console.log('ERROR"')
                 throw error;
             }
-        },        
+        },
         async getPortfolioSummary() {
             try {
                 const response = await api.get('/portfolio/summary')
@@ -177,7 +195,7 @@ export const usePortfolioStore = defineStore('portfolio', {
                 throw error;
             }
         },
-        async getPortfolioTickerAggregate(ticker:string) {
+        async getPortfolioTickerAggregate(ticker: string) {
             try {
                 const response = await api.get(`/portfolio/summary/${ticker}`)
                 return response.data
