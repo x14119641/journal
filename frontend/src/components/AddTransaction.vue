@@ -2,7 +2,7 @@
     <div class="p-6 text-white">
       <form @submit.prevent="onSubmit" class="flex flex-wrap gap-4 items-end">
         <!-- Ticker -->
-        <div class="flex-1 min-w-[100px]">
+        <div class="flex-1">
           <label for="ticker" class="block text-sm font-medium">Ticker:</label>
           <input 
             type="text" 
