@@ -1,0 +1,95 @@
+
+/* Arrow */
+/* Default Light Mode */
+.flatpickr-calendar:before,
+.flatpickr-calendar:after {
+  border-bottom-color: #a3e635 !important; 
+}
+
+/* Dark Mode */
+.dark .flatpickr-calendar:before,
+.dark .flatpickr-calendar:after {
+  border-bottom-color: #e0e0e0 !important; 
+}
+/* Calendar outer */
+.flatpickr-calendar {
+  @apply bg-gray-400 dark:bg-gray-800 text-gray-900 dark:text-slate-900 rounded-lg border shadow-lg;  
+}
+.flatpickr-calendar {
+  @apply bg-gray-400 text-gray-900 rounded-lg border-2 border-lime-300 shadow-lg;
+  border: 1px solid #334155; 
+}
+
+/* Dark mode override */
+.dark .flatpickr-calendar {
+  @apply bg-gray-800 text-slate-100 border-blue-500;
+  border: 1px solid #e0e0e0 !important;
+}
+.flatpickr-day{
+  @apply text-white font-medium;
+}
+/* Selected date styling */
+.flatpickr-day.selected {
+  @apply bg-blue-500 text-white font-bold rounded-md;
+}
+
+/* Hover effect for dates */
+.flatpickr-day:hover {
+  @apply bg-blue-400 text-gray-900 rounded-md;
+}
+
+/* Month and year title */
+.flatpickr-current-month {
+  @apply text-white font-semibold;
+}
+
+/* Navigation buttons */
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  @apply text-gray-400 hover:text-white;
+}
+
+/* 🗓 Change the color of days of the week */
+.flatpickr-weekday {
+  @apply text-gray-900 dark:text-slate-100 font-semibold;
+}
+
+/* Change the color of the time picker */
+.flatpickr-time {
+  @apply bg-gray-300 dark:bg-gray-900 text-gray-900 dark:text-slate-100;
+}
+
+/* Change the up/down arrows in the time picker */
+.flatpickr-time .flatpickr-am-pm,
+.flatpickr-time .flatpickr-hour,
+.flatpickr-time .flatpickr-minute,
+.flatpickr-time .flatpickr-second {
+  @apply text-gray-900 dark:text-white;
+}
+
+/* Hover effect for up/down buttons in time picker */
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time .flatpickr-hour:hover,
+.flatpickr-time .flatpickr-minute:hover,
+.flatpickr-time .flatpickr-second:hover {
+  @apply text-blue-500 dark:text-blue-400;
+}
+/* 📅 Style the month dropdown */
+.flatpickr-monthDropdown-months {
+  @apply bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600;
+}
+
+/* 🎯 Change the dropdown options */
+.flatpickr-monthDropdown-months option {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white;
+}
+
+/* 🔼 Style the dropdown arrow */
+.flatpickr-months .flatpickr-monthDropdown-months {
+  @apply text-gray-900 dark:text-white;
+}
+
+/* 🖱 Hover effect on dropdown */
+.flatpickr-monthDropdown-months:hover {
+  @apply bg-gray-300 dark:bg-gray-700;
+}
