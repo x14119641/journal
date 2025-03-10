@@ -47,7 +47,7 @@ async def test_add_funds(test_client, auth_token):
     )
 
     json_data = response.json()
-
+    print(json_data)
     assert response.status_code == 201 
     assert "message" in json_data
     assert json_data['message'] == 'Funds added successfully'
@@ -185,8 +185,9 @@ async def test_get_transaction_history(test_client, auth_token):
     assert response.status_code == 200
     print(json_data)
     assert len(json_data) == 2
-    assert json_data[0]['transactiontype'] == 'DEPOSIT'
-    assert json_data[1]['transactiontype'] == 'WITHDRAW'
+    assert json_data[0]['transactionType'] == 'WITHDRAW'
+    assert json_data[1]['transactionType'] == 'DEPOSIT'
+    
 
 
 @pytest.mark.asyncio
@@ -212,7 +213,7 @@ async def test_get_empty_monthly_performance(test_client, auth_token):
         headers=auth_token
     )
     json_data = response.json()
-
+    print(json_data)
     assert response.status_code == 200
     assert json_data['totalinvested'] == 0
     assert json_data['totalearned'] == 0
