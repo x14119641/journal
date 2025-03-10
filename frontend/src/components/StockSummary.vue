@@ -30,6 +30,10 @@ const props = defineProps<{
 const route = useRoute();
 const stockData = ref<StockMetadata | null>(null);
 
+const customHeaders= ["Name", "Exchange", "Industry", "Avg Volume", "MarketCap", "Forward PE 1y", "Annualized Dividend",
+  "OutstandingShares %", "isNasdaq100", "Sector", "OneYearTarger", "52 week High/Low", "PE", "Yield", "Buy/Sold holdersRatio"
+]
+
 const ticker = computed(() => props.ticker || (route.params.ticker as string));
 
 
@@ -42,6 +46,7 @@ const fetchStockData = async () => {
   try {
     console.log("Fetching data for:", ticker.value); // Debugging
     const response = await api.get(`/stocks/${ticker.value}`);
+
     stockData.value = response.data;
   } catch (error) {
     console.error("Error fetching stock data:", error);

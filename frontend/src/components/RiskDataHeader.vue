@@ -19,16 +19,16 @@
 </template>
 
 <script setup lang="ts">
-import { usePortfolioStore } from "../stores/portfolioStore";
+import { useRiskHeaderStore } from "../stores/riskHeaderStore";
 import { computed } from "vue";
 
-const portfolioStore = usePortfolioStore();
+const riskHeaderStore = useRiskHeaderStore();
 const quantityToBuy = computed(
-  () => portfolioStore.riskCalculatorValues.quantity
+  () => riskHeaderStore.quantityToBuy
 );
-const stopLoss = computed(() => portfolioStore.riskCalculatorValues.stopLoss);
+const stopLoss = computed(() => riskHeaderStore.stopLoss);
 const willingToLose = computed(
-  () => portfolioStore.riskCalculatorValues.willingToLose
+  () => riskHeaderStore.willingToLose
 );
-// const willingToLose = computed(() => portfolioStore.er);
+
 </script>

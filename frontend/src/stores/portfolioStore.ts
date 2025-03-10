@@ -52,8 +52,8 @@ export const usePortfolioStore = defineStore('portfolio', {
             return state.portfolio_summary.map((stock) => stock.ticker)
         },
         getTickerInPortfolio: (state) => {
-            return (ticker: string): PortfolioItem[] => {
-                return state.portfolio.filter((stock) => stock.ticker === ticker);
+            return (ticker: string): PortfolioItemSummary[] => {
+                return state.portfolio_summary.find((stock) => stock.ticker === ticker);
             };
         },
         getTotalValueByTickerInPortfolio: (state) => {

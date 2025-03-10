@@ -16,13 +16,14 @@
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
       <div class="slate-container col-span-2 row-span-2 w-full">
-        <DataTable :headers="tableHeaders" :rows="stockDividends" />
+        <DataTable :headers="tableHeaders" :rows="stockDividends" :formattedHeaders="formattedHeaders"/>
          <!-- <p>{{ stockDividends }}</p> -->
       </div>
       <div class="slate-container">
         <RiskCalculator />
       </div>
     </div>
+    <p>{{ showRiskHeader }}</p>
   </div>
 </template>
 <script setup lang="ts">
@@ -35,12 +36,9 @@ import RiskDataHeader from "../components/RiskDataHeader.vue";
 import { type StockDividend } from "../models/models";
 import api from "../services/api";
 import { useRoute } from "vue-router";
-import { usePortfolioStore } from "../stores/portfolioStore";
 import { useRiskHeaderStore } from "../stores/riskHeaderStore";
 
-// Portfolio store
-const portfolioStore = usePortfolioStore();
-const quantityToBuy = computed(() => portfolioStore.riskCalculatorValues.quantity);
+
 
 const riskHeaderStore = useRiskHeaderStore();
 const showRiskHeader = computed(() => riskHeaderStore.showRiskHeader)
@@ -56,6 +54,7 @@ const error_message = ref<String>("");
 const tableHeaders = computed(() => {
   return stockDividends.value.length > 0 ? Object.keys(stockDividends.value[0]) : [];
 });
+const formattedHeaders = ["ExDate", "PaymentType", "Amount","DeclarationDate", "RecordDate", "PaymentDate", "Currency"]
 
 // Fetch Stock Data
 const fetchStockDividends = async () => {
@@ -74,7 +73,7 @@ const fetchStockDividends = async () => {
 // Fetch data when the component first loads
 fetchStockDividends();
 
-// ✅ Watch `ticker` and fetch new data whenever it changes
+// Watch `ticker` and fetch new data whenever it changes
 watch(ticker, () => {
   fetchStockDividends();
   riskHeaderStore.setShowRiskHeader(false);

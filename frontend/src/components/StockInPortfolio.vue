@@ -1,14 +1,14 @@
 <template>
-  <div class="p-6 text-center">
+  <div v-if="stockData" class="p-6 text-center">
       <h3 class="summary-title-2">Portfolio</h3>
 
       <div class="flex justify-between">
           <span class="summary-label">Capital</span>
-          <span class="summary-value">{{ totalValue }}</span>
+          <span class="summary-value">{{ stockData?.totalValue }}</span>
       </div>
       <div class="flex justify-between">
           <span class="summary-label">Quantity</span>
-          <span class="summary-value">{{ stockData?.totalQuantity  }}</span>
+          <span class="summary-value">{{ stockData?.remainingQuantity  }}</span>
       </div>
       <div class="flex justify-between">
           <span class="summary-label">Min Price</span>
@@ -19,6 +19,10 @@
           <span class="summary-value">{{ stockData?.maxPrice  }}</span>
       </div>
       <div class="flex justify-between">
+          <span class="summary-label">AvgPrice</span>
+          <span class="summary-value">{{ stockData?.avgBuyPrice  }}</span>
+      </div>
+      <div class="flex justify-between">
           <span class="summary-label">BreakEven</span>
           <span class="summary-value">{{ stockData?.breakeven  }}</span>
       </div>
@@ -26,9 +30,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from "vue";
+import { computed, onMounted } from "vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
-import { type PortfolioItemAgreggate } from "../models/models";
 import { useRoute } from "vue-router";
 
 console.log("Portfolio Component Mounted");
@@ -39,28 +42,15 @@ const route = useRoute();
 const ticker = computed(() => props.ticker || (route.params.ticker as string));
 
 const portfolioStore = usePortfolioStore();
-const stockData = ref<PortfolioItemAgreggate | null>(null);
-const totalValue = computed(() => portfolioStore.accountValue);
+const stockData = computed(() => portfolioStore.getTickerInPortfolio(ticker.value))
 
-const fetchStockAggregate = async () => {
-
-  if (!ticker.value) {
-      console.error("No ticker provided!");
-      return;
-  }
-
+onMounted(async () => {
   try {
-      await portfolioStore.getFundsTotals();
-      const response = await portfolioStore.getPortfolioTickerAggregate(ticker.value);
-      stockData.value = response;
+    await portfolioStore.getPortfolioSummary();
   } catch (error) {
-
+    console.error("Error Porfolio Summary:", error);
   }
-};
-
-onMounted(fetchStockAggregate);
-
-watch(ticker, () => {
-  fetchStockAggregate();
 });
+
+
 </script>

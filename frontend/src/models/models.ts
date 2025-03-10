@@ -46,7 +46,7 @@ export interface PortfolioItemAgreggate {
     breakeven: number; 
 }
 export interface PortfolioItemSummary {
-    ticker: number;
+    ticker: string;
     remainingQuantity: Decimal;
     totalValue: Decimal;
     minPrice: Decimal; 

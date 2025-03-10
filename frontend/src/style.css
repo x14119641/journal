@@ -116,7 +116,12 @@
 .success-message-text{
   @apply text-lg text-blue-600 dark:text-blue-400 ;
 }
-
+.risk-calculator-input{
+ @apply w-3/4 mt-1 p-2 block rounded-md  bg-slate-400 border-gray-300 shadow-sm focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50;
+}
+.risk-calculator-input::placeholder{
+  @apply  text-sm font-medium italic   text-gray-800 dark:text-slate-800;
+}
 /* Special Styles */
 .dolar-style{
   @apply font-bazooka text-lime-500;
@@ -204,6 +209,9 @@
 }
 .sell-stock-button-style{
   @apply font-medium shadow-sm px-4 py-2.5 rounded-lg text-gray-800 dark:text-white bg-red-400 hover:bg-blue-500 dark:bg-red-600 dark:hover:bg-red-500 ;
+}
+.deposit-funds-button-style{
+  @apply mt-6 w-3/4 font-medium shadow-sm px-4 py-2.5 rounded-lg text-gray-800 dark:text-white bg-blue-400 hover:bg-blue-500 dark:bg-lime-600 dark:hover:bg-lime-500 ;
 }
 /* 
 Must Need (layouts) 
