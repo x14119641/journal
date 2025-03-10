@@ -22,6 +22,16 @@ export interface Fund {
     created_at:string;
 }
 
+export interface StockTransactionHistoryRecord {
+    ticker:string;
+    price: Decimal;
+    quantity: Decimal;
+    fee: Decimal;
+    transactionType: string;
+    realizedProfitLoss:Decimal
+    created_at:string;
+}
+
 export interface PortfolioItem {
     ticker: string;
     remainingQuantity: Decimal;
@@ -158,28 +168,42 @@ export interface DividendCalendar {
 
 export interface StockTransaction {
     ticker:string
-    buy_price:Decimal
+    price:Decimal
     quantity:Decimal
     fee: Decimal
     created_at: Date
   }
 
   export interface TransactionHistoryRecord {
-    transactionId: number; 
+    id: number; 
     ticker:string; 
-    transactionType:string; 
     price:Decimal;
     quantity:Decimal; 
+    transactionType:Decimal,
     fee:Decimal;
-    realizedProfitLoss:Decimal; 
     details:string; 
     created_at:Date
   }
 
   export interface FundsTransaction {
     amount: Decimal;
-    description: string;
+    description:string;
     created_at: Date;
+  }
+
+  export interface SellStockTransaction {
+    ticker:string; 
+    price:Decimal;
+    quantity:Decimal; 
+    fee:Decimal;
+    created_at:Date
+  }
+  export interface BuyStockTransaction {
+    ticker:string; 
+    buy_price:Decimal;
+    quantity:Decimal; 
+    fee:Decimal;
+    created_at:Date
   }
 
   export interface RiskCalculatorRecord {
