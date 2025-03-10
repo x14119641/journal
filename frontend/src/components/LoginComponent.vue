@@ -2,7 +2,7 @@
   <div class="p-6 text-center">
     <h3 class="summary-title">Login</h3>
     <form @submit.prevent="onSubmit">
-      <div class="mb-4 mt-6">
+      <div class="mt-4">
         <label
           for="username"
           class="input-label"
@@ -16,7 +16,7 @@
           class="input-style"
         />
       </div>
-      <div class="mb-6">
+      <div class="mt-4">
         <label
           for="password"
           class="input-label"
@@ -29,12 +29,15 @@
           class="input-style"
         />
       </div>
-      <button
+      <div class="mt-8">
+        <button
         type="submit"
         class="login-button-style"
       >
         Login
       </button>
+      </div>
+      
     </form>
     <p class="text-center summary-label mt-4">
       Don't have an account?
