@@ -23,6 +23,7 @@ export interface Fund {
 }
 
 export interface StockTransactionHistoryRecord {
+    transactionId:number;
     ticker:string;
     price: Decimal;
     quantity: Decimal;

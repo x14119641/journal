@@ -12,6 +12,7 @@ import ScreenerPage from '../pages/ScreenerPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
 import ManageFundsPage from '../pages/ManageFundsPage.vue';
 import TransactionsPage from '../pages/TransactionsPage.vue';
+import TransactionDetailPage from '../pages/TransactionDetailPage.vue';
 import ColorsPAge from '../pages/ColorsPAge.vue';
 
 
@@ -30,8 +31,9 @@ const routes = [
   { path: '/colors', name: 'Colors', component: ColorsPAge, meta: { requiresAuth: false } },
   { path: '/funds', name: 'Funds', component: ManageFundsPage, meta: { requiresAuth: true } },
   { path: '/transactions', name: 'Transactions', component: TransactionsPage, meta: { requiresAuth: true } },
+  { path: '/transactions/:id', name: 'TransactionDetail', component: TransactionDetailPage, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginPage, meta: { requiresAuth: false } },
-  { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true } },
+  { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true }},
   { path: '/dividends', name: 'Dividend', component: DividendsPage, meta: { requiresAuth: true } },
   { path: '/calendar', name: 'Calendar', component: FullCalendarPage, meta: { requiresAuth: true } },
   { path: '/screener', name: 'Screener', component: ScreenerPage, meta: { requiresAuth: true } },

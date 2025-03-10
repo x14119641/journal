@@ -29,7 +29,15 @@
                 <template v-if="header === 'ticker'">
                   <router-link
                     :to="`/stocks/${row[header]}`"
-                    class="datatable-cell-link text-blue-500 hover:underline"
+                    class="datatable-cell-link-stock hover:underline"
+                  >
+                    {{ row[header] }}
+                  </router-link>
+                </template>
+                <template v-else-if="header === 'transactionId'">
+                  <router-link
+                    :to="`/transactions/${row[header]}`"
+                    class="datatable-cell-link-id hover:underline"
                   >
                     {{ row[header] }}
                   </router-link>

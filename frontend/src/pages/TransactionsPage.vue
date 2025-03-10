@@ -49,8 +49,8 @@ import BuyStock from "../components/BuyStock.vue";
 import { useTransactionsStore } from "../stores/transactionsStore";
 
 
-const tableHeaders = ["ticker", "price","quantity",  "transactionType", "realizedProfitLoss",  "created_at"];
-const formattedHeaders = ["ticker", "price","quantity",  "type", "profitLoss",  "created"];
+const tableHeaders = ["transactionId", "ticker", "price","quantity",  "transactionType", "realizedProfitLoss",  "created_at"];
+const formattedHeaders = ["id", "price","quantity",  "type", "profitLoss",  "created"];
 const pagingNumber = ref(5)
 const portfolioStore = usePortfolioStore();
 const transactionsStore = useTransactionsStore();

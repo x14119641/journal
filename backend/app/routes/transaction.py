@@ -151,7 +151,7 @@ async def get_transaction_history(
         db: Database = Depends(get_db),
         limit: int = 10):
     results = await db.fetch(
-        """SELECT id,ticker, price,quantity, transaction_type  as "transactionType",
+        """SELECT id as "transactionId" ,ticker, price,quantity, transaction_type  as "transactionType",
             fee, details, created_at 
             FROM transactions WHERE user_id=($1) 
             ORDER BY created_at DESC LIMIT ($2);""", current_user.id, limit)
@@ -168,7 +168,7 @@ async def get_stocks_transaction_history(
         db: Database = Depends(get_db),
 ):
     results = await db.fetch(
-        """SELECT ticker, price, quantity, fee,
+        """SELECT id as "transactionId",ticker, price, quantity, fee,
                 transaction_type as "transactionType", 
                 realized_profit_loss as "realizedProfitLoss", 
                 details, created_At 
@@ -188,7 +188,7 @@ async def get_transactions(
         db: Database = Depends(get_db),
         limit: int = 10):
     results = await db.fetch("""
-                             SELECT ticker, quantity, price, transactionType, 
+                             SELECT id as "transactionId", ticker, quantity, price, transactionType, 
                              price*quantity as total, 
                              created_at 
                              FROM transactions WHERE user_id = ($1) LIMIT ($2)""",
