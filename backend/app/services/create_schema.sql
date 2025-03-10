@@ -201,6 +201,7 @@ DECLARE
 	_total_cost NUMERIC(19,6);
 	_current_balance NUMERIC(19,6);
 	_new_balance NUMERIC(19,6);
+    _transaction_id INT;
 BEGIN 
     --Check if ticker exists in the database
     IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker=_ticker) THEN
@@ -221,7 +222,12 @@ BEGIN
 
 	-- Insert transaction record for the buy action
 	INSERT INTO transactions(user_id, ticker, price, quantity, transaction_type, fee, created_at)
-	VALUES(_user_id, _ticker, _buy_price, _quantity, 'BUY', _fee, _created_at);
+	VALUES(_user_id, _ticker, _buy_price, _quantity, 'BUY', _fee, _created_at)
+    RETURNING id INTO _transaction_id;
+
+    -- INsert into fees
+    INSERT INTO fees(user_id, ticker, transaction_id, type, fee, created_at)
+    VALUES (_user_id, _ticker, _transaction_id, 'SELL', _fee, _created_at);
 
 	-- Insert into portfolio (FIFO tracking)
 	INSERT INTO portfolio_lots(user_id, ticker, buy_price, quantity, remaining_quantity, fee, created_at)
@@ -231,7 +237,7 @@ BEGIN
 	_new_balance := _current_balance - _total_cost;
 	UPDATE balance SET total_balance = _new_balance WHERE user_id = _user_id;
 
-	-- ✅ Insert transaction into balance history
+	-- Insert transaction into balance history
 	INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
 	VALUES (_user_id, -_total_cost, _new_balance, 'BUY', _created_at);
 
@@ -323,9 +329,13 @@ BEGIN
 
     -- Insert transaction record
     INSERT INTO transactions(user_id, ticker, price, quantity, transaction_type, fee, realized_profit_loss, created_at)
-    VALUES (_user_id, _ticker, _price, _quantity, 'SELL', _total_allocated_fee, _profit_loss, _created_at)
+    VALUES (_user_id, _ticker, _price, _quantity, 'SELL', _fee, _profit_loss, _created_at)
     RETURNING id INTO _transaction_id;
 
+    -- INsert into fees
+    INSERT INTO fees(user_id, ticker, transaction_id, type, fee, created_at)
+    VALUES (_user_id, _ticker, _transaction_id, 'BUY', _fee, _created_at);
+    
     -- Update balance
     SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
     _new_balance := _current_balance + _total_sell_value;
@@ -346,12 +356,13 @@ $$;
 
 
 CREATE OR REPLACE PROCEDURE public.deposit_funds(
-	IN _user_id integer,
-	IN _amount numeric,
-	IN _description text,
-	IN _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+	_user_id integer,
+	_amount NUMERIC(19,6),
+	_description text,
+    _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 LANGUAGE 'plpgsql'
 AS $BODY$
+DECLARE _transaction_id integer;
 BEGIN
     -- Ensure the amount is positive
     IF _amount <= 0 THEN
@@ -366,11 +377,12 @@ BEGIN
 
     -- Insert transaction record for deposit
     INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
-    VALUES (_user_id, NULL, NULL, NULL, 'DEPOSIT', 0, _description, _created_at);
+    VALUES (_user_id, NULL, NULL, _amount, 'DEPOSIT', 0, _description,_created_at) 
+	RETURNING id into _transaction_id;
 
     -- Insert balance history
-    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, _amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT', _created_at);
+    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, transaction_id, created_at)
+    VALUES (_user_id, _amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT',_transaction_id,_created_at);
 END;
 $BODY$;
 
@@ -378,11 +390,12 @@ CREATE OR REPLACE PROCEDURE public.withdraw_funds(
 	IN _user_id integer,
 	IN _amount numeric,
 	IN _description text,
-	IN _created_at DATE DEFAULT CURRENT_TIMESTAMP)
+	IN _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
     _current_balance NUMERIC(19,6);
+    _transaction_id integer;
 BEGIN
     -- Fetch the current balance
     SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
@@ -409,11 +422,12 @@ BEGIN
 
     -- Insert transaction record for withdrawal
     INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
-    VALUES (_user_id, NULL, NULL, NULL, 'WITHDRAW', 0, _description, _created_at);
+    VALUES (_user_id, NULL, NULL, _amount, 'WITHDRAW', 0, _description, _created_at)
+    RETURNING id into _transaction_id;
 
     -- Insert into balance history
-    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, -_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', _created_at);
+    INSERT INTO balance_history (user_id, change_amount, new_balance, reason, transaction_id, created_at)
+    VALUES (_user_id, -_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', _transaction_id, _created_at);
 
 EXCEPTION WHEN OTHERS THEN
     -- Ensure the error is properly raised

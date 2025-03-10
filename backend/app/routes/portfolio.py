@@ -15,6 +15,7 @@ async def get_balance(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
     current_balance = await db.fetchone("SELECT get_balance(($1))", current_user.id)
+    print("Balance:", current_balance)
     return {'value': current_balance}
 
 @router.get("/get_portfolio")
@@ -29,6 +30,17 @@ async def get_portfolio(
 
     return results
 
+@router.get("/get_portfolio")
+async def get_portfolio(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch("SELECT * FROM get_portfolio(($1))", current_user.id)
+
+    if not results: 
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+                            detail="Portfolio is empty")
+
+    return results
 
 @router.get("/get_total_fees")
 async def get_total_fees(
@@ -51,16 +63,14 @@ async def get_total_money_invested(
     # print(money_invested)
     return {"value": money_invested}
 
-
 @router.get("/get_total_money_earned")
-async def get_total_money_invested(
+async def get_total_money_earned(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
-    earnings_from_selling = await db.fetchone("SELECT get_total_money_earned(($1))", 
+    money_earned = await db.fetchone("SELECT get_total_money_earned(($1))", 
                                         current_user.id)
-    # print(earnings_from_selling)
-    return {"value": earnings_from_selling}
-
+    # print(money_invested)
+    return {"value": money_earned}
 
 @router.get("/get_current_portfolio_value")
 async def get_current_portfolio_value(
@@ -108,6 +118,28 @@ async def get_monthly_performance(
     return results
 
 
+@router.get("/summary")
+async def get_summary(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    summary = await db.fetch(
+        """SELECT 
+                p.ticker,
+                ROUND(COALESCE(SUM(p.remaining_quantity), 0), 6) AS "remainingQuantity",
+                ROUND(COALESCE(SUM(p.remaining_quantity * p.buy_price), 0), 6) AS "totalValue",
+                ROUND(COALESCE(MIN(p.buy_price), 0), 6) AS "minPrice",
+                ROUND(COALESCE(MAX(p.buy_price), 0), 6) AS "maxPrice",
+                -- Weighted average buy price
+                ROUND(COALESCE(SUM(p.buy_price * p.remaining_quantity) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS "avgBuyPrice",
+                -- Breakeven price
+                ROUND(COALESCE((SUM(p.buy_price * p.remaining_quantity) + SUM(p.fee)) / NULLIF(SUM(p.remaining_quantity), 0), 0), 6) AS "breakeven",
+                ROUND(COALESCE(SUM(p.fee), 0), 6) AS "totalFees"
+            FROM portfolio_lots p
+            WHERE p.user_id = ($1)
+            GROUP BY p.ticker;""", current_user.id)
+    print("summary: ", summary)
+    return summary
+
 @router.get("/get_unrealized_money")
 async def get_unrealized_money(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
@@ -118,42 +150,42 @@ async def get_unrealized_money(
     return {"value": net_profit_loss}
 
 
-@router.get("/summary")
-async def get_summary_external(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch(
-        "SELECT * FROM get_portfolio_summary(($1))", 
-        current_user.id)
-    tickers = [item['ticker'] for item in results if item['ticker'] != 'Money']
+# @router.get("/summary")
+# async def get_summary_external(
+#         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+#         db: Database = Depends(get_db)):
+#     results = await db.fetch(
+#         "SELECT * FROM get_portfolio_summary(($1))", 
+#         current_user.id)
+#     tickers = [item['ticker'] for item in results if item['ticker'] != 'Money']
     
-    # Get current prices for the tickers
-    stocks = mini_scarper.get_current_price_tickers(tickers)
+#     # Get current prices for the tickers
+#     stocks = mini_scarper.get_current_price_tickers(tickers)
     
-    # Build a dictionary mapping ticker to price (only include those with a valid price)
-    price_map = {stock['ticker']: stock['price'] for stock in stocks if stock['price'] is not None}
+#     # Build a dictionary mapping ticker to price (only include those with a valid price)
+#     price_map = {stock['ticker']: stock['price'] for stock in stocks if stock['price'] is not None}
     
-    clean_result = []
+#     clean_result = []
     
-    for row in results:
-        ticker = row.get('ticker')
-        # Skip if ticker is 'Money' or missing from our price_map
-        if ticker and ticker in price_map:
-            # Ensure that totalQuantity is valid and convert to Decimal if necessary
-            quantity = row.get('totalQuantity')
-            if quantity is not None:
-                try:
-                    # Calculate market value: price * quantity
-                    row["marketValue"] = Decimal(price_map[ticker]) * Decimal(quantity)
-                    clean_result.append(row)
-                except Exception as e:
-                    print(f"Error calculating market value for ticker {ticker}: {e}")
-            else:
-                print(f"No totalQuantity for ticker {ticker}")
-        else:
-            if ticker not in price_map:
-                print(f"Price not found for ticker {ticker} (or price is None).")
-    return clean_result
+#     for row in results:
+#         ticker = row.get('ticker')
+#         # Skip if ticker is 'Money' or missing from our price_map
+#         if ticker and ticker in price_map:
+#             # Ensure that totalQuantity is valid and convert to Decimal if necessary
+#             quantity = row.get('totalQuantity')
+#             if quantity is not None:
+#                 try:
+#                     # Calculate market value: price * quantity
+#                     row["marketValue"] = Decimal(price_map[ticker]) * Decimal(quantity)
+#                     clean_result.append(row)
+#                 except Exception as e:
+#                     print(f"Error calculating market value for ticker {ticker}: {e}")
+#             else:
+#                 print(f"No totalQuantity for ticker {ticker}")
+#         else:
+#             if ticker not in price_map:
+#                 print(f"Price not found for ticker {ticker} (or price is None).")
+#     return clean_result
 
 
 
@@ -178,6 +210,7 @@ async def get_allocation_funds(
                             JOIN cte c
                             ON c.ticker = m.ticker;
                             """, current_user.id)
+    print("results: ", results)
     return results
 
 
