@@ -2,20 +2,23 @@
   <div class="flex flex-col items-center space-y-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
       <!-- Left Column -->
-      <div class="bg-gray-800 rounded-lg shadow-lg row-span-2">
+      <div class="slate-container">
         <FundsHeader />
       </div>
 
       <!-- Right Column (2 boxes inside) -->
       <div class="col-span-2 flex flex-col gap-6 w-full">
-        <div class="bg-gray-800 rounded-lg shadow-lg flex-grow">
-          <AddTransaction />
+        <div class="slate-container">
+          <BuyStock />
+        </div>
+        <div class="slate-container">
+          <SellStock />
         </div>
       </div>
     </div>
     <!-- Bottom Row: 2 Boxes -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-      <div class="bg-gray-800 rounded-lg shadow-lg">
+      <div class="slate-container">
         <!-- Box 4 content goes here -->
         <PieChartComponent
           title="Portfolio Distribution Qnty"
@@ -26,7 +29,7 @@
       </div>
       <div class="slate-container">
         <!-- Box 5 content goes here -->
-        <DataTable :headers="tableHeaders" :rows="tableData" />
+        <DataTable :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
       </div>
     </div>
     <p class="text-white">{{ chartValues }}</p>
@@ -34,27 +37,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
-// import { type Fund } from '../models/models';
+import { computed, onMounted, ref } from "vue";
+
 import DataTable from "../components/DataTable.vue";
 import FundsHeader from "../components/FundsHeader.vue";
-import AddTransaction from "../components/AddTransaction.vue";
+
 import { usePortfolioStore } from "../stores/portfolioStore";
 import PieChartComponent from '../components/PieChartComponent.vue';
+import SellStock from "../components/SellStock.vue";
+import BuyStock from "../components/BuyStock.vue";
+import { useTransactionsStore } from "../stores/transactionsStore";
 
-const tableHeaders = ["amount", "description", "created_at"];
 
+const tableHeaders = ["ticker", "price","quantity",  "transactionType", "realizedProfitLoss",  "created_at"];
+const formattedHeaders = ["ticker", "price","quantity",  "type", "profitLoss",  "created"];
+const pagingNumber = ref(5)
 const portfolioStore = usePortfolioStore();
+const transactionsStore = useTransactionsStore();
+
 onMounted(async () => {
-  await portfolioStore.getFunds();
-  await portfolioStore.getPortfolio();
+  // await portfolioStore.getFunds();
+  await portfolioStore.getPortfolioSummary();
+  
+  await transactionsStore.getStocksTransactionsHistory()
 });
 
-const tableData = computed(() => portfolioStore.latest_funds_transactions);
-const result = computed(() => portfolioStore.portfolio)
+const tableData = computed(() => transactionsStore.stocks_transactions_history);
+const result = computed(() => portfolioStore.portfolio_summary)
 
 const chartLabels = computed(() => result.value.map(item => item.ticker));
-const chartValues = computed(() => result.value.map(item => item.totalQuantity));
+const chartValues = computed(() => result.value.map(item => item.remainingQuantity));
 // const chartLabels = ref<string[]>(["Stocks", "Bonds", "Real Estate", "Crypto", "Cash"]);
 // const chartValues = ref<number[]>([5000, 3000, 2000, 1500, 1000]);
 // Create a key from the labels and values. Whenever the data changes,
