@@ -60,7 +60,6 @@ const formattedHeaders = ["ExDate", "PaymentType", "Amount","DeclarationDate", "
 const fetchStockDividends = async () => {
   if (!ticker.value) return; // Prevent API call if ticker is empty
   try {
-    console.log("Fetching data for:", ticker.value); // Debugging
     const response = await api.get(`/stocks/dividends/${ticker.value}`);
     stockDividends.value = response.data;
     error_message.value = "";

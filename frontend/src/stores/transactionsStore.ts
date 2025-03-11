@@ -12,6 +12,7 @@ export const useTransactionsStore = defineStore('transactions', {
         transaction_message_return:"",
         transactions_history: [] as TransactionHistoryRecord[],
         stocks_transactions_history: [] as StockTransactionHistoryRecord[],
+        transaction_detail: {} as TransactionHistoryRecord,
         // sellTransaction: {} as StockSoldRecord, 
         default_limit:10
     }),
@@ -74,6 +75,14 @@ export const useTransactionsStore = defineStore('transactions', {
             try {
                 const response = await api.get('transactions/get_stocks_transactions_history');
                 this.stocks_transactions_history = [...response.data];
+            } catch (error) {
+                throw error;
+            }
+        },
+        async getTransactionById(transactionId:number) {
+            try {
+                const response = await api.get(`transactions/${transactionId}`);
+                this.transaction_detail = response.data;
             } catch (error) {
                 throw error;
             }

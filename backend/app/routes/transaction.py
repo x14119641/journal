@@ -20,12 +20,12 @@ async def add_funds(
     print('transaction: ', transaction)
     if transaction.created_at:
         if transaction.created_at.tzinfo is not None:
-            _formated_date  = transaction.created_at.astimezone(
+            _formated_date = transaction.created_at.astimezone(
                 timezone.utc).replace(tzinfo=None)
         else:
             _formated_date = transaction.created_at
     else:
-        _formated_date =  datetime.now()
+        _formated_date = datetime.now()
     try:
         # Use execute() instead of fetch() since we are calling a stored procedure
         await db.execute(
@@ -56,12 +56,12 @@ async def withdraw_funds(
     print('transaction: ', transaction)
     if transaction.created_at:
         if transaction.created_at.tzinfo is not None:
-            _formated_date  = transaction.created_at.astimezone(
+            _formated_date = transaction.created_at.astimezone(
                 timezone.utc).replace(tzinfo=None)
         else:
             _formated_date = transaction.created_at
     else:
-        _formated_date =  datetime.now()
+        _formated_date = datetime.now()
     try:
         await db.execute(
             """CALL withdraw_funds($1, $2, $3, $4);""",
@@ -89,12 +89,12 @@ async def buy_stock(transaction: BuyStock, current_user: Annotated[UserLogin, De
         print("Stock Buy: ", transaction)
         if transaction.created_at:
             if transaction.created_at.tzinfo is not None:
-                _formated_date  = transaction.created_at.astimezone(
+                _formated_date = transaction.created_at.astimezone(
                     timezone.utc).replace(tzinfo=None)
             else:
                 _formated_date = transaction.created_at
         else:
-            _formated_date =  datetime.now()
+            _formated_date = datetime.now()
         return_msg = await db.fetchone("SELECT buy_stock($1, $2, $3, $4, $5, $6)",
                                        current_user.id, transaction.ticker, transaction.buy_price,
                                        transaction.quantity, transaction.fee,
@@ -120,12 +120,12 @@ async def sell_stock(transaction: SellStock, current_user: Annotated[UserLogin, 
         print("Stock Sell: ", transaction)
         if transaction.created_at:
             if transaction.created_at.tzinfo is not None:
-                _formated_date  = transaction.created_at.astimezone(
+                _formated_date = transaction.created_at.astimezone(
                     timezone.utc).replace(tzinfo=None)
             else:
                 _formated_date = transaction.created_at
         else:
-            _formated_date =  datetime.now()
+            _formated_date = datetime.now()
         return_msg = await db.fetchone("""
                                        SELECT sell_stock($1, $2, $3, $4, $5, $6)""",
                                        current_user.id, transaction.ticker, transaction.price,
@@ -211,3 +211,21 @@ async def reset_user_transactions(
         return {"message": "User transactions and portfolio reset successfully"}
     else:
         raise HTTPException(status_code=500, detail="Method not allawed")
+
+
+@router.get("/{transactionId}")
+async def get_transaction_by_id(
+        transactionId: int,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetchrow("""
+                             SELECT id, ticker, price, quantity, transaction_type as "transactionType", 
+                                fee, details, created_at
+                            FROM transactions
+                            WHERE id = $1
+                            AND user_id=$2;""",
+                             transactionId, current_user.id)
+    print('Resul : ', results)
+    if not results:
+        return []
+    return results

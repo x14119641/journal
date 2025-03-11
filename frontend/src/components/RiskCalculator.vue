@@ -85,8 +85,6 @@ const riskHeaderStore = useRiskHeaderStore();
 
 const accountValue = computed(() => portfolioStore.balance);
 const capital_placeholder = computed(() => {
-  console.log("Final balance before API call:", portfolioStore.balance);
-
   return portfolioStore.balance 
     ? `Default is your capital: ${portfolioStore.balance}` 
     : "Loading balance...";
