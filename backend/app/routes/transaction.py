@@ -213,6 +213,28 @@ async def reset_user_transactions(
         raise HTTPException(status_code=500, detail="Method not allawed")
 
 
+
+@router.get("/{transactionId}/type")
+async def get_transaction_type_by_id(
+        transactionId: int,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    result = await db.fetchone("""
+                             SELECT 
+                                CASE 
+                                    WHEN (ticker IS NULL) THEN 'Balance'
+                                    WHEN (ticker IS NOT NULL) THEN 'Stock' 
+                                ELSE '404' 
+                                END as transactionType
+                            FROM transactions
+                            WHERE id = $1
+                            AND user_id=$2;""",
+                             transactionId, current_user.id)
+    print('Resul : ', result)
+    if not result:
+        result = "404"
+    return {"value":result}
+
 @router.get("/{transactionId}")
 async def get_transaction_by_id(
         transactionId: int,

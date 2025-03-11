@@ -14,11 +14,21 @@ export const useTransactionsStore = defineStore('transactions', {
         stocks_transactions_history: [] as StockTransactionHistoryRecord[],
         transaction_detail: {} as TransactionHistoryRecord,
         // sellTransaction: {} as StockSoldRecord, 
-        default_limit:10
+        default_limit:10,
+        transactionTypeOrDontExist:"",
     }),
     getters: {
         getFundsTransactions: (state) => {
             return state.transactions_history.filter((transaction) => transaction.ticker === null)
+        },
+        getTransactionType: (state) => {
+            return state.transaction_detail.ticker===null ? 'Balance':'Stock'
+        },
+        getTransactionIsBalance: (state) => {
+            return state.transaction_detail.ticker===null ? true:false
+        },
+        getTransactionIsStock: (state) => {
+            return state.transaction_detail.ticker!==null ? true:false
         },
     },
     actions: {
@@ -88,6 +98,14 @@ export const useTransactionsStore = defineStore('transactions', {
             try {
                 const response = await api.get(`transactions/${transactionId}`);
                 this.transaction_detail = response.data;
+            } catch (error) {
+                throw error;
+            }
+        },
+        async getTransactionTypeOrDontExists(transactionId:number) {
+            try {
+                const response = await api.get(`transactions/${transactionId}/type`);
+                this.transactionTypeOrDontExist = response.data.value;
             } catch (error) {
                 throw error;
             }
