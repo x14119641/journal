@@ -16,6 +16,11 @@ export const useTransactionsStore = defineStore('transactions', {
         // sellTransaction: {} as StockSoldRecord, 
         default_limit:10
     }),
+    getters: {
+        getFundsTransactions: (state) => {
+            return state.transactions_history.filter((transaction) => transaction.ticker === null)
+        },
+    },
     actions: {
         async addFunds(transaction:FundsTransaction) {
             try {

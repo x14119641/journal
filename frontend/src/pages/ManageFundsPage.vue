@@ -18,25 +18,28 @@
       </div>
       <div class="slate-container">
         <!-- Main content, table -->
-        <DataTable title="Latest Transactions" :headers="tableHeaders" :rows="tableData" />
+        <DataTable title="Balance Transactions" :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
       </div>
     </div>
+
   </template>
   
   <script setup lang="ts">
-  import { onMounted, computed } from 'vue';
+  import { onMounted, computed, ref } from 'vue';
   import { useTransactionsStore } from '../stores/transactionsStore';
   import DataTable from '../components/DataTable.vue';
   import FundsHeader from '../components/FundsHeader.vue';
   import AddFunds from '../components/AddFunds.vue';
   import RemoveFunds from '../components/RemoveFunds.vue';
  
-  const tableHeaders = ['quantity', 'details', 'created_at'];
-  
+
+  const pagingNumber = ref(5);
+  const tableHeaders = ['transactionId','transactionType', 'quantity', 'details', 'created_at'];
+  const formattedHeaders = ['Id', 'Type','Quantity', 'Details', 'CreatedAt'];
   const transactionsStore = useTransactionsStore();
   onMounted(transactionsStore.getTransactionHistory)
 
-  const tableData = computed(() => transactionsStore.transactions_history)
+  const tableData = computed(() => transactionsStore.getFundsTransactions)
   </script>
   
   <style scoped>

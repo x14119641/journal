@@ -176,7 +176,7 @@ export interface StockTransaction {
   }
 
   export interface TransactionHistoryRecord {
-    id: number; 
+    transactionId: number; 
     ticker:string; 
     price:Decimal;
     quantity:Decimal; 
