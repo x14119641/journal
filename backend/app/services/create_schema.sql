@@ -153,6 +153,7 @@ CREATE INDEX IF NOT EXISTS idx_balance_history_user_id ON balance_history (user_
 CREATE TABLE IF NOT EXISTS portfolio_lots (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
+    transaction_id INT REFERENCES transactions(id),
     ticker TEXT REFERENCES tickers(ticker),
     buy_price NUMERIC(19, 2),
     quantity NUMERIC(19, 2),
@@ -218,279 +219,91 @@ CREATE TABLE IF NOT EXISTS transactions_corrections (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE OR REPLACE PROCEDURE delete_deposit_transaction(
-    _user_id INT,
-    _transaction_id INT,
-    _reason TEXT
-) LANGUAGE plpgsql AS $$
-DECLARE
-    _current_balance NUMERIC(19,6);
-    _transaction_quantity NUMERIC(19,6);
-    _transaction_created_at TIMESTAMP;
+
+
+
+CREATE OR REPLACE FUNCTION public.deposit_funds(
+	IN _user_id integer,
+	IN _amount numeric,
+	IN _description text,
+	IN _created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP)
+RETURNS TEXT LANGUAGE 'plpgsql'
+AS $BODY$
+DECLARE _transaction_id integer;
 BEGIN
-    -- Get current balance
-    SELECT total_balance INTO _current_balance 
-    FROM balance
-    WHERE user_id = _user_id;
-
-    -- Get transaction details (amount and timestamp)
-    SELECT quantity, created_at INTO _transaction_quantity, _transaction_created_at
-    FROM transactions
-    WHERE id = _transaction_id AND user_id = _user_id AND transaction_type = 'DEPOSIT';
-
-    -- Ensure the transaction exists
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Deposit transaction not found';
+    -- Ensure the amount is positive
+    IF _amount <= 0 THEN
+        RETURN 'Deposit amount must be positive';
     END IF;
 
-    -- Check if you have buys before that deposit, 
-    -- otherwise i am not going to allow you to delete the deposit
-    IF EXISTS(
-        SELECT 1 FROM transactions 
-        WHERE user_id = _user_id 
-        AND transaction_type = 'BUY' 
-        AND created_at > _transaction_created_at
-    ) THEN
-        RAISE EXCEPTION 'Cannot delete this deposit as you have buy orders after it';
-    END IF;
-   
-    -- Check if the amount of the transaction that
-    -- i want to delete is possible because i have enoug balance
-    IF (_transaction_quantity > _current_balance) THEN
-        RAISE EXCEPTION 'Insufficient balance to delete this deposit';
-    END IF;
+    -- If the user has no balance record, insert a new one
+    INSERT INTO balance (user_id, total_balance)
+    VALUES (_user_id, _amount)
+    ON CONFLICT (user_id) -- If user_id already exists, do nothing
+    DO UPDATE SET total_balance = balance.total_balance + _amount;
 
-    -- Insert correction record
-    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason)
-    VALUES (_transaction_id, _user_id, 'Delete Deposit Transaction',_reason);
+    -- Insert transaction record for deposit
+    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
+    VALUES (_user_id, NULL, NULL, _amount, 'DEPOSIT', 0, _description,_created_at) 
+	RETURNING id into _transaction_id;
 
-	-- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
-	
-    -- Delete deposit transaction
-    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
-
-    -- Update balance (subtract amount)
-    UPDATE balance 
-    SET total_balance = total_balance - _transaction_quantity
-    WHERE user_id = _user_id;
-
+    -- Insert balance history
+    INSERT INTO balance_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
+    VALUES (_user_id, _transaction_id,_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT',_created_at);
+    
+    RETURN 'Success: Deposit Completed.';
 END;
-$$;
+$BODY$;
 
-CREATE OR REPLACE PROCEDURE delete_withdraw_transaction(
-    _user_id INT,
-    _transaction_id INT,
-    _reason TEXT
-) LANGUAGE plpgsql AS $$
+CREATE OR REPLACE Function public.withdraw_funds(
+	IN _user_id integer,
+	IN _amount numeric,
+	IN _description text,
+	IN _created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP)
+RETURNS TEXT LANGUAGE 'plpgsql'
+AS $BODY$
 DECLARE
     _current_balance NUMERIC(19,6);
-    _transaction_quantity NUMERIC(19,6);
-	
+    _transaction_id integer;
 BEGIN
-    -- Get current balance
-    SELECT total_balance INTO _current_balance 
-    FROM balance
-    WHERE user_id = _user_id;
-    
-    -- Get original quanitty
-    SELECT quantity INTO _transaction_quantity 
-    FROM transactions
-    WHERE id = _transaction_id AND user_id = _user_id AND transaction_type = 'WITHDRAW';
-
-    -- Ensure the transaction exists
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Withdraw transaction not found';
-    END IF;
-
-    -- As it is a withdraw we dont care, we can delete the withdarw and 
-    -- add the quantity to the balance 
-
-    -- Insert correction record
-    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason)
-    VALUES (_transaction_id, _user_id, 'Delete Withdraw Transaction',_reason);
-
-	-- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
-    -- Delete deposit transaction
-    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
-
-    
-
-    -- Update balance (subtract amount)
-    UPDATE balance 
-    SET total_balance = total_balance + _transaction_quantity
-    WHERE user_id = _user_id;
-
-END;
-$$;
-
-
-
-CREATE OR REPLACE PROCEDURE delete_buy_transaction(
-    _user_id INT,
-    _transaction_id INT,
-    _reason TEXT
-) LANGUAGE plpgsql AS $$
-DECLARE
-    _current_balance NUMERIC(19,6);
-    _transaction_ticker TEXT;
-    _transaction_created_at timestamp;
-    _transaction_quantity NUMERIC(19,6);
-    _transaction_cost NUMERIC(19,6);
-    _transaction_remaining_quantity NUMERIC(19,6);
-BEGIN
-    -- Get transactions details
-    SELECT ticker, created_at INTO _transaction_ticker, _transaction_created_at
-    FROM transactions
-    WHERE user_id = _user_id AND id = _transaction_id;
-    -- Ensure the transaction exists
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Buy transaction not found';
-    END IF;
-    -- Get Portfolio details
-    SELECT quantity, remaining_quantity, (quantity*buy_price-fee) INTO _transaction_quantity, _transaction_remaining_quantity, _transaction_cost
-    FROM portfolio_lots
-    WHERE user_id = _user_id AND ticker = _transaction_ticker AND created_at = _transaction_created_at;
-    
-    -- Check if the quantity of stock is the same of the remaingin_qunatity
-    -- That means that part of the lot has not been sold
-    IF (_transaction_quantity != _transaction_remaining_quantity) THEN
-        RAISE EXCEPTION 'Part of this lot buy lot has been sold and is not possible to delete transaction';
-    END IF;
-
-    -- Insert correction record
-    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason)
-    VALUES (_transaction_id, _user_id, 'Delete Buy Transaction',_reason);
-	-- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
-    -- Delete deposit transaction
-    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
-
-    
-
-    -- Delete from portfolio lots
-    DELETE FROM portfolio_lots WHERE user_id = _user_id AND ticker = _transaction_ticker AND created_at = _transaction_created_at;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Error deleting portfolio lot';
-    END IF;
-    -- Delete fees
-    DELETE FROM fees WHERE user_id = _user_id AND ticker = _transaction_ticker AND transaction_id = _transaction_id;
-    -- Update balance (restore adding the totalcost of that transaction)
-     UPDATE balance 
-    SET total_balance = total_balance + _transaction_cost
-    WHERE user_id = _user_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Error updating balance';
-    END IF;
-
-END;
-$$;
-
-CREATE OR REPLACE PROCEDURE delete_sell_transaction(
-    _user_id INT,
-    _transaction_id INT,
-    _reason TEXT
-) LANGUAGE plpgsql AS $$
-DECLARE
-    _current_balance NUMERIC(19,6);
-    _new_balance NUMERIC(19,6);
-    _transaction_details RECORD;
-    _affected_lots RECORD;
-    _total_sell_value NUMERIC(19,6);
-    _total_allocated_fee NUMERIC(19,6);
-    _transaction_remaining_quantity NUMERIC(19,6);
-    _rows_deleted INT;
-BEGIN
-    -- Get transaction details
-    SELECT * INTO _transaction_details FROM transactions 
-    WHERE id = _transaction_id AND user_id = _user_id AND transaction_type = 'SELL';
-
-    -- Ensure the transaction exists
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Sell transaction % not found for user %', _transaction_id, _user_id;
-    END IF;
-
-    -- Compute total impact
-    _total_sell_value := (_transaction_details.price * _transaction_details.quantity) + _transaction_details.fee;
-    _total_allocated_fee := _transaction_details.fee;
-    _transaction_remaining_quantity := _transaction_details.quantity;
-
-    -- Restore FIFO inventory (undo the sell)
-    FOR _affected_lots IN
-        SELECT * FROM portfolio_lots 
-        WHERE user_id = _user_id AND ticker = _transaction_details.ticker 
-        ORDER BY created_at ASC
-    LOOP
-        IF _transaction_remaining_quantity <= 0 THEN
-            EXIT;
-        END IF;
-
-        -- Restore shares to existing lot
-        IF _affected_lots.remaining_quantity > 0 THEN
-            UPDATE portfolio_lots 
-            SET remaining_quantity = remaining_quantity + LEAST(_transaction_remaining_quantity, _affected_lots.remaining_quantity),
-                fee = fee + (_affected_lots.fee * (LEAST(_transaction_remaining_quantity, _affected_lots.remaining_quantity) / NULLIF(_affected_lots.quantity, 0)))
-            WHERE id = _affected_lots.id;
-
-            -- Reduce the amount that still needs to be restored
-            _transaction_remaining_quantity := _transaction_remaining_quantity - LEAST(_transaction_remaining_quantity, _affected_lots.remaining_quantity);
-        ELSE
-            -- Reinsert fully sold lot (if it was completely removed)
-            INSERT INTO portfolio_lots (user_id, ticker, buy_price, quantity, remaining_quantity, fee, created_at)
-            VALUES (_user_id, _transaction_details.ticker, _transaction_details.price, _transaction_details.quantity, _transaction_details.quantity, _total_allocated_fee, _transaction_details.created_at);
-            
-            -- Mark restoration as completed
-            _transaction_remaining_quantity := 0;
-        END IF;
-    END LOOP;
-
-    -- Reverse balance update (Remove benefit of sell stock)
+    -- Fetch the current balance
     SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
-    _new_balance := _current_balance - _total_sell_value;
 
-    -- Insert correction record
-    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason, created_at)
-    VALUES (_transaction_id, _user_id, 'Deleted Sell Transaction', _reason, NOW());
-
-
-	-- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
-    GET DIAGNOSTICS _rows_deleted = ROW_COUNT;
-    IF _rows_deleted = 0 THEN
-        RAISE NOTICE 'No balance history found for transaction % (User: %)', _transaction_id, _user_id;
-    END IF;
-	
-    -- Delete the sell transaction
-    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
-    GET DIAGNOSTICS _rows_deleted = ROW_COUNT;
-    IF _rows_deleted = 0 THEN
-        RAISE EXCEPTION 'Error deleting transaction % for user %', _transaction_id, _user_id;
+    -- Prevent negative withdrawals
+    IF _amount <= 0 THEN
+        RETURN 'Invalid withdrawal amount';
     END IF;
 
-    
-    
-    -- Delete related fees
-    DELETE FROM fees WHERE user_id = _user_id AND ticker = _transaction_details.ticker AND transaction_id = _transaction_id;
-    GET DIAGNOSTICS _rows_deleted = ROW_COUNT;
-    IF _rows_deleted = 0 THEN
-        RAISE NOTICE 'No fees found for transaction % (User: %)', _transaction_id, _user_id;
+    -- Prevent insert when nulls 
+    IF _current_balance IS NULL THEN
+        RETURN 'There is no balance';
     END IF;
 
-    -- Update balance (restore previous state)
-    UPDATE balance 
-    SET total_balance = _new_balance
+    -- Check if the user has enough funds
+    IF _current_balance < _amount THEN
+        RETURN 'Insufficient funds for withdrawal';
+    END IF;
+
+    -- Deduct balance
+    UPDATE balance
+    SET total_balance = total_balance - _amount
     WHERE user_id = _user_id;
-    GET DIAGNOSTICS _rows_deleted = ROW_COUNT;
-    IF _rows_deleted = 0 THEN
-        RAISE EXCEPTION 'Error updating balance for user %', _user_id;
-    END IF;
 
-    -- Debugging messages
-    RAISE NOTICE 'Sell transaction % deleted successfully for user % (Ticker: %)', _transaction_id, _user_id, _transaction_details.ticker;
-    RAISE NOTICE 'Balance updated to % for user %', _new_balance, _user_id;
+    -- Insert transaction record for withdrawal
+    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
+    VALUES (_user_id, NULL, NULL, _amount, 'WITHDRAW', 0, _description, _created_at)
+    RETURNING id into _transaction_id;
+
+    -- Insert into balance history
+    INSERT INTO balance_history (user_id, transaction_id,change_amount, new_balance, reason, created_at)
+    VALUES (_user_id, _transaction_id,-_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', _created_at);
+
+    RETURN 'Success: Withdraw Completed.';
+EXCEPTION WHEN OTHERS THEN
+    -- Ensure the error is properly raised
+    RAISE;
 END;
-$$;
+$BODY$;
 
 
 CREATE OR REPLACE FUNCTION public.buy_stock(
@@ -503,9 +316,7 @@ CREATE OR REPLACE FUNCTION public.buy_stock(
     RETURNS text
     LANGUAGE 'plpgsql'
     COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-
+    VOLATILE PARALLEL UNSAFE AS $BODY$
 DECLARE
 	_total_cost NUMERIC(19,6);
 	_current_balance NUMERIC(19,6);
@@ -514,7 +325,7 @@ DECLARE
 BEGIN 
     --Check if ticker exists in the database
     IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker=_ticker) THEN
-		RAISE EXCEPTION 'Ticker not in db';
+		RETURN 'Ticker not in db';
 	END IF;
 
 	-- Calculate total cost of the purchase
@@ -526,7 +337,7 @@ BEGIN
 
 	-- Ensure sufficient funds
 	IF _current_balance < _total_cost THEN
-		RAISE EXCEPTION 'Insufficient funds';
+		RETURN 'Insufficient funds';
 	END IF;
 
 	-- Insert transaction record for the buy action
@@ -539,8 +350,8 @@ BEGIN
     VALUES (_user_id, _ticker, _transaction_id, 'SELL', _fee, _created_at);
 
 	-- Insert into portfolio (FIFO tracking)
-	INSERT INTO portfolio_lots(user_id, ticker, buy_price, quantity, remaining_quantity, fee, created_at)
-	VALUES(_user_id, _ticker, _buy_price, _quantity, _quantity, _fee, _created_at);
+	INSERT INTO portfolio_lots(user_id, ticker, transaction_id, buy_price, quantity, remaining_quantity, fee, created_at)
+	VALUES(_user_id, _ticker, _transaction_id, _buy_price, _quantity, _quantity, _fee, _created_at);
 
 	-- Subtract the cost from the balance
 	_new_balance := _current_balance - _total_cost;
@@ -555,18 +366,15 @@ END;
 $BODY$;
 
 CREATE OR REPLACE FUNCTION public.sell_stock(
-	_user_id integer,
-	_ticker text,
-	_price numeric,
-	_quantity numeric,
-	_fee numeric,
-	_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP)
-    RETURNS text
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
+    _user_id integer,
+    _ticker text,
+    _price numeric,
+    _quantity numeric,
+    _fee numeric,
+    _created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP)
+RETURNS text
+LANGUAGE 'plpgsql'
 AS $BODY$
-
 DECLARE
     _lot RECORD;
     _total_sell_value NUMERIC(19,6) := 0;
@@ -581,12 +389,12 @@ DECLARE
 BEGIN
     -- Check if ticker exists
     IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker = _ticker) THEN
-        RAISE EXCEPTION 'Ticker not in db';
+        RETURN 'Ticker not in db';
     END IF;
 
     -- Check if shares exist
     IF NOT EXISTS (SELECT 1 FROM portfolio_lots WHERE user_id = _user_id AND ticker = _ticker AND remaining_quantity > 0) THEN
-        RAISE EXCEPTION 'No shares available to sell';
+        RETURN 'No shares available to sell';
     END IF;
 
     -- Process FIFO sales
@@ -601,7 +409,7 @@ BEGIN
 
         -- Check if a lot exists
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Not enough shares to sell';
+            RETURN 'Not enough shares to sell';
         END IF;
 
         -- Determine quantity to sell
@@ -615,8 +423,10 @@ BEGIN
             _total_sell_value := _total_sell_value + (_price * _quantity_sold);
             _total_cost_basis := _total_cost_basis + (_lot.buy_price * _quantity_sold);
 
-            -- Delete fully sold lot
-            DELETE FROM portfolio_lots WHERE id = _lot.id;
+            -- Update to 0
+            UPDATE portfolio_lots 
+            SET remaining_quantity = 0
+            WHERE id = _lot.id;
         ELSE
             -- Selling partial lot
             _quantity_sold := _remaining_to_sell;
@@ -637,7 +447,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- Calculate final profit/loss
+    -- Calculate final profit/loss (deducting fee)
     _profit_loss := (_total_sell_value - _total_cost_basis - _total_allocated_fee);
 
     -- Insert transaction record
@@ -645,13 +455,13 @@ BEGIN
     VALUES (_user_id, _ticker, _price, _quantity, 'SELL', _fee, _profit_loss, _created_at)
     RETURNING id INTO _transaction_id;
 
-    -- INsert into fees
+    -- Insert into fees table (for later restoration)
     INSERT INTO fees(user_id, ticker, transaction_id, type, fee, created_at)
-    VALUES (_user_id, _ticker, _transaction_id, 'BUY', _fee, _created_at);
+    VALUES (_user_id, _ticker, _transaction_id, 'SELL', _fee, _created_at);
     
-    -- Update balance
+    -- Update balance **AFTER** subtracting fees
     SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
-    _new_balance := _current_balance + _total_sell_value;
+    _new_balance := _current_balance + _total_sell_value - _fee;
 
     UPDATE balance 
     SET total_balance = _new_balance
@@ -659,94 +469,308 @@ BEGIN
 
     -- Insert into balance history
     INSERT INTO balance_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, _transaction_id, _total_sell_value, _new_balance, 'SELL', _created_at);
+    VALUES (_user_id, _transaction_id, _total_sell_value - _fee, _new_balance, 'SELL', _created_at);
 
     -- Return success message
-    RETURN FORMAT('Success: Sold %s shares of %s. Profit/Loss: %s', _quantity, _ticker, _profit_loss);
+    RETURN 'Success: Sold ' || _quantity || ' shares of ' || _ticker || ' Profit/Loss: ' || _profit_loss;
 END;
 $BODY$;
 
 
 
-CREATE OR REPLACE PROCEDURE public.deposit_funds(
-	IN _user_id integer,
-	IN _amount numeric,
-	IN _description text,
-	IN _created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP)
-LANGUAGE 'plpgsql'
-AS $BODY$
-DECLARE _transaction_id integer;
+CREATE OR REPLACE FUNCTION delete_buy_transaction(
+    _user_id INT,
+    _transaction_id INT,
+    _reason TEXT
+) RETURNS TEXT LANGUAGE plpgsql AS $$
+DECLARE
+    _current_balance NUMERIC(19,6);
+    _transaction_ticker TEXT;
+    _transaction_created_at timestamp;
+    _transaction_quantity NUMERIC(19,6);
+    _transaction_cost NUMERIC(19,6);
+    _transaction_remaining_quantity NUMERIC(19,6);
+	_previous_balance NUMERIC(19,6);
+
 BEGIN
-    -- Ensure the amount is positive
-    IF _amount <= 0 THEN
-        RAISE EXCEPTION 'Deposit amount must be positive';
+    -- Get transactions details
+    SELECT ticker, created_at INTO _transaction_ticker, _transaction_created_at
+    FROM transactions
+    WHERE user_id = _user_id AND id = _transaction_id;
+    -- Ensure the transaction exists
+    IF NOT FOUND THEN
+        RETURN 'Buy transaction not found';
+    END IF;
+	
+    -- Get Portfolio details
+    SELECT quantity, remaining_quantity, (quantity*buy_price-fee) INTO _transaction_quantity, _transaction_remaining_quantity, _transaction_cost
+    FROM portfolio_lots
+    WHERE user_id = _user_id AND ticker = _transaction_ticker AND created_at = _transaction_created_at;
+    
+    -- Check if the quantity of stock is the same of the remaingin_qunatity
+    -- That means that part of the lot has not been sold
+    IF (_transaction_quantity != _transaction_remaining_quantity) THEN
+        RETURN 'Part of this lot buy lot has been sold and is not possible to delete transaction';
     END IF;
 
-    -- If the user has no balance record, insert a new one
-    INSERT INTO balance (user_id, total_balance)
-    VALUES (_user_id, _amount)
-    ON CONFLICT (user_id) -- If user_id already exists, do nothing
-    DO UPDATE SET total_balance = balance.total_balance + _amount;
+    -- Insert correction record
+    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason)
+    VALUES (_transaction_id, _user_id, 'Delete Buy Transaction',_reason);
+	
+    -- Delete from balance history
+    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+    
+    -- Delete fees
+    DELETE FROM fees WHERE user_id = _user_id AND ticker = _transaction_ticker AND transaction_id = _transaction_id;
+    
+	-- Update balance (restore adding the totalcost of that transaction)
+    -- Delete from portfolio lots
+    DELETE FROM portfolio_lots WHERE user_id = _user_id AND ticker = _transaction_ticker AND transaction_id = _transaction_id;
+    IF NOT FOUND THEN
+        RETURN 'Error deleting portfolio lot, transaction ID: ' || _transaction_id;
+    END IF;
+	
+    -- Delete deposit transaction
+    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
 
-    -- Insert transaction record for deposit
-    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
-    VALUES (_user_id, NULL, NULL, _amount, 'DEPOSIT', 0, _description,_created_at) 
-	RETURNING id into _transaction_id;
-
-    -- Insert balance history
-    INSERT INTO balance_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, _transaction_id,_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT',_created_at);
+	    -- Get the last balance from balance history *AFTER* deleting
+    SELECT new_balance INTO _previous_balance
+    FROM balance_history
+    WHERE user_id = _user_id 
+    ORDER BY created_at DESC
+    LIMIT 1;
+	
+    UPDATE balance 
+    SET total_balance = _previous_balance
+    WHERE user_id = _user_id;
+    IF NOT FOUND THEN
+        RETURN 'Error updating balance';
+    END IF;
+	RETURN 'Success! Buy transaction deleted and balance updated';
 END;
-$BODY$;
+$$;
 
-CREATE OR REPLACE PROCEDURE public.withdraw_funds(
-	IN _user_id integer,
-	IN _amount numeric,
-	IN _description text,
-	IN _created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP)
-LANGUAGE 'plpgsql'
+CREATE OR REPLACE FUNCTION delete_sell_transaction(
+    _user_id INT,
+    _transaction_id INT,
+    _reason TEXT
+) RETURNS TEXT LANGUAGE plpgsql AS $$
+
+DECLARE
+    _transaction_details RECORD;
+    _previous_balance NUMERIC(19,6);
+    _transaction_remaining_quantity NUMERIC(19,6);
+	_transaction_quantity NUMERIC(19,6);
+    _affected_lots RECORD;
+    _fee NUMERIC(19,6);
+	_restore_amount NUMERIC(19,6);
+BEGIN
+    -- Get transaction details
+    SELECT * INTO _transaction_details FROM transactions 
+    WHERE id = _transaction_id AND user_id = _user_id AND transaction_type = 'SELL';
+
+    -- Ensure the transaction exists
+    IF NOT FOUND THEN
+        RETURN 'Sell transaction ' || _transaction_id || ' not found for user ' || _user_id;
+    END IF;
+
+    -- Get the transaction fee before deleting
+    SELECT fee INTO _fee
+    FROM fees
+    WHERE user_id = _user_id AND transaction_id = _transaction_id;
+
+    -- Get Portfolio details
+    SELECT quantity, remaining_quantity  INTO _transaction_quantity, _transaction_remaining_quantity
+    FROM portfolio_lots
+    WHERE user_id = _user_id AND ticker = _transaction_details.ticker AND transaction_id=_transaction_id;
+	-- Check if the quantity of stock is the same of the remaingin_qunatity
+    -- That means that part of the lot has not been sold
+    IF (_transaction_quantity != _transaction_remaining_quantity) THEN
+        RETURN 'Part of this lot buy lot has been sold and is not possible to delete transaction';
+    END IF;
+	
+ 
+    -- Restore FIFO inventory (undo the sell)
+FOR _affected_lots IN
+    SELECT * FROM portfolio_lots 
+    WHERE user_id = _user_id AND ticker = _transaction_details.ticker 
+    ORDER BY created_at ASC
+LOOP
+    IF _transaction_remaining_quantity <= 0 THEN
+        EXIT;
+    END IF;
+
+    -- Determine the amount to restore (but never exceed original quantity)
+    
+    _restore_amount := LEAST(_transaction_remaining_quantity, (_affected_lots.quantity - _affected_lots.remaining_quantity));
+
+    -- If the lot was fully sold (`remaining_quantity = 0`), restore it completely
+    IF _affected_lots.remaining_quantity = 0 THEN
+        UPDATE portfolio_lots 
+        SET remaining_quantity = _restore_amount,
+            fee = _affected_lots.fee
+        WHERE id = _affected_lots.id;
+    ELSE
+        -- Otherwise, only update the sold portion
+        UPDATE portfolio_lots 
+        SET remaining_quantity = remaining_quantity + _restore_amount
+        WHERE id = _affected_lots.id;
+    END IF;
+
+    -- Reduce the amount that still needs to be restored
+    _transaction_remaining_quantity := _transaction_remaining_quantity - _restore_amount;
+END LOOP;
+
+    -- Insert correction record
+    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason, created_at)
+    VALUES (_transaction_id, _user_id, 'Deleted Sell Transaction', _reason, NOW());
+
+    -- Delete from balance history
+    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+
+    -- Delete the sell transaction
+    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
+
+    -- Delete related fees
+    DELETE FROM fees WHERE user_id = _user_id AND ticker = _transaction_details.ticker AND transaction_id = _transaction_id;
+
+    -- Get the last balance from balance history *AFTER* deleting
+    SELECT new_balance INTO _previous_balance
+    FROM balance_history
+    WHERE user_id = _user_id 
+    ORDER BY created_at DESC
+    LIMIT 1;
+
+    -- Restore balance to previous state
+    UPDATE balance 
+    SET total_balance = _previous_balance   -- Restore fee amount
+    WHERE user_id = _user_id;
+
+    -- Return success message
+    RETURN 'Success: Sell transaction ' || _transaction_id || ' deleted for user ' || _user_id || ', Ticker: ' || _transaction_details.ticker;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.delete_deposit_transaction(
+	_user_id integer,
+	_transaction_id integer,
+	_reason text)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     _current_balance NUMERIC(19,6);
-    _transaction_id integer;
+    _transaction_quantity NUMERIC(19,6);
+    _transaction_created_at TIMESTAMP;
 BEGIN
-    -- Fetch the current balance
-    SELECT total_balance INTO _current_balance FROM balance WHERE user_id = _user_id;
-
-    -- Prevent negative withdrawals
-    IF _amount <= 0 THEN
-        RAISE EXCEPTION 'Invalid withdrawal amount';
-    END IF;
-
-    -- Prevent insert when nulls 
-    IF _current_balance IS NULL THEN
-        RAISE EXCEPTION 'There is no balance';
-    END IF;
-
-    -- Check if the user has enough funds
-    IF _current_balance < _amount THEN
-        RAISE EXCEPTION 'Insufficient funds for withdrawal';
-    END IF;
-
-    -- Deduct balance
-    UPDATE balance
-    SET total_balance = total_balance - _amount
+    -- Get current balance
+    SELECT total_balance INTO _current_balance 
+    FROM balance
     WHERE user_id = _user_id;
 
-    -- Insert transaction record for withdrawal
-    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
-    VALUES (_user_id, NULL, NULL, _amount, 'WITHDRAW', 0, _description, _created_at)
-    RETURNING id into _transaction_id;
+    -- Get transaction details (amount and timestamp)
+    SELECT quantity, created_at INTO _transaction_quantity, _transaction_created_at
+    FROM transactions
+    WHERE id = _transaction_id AND user_id = _user_id AND transaction_type = 'DEPOSIT';
 
-    -- Insert into balance history
-    INSERT INTO balance_history (user_id, transaction_id,change_amount, new_balance, reason, created_at)
-    VALUES (_user_id, _transaction_id,-_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', _created_at);
+    -- Ensure the transaction exists
+    IF NOT FOUND THEN
+        RETURN 'Deposit transaction not found';
+    END IF;
 
-EXCEPTION WHEN OTHERS THEN
-    -- Ensure the error is properly raised
-    RAISE;
+    -- Check if you have buys before that deposit, 
+    -- otherwise i am not going to allow you to delete the deposit
+    IF EXISTS(
+        SELECT 1 FROM transactions 
+        WHERE user_id = _user_id 
+        AND transaction_type = 'BUY' 
+        AND created_at > _transaction_created_at
+    ) THEN
+        RETURN 'Cannot delete this deposit as you have buy orders after it';
+    END IF;
+   
+    -- Check if the amount of the transaction that
+    -- i want to delete is possible because i have enoug balance
+    IF (_transaction_quantity > _current_balance) THEN
+        RETURN 'Insufficient balance to delete this deposit';
+    END IF;
+
+    -- Insert correction record
+    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason)
+    VALUES (_transaction_id, _user_id, 'Delete Deposit Transaction',_reason);
+
+	-- Delete from balance history
+    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+	
+    -- Delete deposit transaction
+    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
+
+    -- Update balance (subtract amount)
+    UPDATE balance 
+    SET total_balance = total_balance - _transaction_quantity
+    WHERE user_id = _user_id;
+	RETURN 'Success! Transaction Deleted properly!';
 END;
 $BODY$;
+
+CREATE OR REPLACE FUNCTION public.delete_withdraw_transaction(
+	_user_id integer,
+	_transaction_id integer,
+	_reason text)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+    _current_balance NUMERIC(19,6);
+    _transaction_quantity NUMERIC(19,6);
+BEGIN
+    -- Get current balance
+    SELECT total_balance INTO _current_balance 
+    FROM balance
+    WHERE user_id = _user_id;
+    
+    -- Get original quanitty
+    SELECT quantity INTO _transaction_quantity 
+    FROM transactions
+    WHERE id = _transaction_id AND user_id = _user_id AND transaction_type = 'WITHDRAW';
+
+    -- Ensure the transaction exists
+    IF NOT FOUND THEN
+        RETURN 'Withdraw transaction not found';
+    END IF;
+
+    -- As it is a withdraw we dont care, we can delete the withdarw and 
+    -- add the quantity to the balance 
+
+    -- Insert correction record
+    INSERT INTO transactions_corrections (original_transaction_id, user_id, description, reason)
+    VALUES (_transaction_id, _user_id, 'Delete Withdraw Transaction',_reason);
+
+	-- Delete from balance history
+    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+    -- Delete deposit transaction
+    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
+
+    
+
+    -- Update balance (subtract amount)
+    UPDATE balance 
+    SET total_balance = total_balance + _transaction_quantity
+    WHERE user_id = _user_id;
+	
+	RETURN 'Success! Transaction Deleted properly';
+
+END;
+$BODY$;
+
+
+
 
 CREATE OR REPLACE FUNCTION get_balance(_user_id INT)
 RETURNS NUMERIC(19,6) LANGUAGE plpgsql AS $$
