@@ -7,10 +7,10 @@
         <LoadingComponent />
       </div>
       <div v-else-if="transactionTypeOrDontExist === 'Balance'">
-        <CorrectBalanceTransaction />
+        <BalanceTransactionBox />
       </div>
       <div v-else-if="transactionTypeOrDontExist === 'Stock'">
-        <CorrectStockTransaction />
+        <StockTransactionBox />
       </div>
       <div v-else-if="transactionTypeOrDontExist === '404'">
         <TransactionNotExists :transactionId="transactionId" />
@@ -24,12 +24,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import CorrectStockTransaction from "../components/CorrectStockTransaction.vue";
 import { useTransactionsStore } from "../stores/transactionsStore";
-import CorrectBalanceTransaction from "../components/CorrectBalanceTransaction.vue";
 import TransactionNotExists from "../components/TransactionNotExists.vue";
 import { useRoute } from "vue-router";
 import LoadingComponent from "../components/LoadingComponent.vue";
+import StockTransactionBox from "../components/StockTransactionBox.vue";
+import BalanceTransactionBox from "../components/BalanceTransactionBox.vue";
 
 const transactionsStore = useTransactionsStore();
 

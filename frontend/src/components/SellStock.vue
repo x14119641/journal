@@ -49,6 +49,7 @@
         <input
           type="number"
           id="fee"
+          step="0.01"
           v-model="fee"
           placeholder="Fee: default(2)"
           class="input-style"
@@ -119,10 +120,10 @@ const onSubmit = async () => {
   if (fee.value === null) {
     fee.value = 2;
   }
-  if (fee.value <= 0) {
-    errorMessage.value = "Fee must be greater than 0";
-    return;
-  }
+  // if (fee.value <= 0) {
+  //   errorMessage.value = "Fee must be greater than 0";
+  //   return;
+  // }
   if (selectedDate.value === "") {
     selectedDate.value = new Date().toString();
   }

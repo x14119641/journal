@@ -175,15 +175,28 @@ export interface StockTransaction {
     created_at: Date
   }
 
+  export interface UpdateTransactionDetails {
+    transaction_id:number;
+    details:string;
+
+  }
+
+  export interface DeleteTransaction {
+    transaction_id:number;
+    transaction_type:string;
+    reason:string;
+  }
+
   export interface TransactionHistoryRecord {
     transactionId: number; 
     ticker:string; 
     price:Decimal;
     quantity:Decimal; 
-    transactionType:Decimal,
+    transactionType:Decimal;
     fee:Decimal;
+    realizedProfitLoss:Decimal;
     details:string; 
-    created_at:Date
+    created_at:Date;
   }
 
   export interface FundsTransaction {

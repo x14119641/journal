@@ -24,7 +24,7 @@
             step="0.01"
             type="number"
             v-model="price"
-            placeholder="Sell price:"
+            placeholder="Buy price:"
             required
             class="input-style"
           />
@@ -49,6 +49,7 @@
           <input
             type="number"
             id="fee"
+            step="0.01"
             v-model="fee"
             placeholder="Fee: default(2)"
             class="input-style"

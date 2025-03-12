@@ -18,7 +18,7 @@
     </div>
     <!-- Bottom Row: 2 Boxes -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-      <div class="slate-container">
+      <div v-if="chartValues.length > 0" class="slate-container">
         <!-- Box 4 content goes here -->
         <PieChartComponent
           title="Portfolio Distribution Qnty"
@@ -27,12 +27,13 @@
           :values="chartValues"
         />
       </div>
-      <div class="slate-container">
+      <div v-if="tableData.length > 0" class="slate-container">
         <!-- Box 5 content goes here -->
         <DataTable :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
       </div>
     </div>
-    <p class="text-white">{{ chartValues }}</p>
+    <!-- <p v-if="chartValues" class="text-white">{{ chartValues }}</p> -->
+    <!-- <p v-if="tableData" class="text-white">{{ tableData }}</p> -->
   </div>
 </template>
 
@@ -50,7 +51,7 @@ import { useTransactionsStore } from "../stores/transactionsStore";
 
 
 const tableHeaders = ["transactionId", "ticker", "price","quantity",  "transactionType", "realizedProfitLoss",  "created_at"];
-const formattedHeaders = ["id", "price","quantity",  "type", "profitLoss",  "created"];
+const formattedHeaders = ["id", "ticker","price","quantity",  "type", "profitLoss",  "created"];
 const pagingNumber = ref(5)
 const portfolioStore = usePortfolioStore();
 const transactionsStore = useTransactionsStore();

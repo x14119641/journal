@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import api from "../services/api";
-import type  {  StockTransactionHistoryRecord, FundsTransaction, SellStockTransaction, BuyStockTransaction, TransactionHistoryRecord } from "../models/models";
+import type  {  StockTransactionHistoryRecord, FundsTransaction, SellStockTransaction, BuyStockTransaction, TransactionHistoryRecord, UpdateTransactionDetails, DeleteTransaction } from "../models/models";
 import { usePortfolioStore } from "./portfolioStore";
 
 
@@ -16,6 +16,8 @@ export const useTransactionsStore = defineStore('transactions', {
         // sellTransaction: {} as StockSoldRecord, 
         default_limit:10,
         transactionTypeOrDontExist:"",
+        updateDetailsMessage:"",
+        deleteMessage:"",
     }),
     getters: {
         getFundsTransactions: (state) => {
@@ -34,12 +36,14 @@ export const useTransactionsStore = defineStore('transactions', {
     actions: {
         async addFunds(transaction:FundsTransaction) {
             try {
+                const portfolioStore = usePortfolioStore();
                 await api.post('transactions/add_funds', transaction);
                 this.transaction_message_return = "Funds added successfully";
-                await this.getTransactionHistory();
-                // Update everything throghout getPortfolio
-                const portfolioStore = usePortfolioStore();
-                await portfolioStore.getPortfolio();
+                const stockTransactionHistory = await this.getStocksTransactionsHistory();
+                const transactionHistory = await this.getTransactionHistory();
+                const portfolioUpdate = await portfolioStore.getPortfolio();
+                await Promise.allSettled([stockTransactionHistory, transactionHistory, portfolioUpdate]);
+                
 
             } catch (error) {
                 throw error;
@@ -49,10 +53,13 @@ export const useTransactionsStore = defineStore('transactions', {
             try {
                 await api.post('transactions/withdraw_funds', transaction);
                 this.transaction_message_return = "Funds withdrew successfully";
-                await this.getTransactionHistory();
                 // Update everything throghout getPortfolio
                 const portfolioStore = usePortfolioStore();
-                await portfolioStore.getPortfolio();
+                const stockTransactionHistory = await this.getStocksTransactionsHistory();
+                const transactionHistory = await this.getTransactionHistory();
+                const portfolioUpdate = await portfolioStore.getPortfolio();
+                await Promise.allSettled([stockTransactionHistory, transactionHistory, portfolioUpdate]);
+                
             } catch (error) {
                 throw error;
             }
@@ -63,6 +70,11 @@ export const useTransactionsStore = defineStore('transactions', {
                 this.transaction_message_return = response.data.message;// Update everything throghout getPortfolio
                 const portfolioStore = usePortfolioStore();
                 await portfolioStore.getPortfolio();
+                const stockTransactionHistory = await this.getStocksTransactionsHistory();
+                const transactionHistory = await this.getTransactionHistory();
+                const portfolioUpdate = await portfolioStore.getPortfolio();
+                await Promise.allSettled([stockTransactionHistory, transactionHistory, portfolioUpdate]);
+                
             } catch (error) {
                 throw error;
             }
@@ -74,6 +86,11 @@ export const useTransactionsStore = defineStore('transactions', {
                 // Update everything throghout getPortfolio
                 const portfolioStore = usePortfolioStore();
                 await portfolioStore.getPortfolio();
+                const stockTransactionHistory = await this.getStocksTransactionsHistory();
+                const transactionHistory = await this.getTransactionHistory();
+                const portfolioUpdate = await portfolioStore.getPortfolio();
+                await Promise.allSettled([stockTransactionHistory, transactionHistory, portfolioUpdate]);
+                
             } catch (error) {
                 throw error;
             }
@@ -89,7 +106,8 @@ export const useTransactionsStore = defineStore('transactions', {
         async getStocksTransactionsHistory() {
             try {
                 const response = await api.get('transactions/get_stocks_transactions_history');
-                this.stocks_transactions_history = [...response.data];
+                // this.stocks_transactions_history = [...response.data];
+                this.stocks_transactions_history.splice(0, this.stocks_transactions_history.length, ...response.data);
             } catch (error) {
                 throw error;
             }
@@ -106,6 +124,28 @@ export const useTransactionsStore = defineStore('transactions', {
             try {
                 const response = await api.get(`transactions/${transactionId}/type`);
                 this.transactionTypeOrDontExist = response.data.value;
+            } catch (error) {
+                throw error;
+            }
+        },
+        async updateTransactionDetails(transaction:UpdateTransactionDetails) {
+            try {
+                const response = await api.post(
+                    `transactions/${transaction.transaction_id.toString()}/details/update`,
+                    transaction
+                );
+                this.updateDetailsMessage = response.data.message;
+            } catch (error) {
+                throw error;
+            }
+        },
+        async deleteTransaction(transaction:DeleteTransaction) {
+            try {
+                const response = await api.post(
+                    `transactions/${transaction.transaction_id.toString()}/delete`,
+                    transaction
+                );
+                this.deleteMessage = response.data.message;
             } catch (error) {
                 throw error;
             }
