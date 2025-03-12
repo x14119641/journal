@@ -142,6 +142,8 @@ async def get_summary(
             WHERE p.user_id = ($1)
             GROUP BY p.ticker;""", current_user.id)
     print("summary: ", summary)
+    if  summary is None:
+        return []
     return summary
 
 @router.get("/get_unrealized_money")
@@ -214,7 +216,8 @@ async def get_allocation_funds(
                             JOIN cte c
                             ON c.ticker = m.ticker;
                             """, current_user.id)
-    print("results: ", results)
+    if results is None:
+        return []
     return results
 
 

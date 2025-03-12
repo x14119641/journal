@@ -88,6 +88,15 @@ class BuyStock(BaseModel):
     quantity:Decimal
     fee: Decimal=Field(2)
     created_at: Optional[datetime] = None
+    
+class UpdateTransactionDetails(BaseModel):
+    transaction_id:int
+    details:str
+
+class TransactionDelete(BaseModel):
+    transaction_id:int
+    transaction_type:str
+    reason:str   
 
 class SellStock(BaseModel):
     ticker:str

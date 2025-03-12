@@ -1,6 +1,6 @@
 from ..dependencies import get_db
 from ..services.database import Database
-from ..schema import BuyStock, SellStock, TransactionFund, UserLogin
+from ..schema import BuyStock, SellStock, TransactionDelete, TransactionFund, UpdateTransactionDetails, UserLogin
 from .auth import get_current_active_user
 from fastapi import Depends, status, APIRouter, HTTPException
 from typing import Annotated
@@ -28,13 +28,13 @@ async def add_funds(
         _formated_date = datetime.now()
     try:
         # Use execute() instead of fetch() since we are calling a stored procedure
-        await db.execute(
-            """CALL deposit_funds($1, $2, $3, $4);""",
+        msg = await db.execute(
+            """SELECT deposit_funds($1, $2, $3, $4);""",
             current_user.id, transaction.amount, transaction.description,
             _formated_date
         )
 
-        return {"message": "Funds added successfully"}
+        return {"message": msg}
 
     except PostgresError as e:
         raise HTTPException(
@@ -63,13 +63,13 @@ async def withdraw_funds(
     else:
         _formated_date = datetime.now()
     try:
-        await db.execute(
-            """CALL withdraw_funds($1, $2, $3, $4);""",
+        msg = await db.fetchone(
+            """SELECT withdraw_funds($1, $2, $3, $4);""",
             current_user.id, transaction.amount, transaction.description,
             _formated_date
         )
 
-        return {"message": "Funds withdrew successfully"}
+        return {"message": msg}
 
     except PostgresError as e:
         raise HTTPException(
@@ -174,7 +174,8 @@ async def get_stocks_transaction_history(
                 details, created_At 
             FROM transactions
             WHERE user_id = ($1)
-            AND ticker is NOT NULL;""", current_user.id)
+            AND ticker is NOT NULL
+            ORDER BY created_at DESC;""", current_user.id)
     print(results)
     if results is None:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
@@ -212,6 +213,65 @@ async def reset_user_transactions(
     else:
         raise HTTPException(status_code=500, detail="Method not allawed")
 
+@router.post("/{transactionId}/details/update")
+async def update_details_transaction(
+        transaction:UpdateTransactionDetails,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db),
+        ):
+    print("Tranaciton: ", transaction)
+    id = await db.fetchone("""
+                             UPDATE transactions
+                             SET details = $1
+                             WHERE id = $2
+                             AND user_id=$3
+                             RETURNING id
+                             """,
+                             transaction.details,transaction.transaction_id,current_user.id)
+    if not id:
+        msg = "Nothin has been updated"
+        return {"message": "Nothin has been updated"}
+    return {"message": f"TransactionID: {str(id)} updated!"}
+
+
+@router.post("/{transactionId}/delete")
+async def deletes_stock_transaction_by_id(
+        transaction:TransactionDelete,
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db),
+        ):
+    print("Transaction: ", transaction)
+    VALID_TYPES = ["SELL", "BUY", "DEPOSIT", "WITHDRAW"]
+
+    if transaction.transaction_type not in VALID_TYPES:
+        return {"message": "Invalid transaction type."}
+
+    if transaction.transaction_type =="SELL":
+        msg = await db.fetchone("""
+                             SELECT delete_sell_transaction($1,$2, $3);
+                             """,
+                             current_user.id, transaction.transaction_id, transaction.reason)
+    elif transaction.transaction_type =="BUY":
+        msg = await db.fetchone("""
+                             SELECT delete_buy_transaction($1,$2, $3);
+                             """,
+                             current_user.id, transaction.transaction_id, transaction.reason)
+    elif transaction.transaction_type =="DEPOSIT":
+        msg = await db.fetchone("""
+                             SELECT delete_deposit_transaction($1,$2, $3);
+                             """,
+                             current_user.id, transaction.transaction_id, transaction.reason)
+    elif transaction.transaction_type =="WITHDRAW":
+        msg = await db.fetchone("""
+                             SELECT delete_withdraw_transaction($1,$2, $3);
+                             """,
+                             current_user.id, transaction.transaction_id, transaction.reason)
+    else:
+        msg = "Cannot handle Transaction type. Nothing deleted"
+    if not msg:
+        msg = "Nothin has been deleted."
+    print("MESSAGE: ", msg)
+    return {"message": msg}
 
 
 @router.get("/{transactionId}/type")
@@ -242,7 +302,7 @@ async def get_transaction_by_id(
         db: Database = Depends(get_db)):
     results = await db.fetchrow("""
                              SELECT id, ticker, price, quantity, transaction_type as "transactionType", 
-                                fee, details, created_at
+                                fee,realized_profit_loss as "realizedProfitLoss", details, created_at
                             FROM transactions
                             WHERE id = $1
                             AND user_id=$2;""",
