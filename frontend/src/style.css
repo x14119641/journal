@@ -254,7 +254,23 @@ Must Need (layouts)
   @apply bg-gray-400 dark:bg-gray-800 text-white ;
 }
 .sidebar-li-style{
-  @apply text-lg text-gray-800 hover:bg-green-200 dark:text-blue-300 dark:hover:bg-green-500;
+  @apply text-2xl font-semibold text-gray-800 hover:bg-green-200 dark:text-blue-300 hover:dark:text-gray-300 dark:hover:bg-green-500;
 }
-
+/* Icons */
+.side-icons {
+  /* Change this! */
+  @apply text-blue-600 dark:text-lime-400 w-14 h-14 group-hover:stroke-cyan-300 stroke-lime-400 ;
+  /* color: #ffadff;
+  width: 24px;
+  height: 24px;*/
+  stroke-width: 1.5px; 
+}
+.notebook-icon {
+  /* Change this! */
+  @apply text-blue-600  w-16 h-16 group-hover:stroke-cyan-300 dark:stroke-gray-200 ;
+  /* color: #ffadff;
+  width: 24px;
+  height: 24px;*/
+  stroke-width: 1.5px; 
+}
 
