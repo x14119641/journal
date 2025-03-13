@@ -18,7 +18,7 @@
     </div>
     <!-- Bottom Row: 2 Boxes -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-      <div v-if="chartValues.length > 0" class="slate-container">
+      <div v-if="hasData" class="slate-container">
         <!-- Box 4 content goes here -->
         <PieChartComponent
           title="Portfolio Distribution Qnty"
@@ -27,7 +27,7 @@
           :values="chartValues"
         />
       </div>
-      <div v-if="tableData.length > 0" class="slate-container">
+      <div v-if="hasData" class="slate-container">
         <!-- Box 5 content goes here -->
         <DataTable :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
       </div>
@@ -68,6 +68,8 @@ const result = computed(() => portfolioStore.portfolio_summary)
 
 const chartLabels = computed(() => result.value.map(item => item.ticker));
 const chartValues = computed(() => result.value.map(item => item.remainingQuantity));
+const hasData = computed(() => chartValues.value.length > 0);
+
 // const chartLabels = ref<string[]>(["Stocks", "Bonds", "Real Estate", "Crypto", "Cash"]);
 // const chartValues = ref<number[]>([5000, 3000, 2000, 1500, 1000]);
 // Create a key from the labels and values. Whenever the data changes,
