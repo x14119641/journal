@@ -124,3 +124,25 @@ onMounted(async () => {
   await tickersStore.getTickers();
 });
 </script>
+
+<style scoped>
+.searchbox-input-style{
+  @apply text-sm text-green-800 bg-gray-200 dark:text-cyan-300 dark:bg-gray-700 border border-slate-600  rounded-lg  focus:ring-lime-400 focus:border-lime-300 ;
+}
+
+.search-icon-style{
+  @apply text-gray-800 dark:text-gray-400;
+}
+.searchbox-input-style::placeholder{
+  @apply text-sm italic text-gray-800 dark:text-cyan-300 ;
+}
+.searchbox-ul-style{
+  @apply  text-green-800 bg-gray-200 dark:text-cyan-300 dark:bg-gray-700 border border-slate-600 rounded-lg shadow-lg;
+}
+.searchbox-li-style{
+  @apply truncate text-sm  hover:bg-gray-400 ;
+}
+.searchbox-ticker-style{
+  @apply font-bold text-blue-600 dark:text-lime-300 ;
+}
+</style>

@@ -1,13 +1,12 @@
 <template>
-  <aside
-    class="sidebar-style p-4"
-    :class="isSidebarOpen ? 'w-80' : 'w-24'"
-  >
+  <aside class="sidebar-style p-4" :class="isSidebarOpen ? 'w-80' : 'w-24'">
     <div class="relative">
       <!-- App Icon -->
       <div class="mt-2 inline-flex">
-        <Notebook class="notebook-icon cursor-pointer mr-2 duration-500"
-        :class="isSidebarOpen ? '' : 'animate-flip'"/>
+        <Notebook
+          class="notebook-icon cursor-pointer mr-2 duration-500"
+          :class="isSidebarOpen ? '' : 'animate-flip'"
+        />
 
         <!-- App Text -->
         <h1
@@ -22,118 +21,105 @@
         @click="toggleSidebar"
         class="absolute top-1 -right-9 cursor-pointer"
       >
-      <!-- <IconAlien class="w-10 h-10" alt="Icon" 
+        <!-- <IconAlien class="w-10 h-10" alt="Icon" 
       base-color="#2ed422"
       :fill-color="isSidebarOpen ? '#2ed422' : '#e635e0'"
       :fill-color2="isSidebarOpen ? '#e635e0' : '#2ed422'"/> -->
-      <EllipsisVertical class="w-10 h-10 stroke-lime-300"/>
+        <EllipsisVertical class="w-10 h-10 stroke-lime-300" />
       </div>
       <!-- Items in menu -->
       <div>
-        <ul class="my-10  space-y-4">
+        <ul class="my-10 space-y-4">
           <!-- Demo -->
           <li
-            class="sidebar-li-style  group flex items-center cursor-pointer select-none p-1  rounded-lg mt-2 "
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
           >
-            <router-link to="/demo" class="flex items-center w-full ">
-              <span class="block float-left ">
+            <router-link to="/demo" class="flex items-center w-full">
+              <span class="block float-left">
                 <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
                 <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
-                <Gamepad2 class="side-icons"/>
+                <Gamepad2 class="side-icons" />
               </span>
-              <span
-                class=" flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
                 >Demo</span
               >
             </router-link>
           </li>
           <!-- Colors -->
           <li
-            class="sidebar-li-style  group flex items-center cursor-pointer select-none p-1  rounded-lg mt-2 "
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
           >
-            <router-link to="/colors" class="flex items-center w-full ">
-              <span class="block float-left ">
+            <router-link to="/colors" class="flex items-center w-full">
+              <span class="block float-left">
                 <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
                 <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
                 <Palette class="side-icons" />
               </span>
-              <span
-                class=" flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
                 >Colors</span
               >
             </router-link>
           </li>
           <!-- PRofile -->
           <li
-            class="sidebar-li-style  group flex items-center cursor-pointer select-none p-1  rounded-lg mt-2 "
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
           >
-            <router-link to="/profile" class="flex items-center w-full ">
-              <span class="block float-left ">
+            <router-link to="/profile" class="flex items-center w-full">
+              <span class="block float-left">
                 <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
                 <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
                 <ContactRound class="side-icons" />
               </span>
-              <span
-                class=" flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
                 >Profile</span
               >
             </router-link>
           </li>
           <!-- Dividends -->
           <li
-            class="sidebar-li-style  group flex items-center cursor-pointer select-none p-1  rounded-lg mt-2 "
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
           >
-            <router-link to="/dividends" class="flex items-center w-full ">
-              <span class="block float-left ">
+            <router-link to="/dividends" class="flex items-center w-full">
+              <span class="block float-left">
                 <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
                 <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
                 <HandCoins class="side-icons" />
               </span>
-              <span
-                class=" flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
                 >Dividends</span
               >
             </router-link>
           </li>
           <!-- Calendar -->
           <li
-            class="sidebar-li-style  group flex items-center cursor-pointer select-none p-1  rounded-lg mt-2 "
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
           >
-            <router-link to="/calendar" class="flex items-center w-full ">
-              <span class="block float-left ">
+            <router-link to="/calendar" class="flex items-center w-full">
+              <span class="block float-left">
                 <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
                 <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
-                <CalendarDays class="side-icons"/>
+                <CalendarDays class="side-icons" />
               </span>
-              <span
-                class=" flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
                 >Calendar</span
               >
             </router-link>
           </li>
           <!-- Screener -->
           <li
-            class="sidebar-li-style  group flex items-center cursor-pointer select-none p-1  rounded-lg mt-2 "
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
           >
-            <router-link to="/screener" class="flex items-center w-full ">
-              <span class="block float-left ">
+            <router-link to="/screener" class="flex items-center w-full">
+              <span class="block float-left">
                 <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
                 <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
-                <Binoculars class="side-icons"/>
+                <Binoculars class="side-icons" />
               </span>
-              <span
-                class=" flex-1 ml-3"
-                :class="isSidebarOpen ? '' : 'hidden'"
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
                 >Screener</span
               >
             </router-link>
           </li>
-          
         </ul>
       </div>
     </div>
@@ -143,24 +129,16 @@
 <script setup lang="ts">
 import { useSidebarStore } from "../stores/sideBarStore";
 import { computed } from "vue";
-import testingFlasksIcon from "@/assets/img/testing-flasks-svgrepo-com.svg";
-import bubbleMessageIcon from "@/assets/img/bubble-message-hi-svgrepo-com.svg";
-import alienHeadIcon from "@/assets/img/alien-head-svgrepo-com.svg";
-import accountAvatarIcon from "@/assets/img/account-avatar-profile-user-3-svgrepo-com.svg";
-import moneyIcon from "@/assets/img/money-svgrepo-com.svg";
-import calendarIcon from "@/assets/img/calendar-svgrepo-com.svg";
-import IconSearch from "./IconScreener.vue";
-import IconDollar from "./IconDividends.vue";
-import IconProfile from "./IconProfile.vue";
-import IconCalendar from "./IconCalendar.vue";
-import IconDemo from "./IconDemo.vue";
-import IconAlien from "./IconAlien.vue";
-import IconColors from "./IconColors.vue";
-import { Gamepad2, Palette, ContactRound, 
-  HandCoins, CalendarDays, Binoculars, Notebook , EllipsisVertical 
-} from 'lucide-vue-next';
-
-
+import {
+  Gamepad2,
+  Palette,
+  ContactRound,
+  HandCoins,
+  CalendarDays,
+  Binoculars,
+  Notebook,
+  EllipsisVertical,
+} from "lucide-vue-next";
 
 // Access the store
 const sidebarStore = useSidebarStore();
@@ -173,6 +151,29 @@ const toggleSidebar = () => {
 </script>
 
 <style scoped>
+.sidebar-style {
+  @apply bg-background-1 dark:bg-container-2;
+}
+.sidebar-li-style {
+  @apply text-2xl font-semibold text-gray-800 hover:bg-green-200 dark:text-blue-300 hover:dark:text-gray-300 dark:hover:bg-green-500;
+}
+/* Icons */
+.side-icons {
+  /* Change this! */
+  @apply text-blue-600 dark:text-lime-400 w-14 h-14 group-hover:stroke-cyan-300 stroke-lime-400;
+  /* color: #ffadff;
+  width: 24px;
+  height: 24px;*/
+  stroke-width: 1.5px;
+}
+.notebook-icon {
+  /* Change this! */
+  @apply w-16 h-16 group-hover:stroke-cyan-300 dark:stroke-gray-200;
+  /* color: #ffadff;
+  width: 24px;
+  height: 24px;*/
+  stroke-width: 1.5px;
+}
 @keyframes flip {
   0%,
   100% {

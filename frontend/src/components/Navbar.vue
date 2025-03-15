@@ -1,26 +1,24 @@
 <template>
   <nav class="navbar-style p-2 w-full">
-    
     <div class="flex items-center justify-between w-full">
-      <!-- Icon and Text at the beginning -->
-       <div class="flex items-center">
-        <span class="flex items-center space-x-2 mx-3">
-        <img :src="ufoIcon" class="w-10 h-10 rotate-[290deg]" alt="Icon" />
-        <span class="navbar-title">
-          To The Moon !!
-        </span>
-      </span>
-       </div>
       
+      <!-- Left Side: Icon and Title -->
+      <div class="flex items-center">
+        <span class="flex items-center space-x-2 mx-3">
+          <img :src="ufoIcon" class="w-10 h-10 rotate-[290deg]" alt="Icon" />
+          <span class="navbar-title">To The Moon !!</span>
+        </span>
+      </div>
 
-      <!-- Search Box -->
-      <span class="flex-1 items-center  space-x-2 max-w-lg">
-        <SearchBar />
-      </span>
-      <!-- Text at the end -->
-      <span class="flex items-center space-x-2">
+      <!-- Right Side: Search and Dropdown -->
+      <div class="flex items-center space-x-4 w-full max-w-3xl">
+        <!--  Make the search bar expand -->
+        <div class="flex-1">
+          <SearchBar />
+        </div>
         <DropdownMenu />
-      </span>
+      </div>
+
     </div>
   </nav>
 </template>
@@ -30,3 +28,13 @@ import ufoIcon from "@/assets/img/ufo-alien-svgrepo-com.svg";
 import DropdownMenu from "./DropdownMenu.vue";
 import SearchBar from "./SearchBar.vue";
 </script>
+
+<style scoped>
+.navbar-style{
+  @apply bg-container-1 dark:bg-container-2;
+}
+.navbar-title{
+  @apply text-primary font-bazooka text-2xl font-semibold whitespace-nowrap;
+}
+
+</style>

@@ -3,23 +3,23 @@
     
     <!-- Top row -->
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-      <div class="slate-container col-span-2 row-span-2 ">
+      <div class="container-component col-span-2 row-span-2 ">
         <StockSummary :ticker="ticker" />
       </div>
-      <div class="slate-container ">
+      <div class="container-component ">
         <!-- <FundsHeader /> -->
         <StockInPortfolio :ticker="ticker"/>
       </div>
-      <div v-if="showRiskHeader"  class="slate-container ">
+      <div v-if="showRiskHeader"  class="container-component ">
         <RiskDataHeader />
       </div>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-      <div class="slate-container col-span-2 row-span-2 w-full">
+      <div class="container-component col-span-2 row-span-2 w-full">
         <DataTable :headers="tableHeaders" :rows="stockDividends" :formattedHeaders="formattedHeaders"/>
          <!-- <p>{{ stockDividends }}</p> -->
       </div>
-      <div class="slate-container">
+      <div class="container-component">
         <RiskCalculator />
       </div>
     </div>

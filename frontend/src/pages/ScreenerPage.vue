@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col items-center gap-6 w-full">
     <div class="grid grid-cols-1">
-      <div class="slate-container">
-        <h2 class="page-title pt-6">Stock Screener</h2>
+      <div class="container-component">
+        <h2 class="title-component text-center pt-6">Stock Screener</h2>
 
         <!-- Filters Section -->
         <div class="flex justify-center px-6">
@@ -12,26 +12,13 @@
               :key="index"
               class="space-y-2"
             >
-              <label v-bind:for="filter.id" class="input-label">
+              <label v-bind:for="filter.id" class="text-label">
                 {{ filter.label }}
               </label>
 
               <!-- Render select fields manually -->
               <template v-if="filter.type === 'select'">
-                <select
-                  :id="filter.id"
-                  :name="filter.id"
-                  v-model="filters[filter.id]"
-                  class="input-style"
-                >
-                  <option
-                    v-for="option in filter.props.options"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-                </select>
+                <CustomSelectDropDown v-model="filters[filter.id]" :options="filter.props.options"/>
               </template>
 
               <!-- Render input fields dynamically -->
@@ -71,6 +58,8 @@ import { ref, computed } from "vue";
 import api from "../services/api";
 import { type StockScreener } from "../models/models";
 import DataTable from "../components/DataTable.vue";
+import CustomSelectDropDown from "../components/CustomSelectDropDown.vue";
+
 
 // Filters object, ensure the initial values align with your backend requirements
 const filters = ref({

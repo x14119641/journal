@@ -3,13 +3,13 @@
     <!-- Navbar -->
     <Navbar></Navbar>
 
-    <div class="flex flex-1">
+    <div class="flex flex-1 ">
       <!-- Sidebar -->
-      <Sidebar></Sidebar>
+      <Sidebar class=""></Sidebar>
 
       <!-- Main Content -->
-      <main class="flex-1 main-container  p-4">
-        <router-view />
+      <main class="flex-1 main-container   p-4">
+        <router-view class=""/>
       </main>
     </div>
   </div>
@@ -31,36 +31,10 @@ const toggleSidebar = () => {
   sidebarStore.toggleSidebar();
 };
 
-// Here is the items in sidebar
-const Menus = [
-  {
-    title: "Hello",
-    link: "/hello",
-    icon: "w-6 h-6 text-gray-600 hover:text-indigo-600",
-    isSpecial: false,
-  },
-  {
-    title: "Demo",
-    link: "/demo",
-    icon: "w-6 h-6 text-gray-600 hover:text-indigo-600",
-    isSpecial: false,
-  },
-  {
-    title: "Profile",
-    link: "/profile",
-    icon: "w-6 h-6 text-gray-600 hover:text-indigo-600",
-    isSpecial: true,
-  },
-  {
-    title: "Table",
-    link: "/table",
-    icon: "w-6 h-6 text-gray-600 hover:text-indigo-600",
-    isSpecial: false,
-  },
-];
 </script>
 
 <style scoped>
+
 @keyframes flip {
   0%,
   100% {

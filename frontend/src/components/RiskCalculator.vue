@@ -1,9 +1,9 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title-2">Risk Calculator</h3>
+    <h3 class="title-component">Risk Calculator</h3>
     <form @submit.prevent="calculate">
       <div class="mt-2 flex justify-between items-center gap-x-12">
-        <label for="capital " class="summary-label">Capital</label>
+        <label for="capital " class="text-label">Capital</label>
         <input
           type="number"
           id="capital"
@@ -14,7 +14,7 @@
         />
       </div>
       <div class="mt-2 flex justify-between items-center gap-x-3">
-        <label for="riskPortfolio " class="summary-label">Allocation%</label>
+        <label for="riskPortfolio " class="text-label">Allocation%</label>
         <input
           type="number"
           id="riskPortfolio"
@@ -24,7 +24,7 @@
         />
       </div>
       <div class="mt-2 flex justify-between items-center">
-        <label for="stockPrice " class="summary-label">Price</label>
+        <label for="stockPrice " class="text-label">Price</label>
         <input
           type="number"
           id="stockPrice"
@@ -36,7 +36,7 @@
         />
       </div>
       <div class="mt-2 flex justify-between items-center">
-        <label for="riskPercent " class="summary-label">Risk %</label>
+        <label for="riskPercent " class="text-label">Risk %</label>
         <input
           type="number"
           id="riskPercent"
@@ -46,7 +46,7 @@
         />
       </div>
       <!-- <div class="mt-2 flex justify-between items-center">
-                <label for="StopLoss " class="summary-label">StopLoss</label>
+                <label for="StopLoss " class="text-label">StopLoss</label>
                 <input type="number" id="StopLoss" 
                 v-mode="StopLoss"
                 placeholder="Stop Loss"
@@ -55,7 +55,7 @@
             </div> -->
       <button
         type="submit"
-        class="deposit-funds-button-style"
+        class="mt-4 button-add w-full"
       >
         Calculate
       </button>
@@ -135,3 +135,13 @@ const calculate = () => {
   riskHeaderStore.setShowRiskHeader(true)
 };
 </script>
+
+
+<style>
+.risk-calculator-input{
+ @apply w-3/4 mt-1 p-2 block rounded-md  bg-slate-400 border-gray-300 shadow-sm focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50;
+}
+.risk-calculator-input::placeholder{
+  @apply  text-sm font-medium italic   text-gray-800 dark:text-slate-800;
+}
+</style>

@@ -1,22 +1,22 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title">User Profile</h3>
+    <h3 class="title-component">User Profile</h3>
     <div class="mt-2 space-y-2">
       <div class="flex justify-between">
-        <span class="summary-label">User ID</span>
-        <span class="summary-value">{{ id }}</span>
+        <span class="text-label">User ID</span>
+        <span class="text-value">{{ id }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="summary-label">Username</span>
-        <span class="summary-value">{{ username }}</span>
+        <span class="text-label">Username</span>
+        <span class="text-value">{{ username }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="summary-label">Email</span>
-        <span class="summary-value email-style">{{ email }}</span>
+        <span class="text-label">Email</span>
+        <span class="text-value email-style">{{ email }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="summary-label">Created At</span>
-        <span class="summary-value">{{ created_at }}</span>
+        <span class="text-label">Created At</span>
+        <span class="text-value">{{ created_at }}</span>
       </div>
     </div>
   </div>
@@ -26,7 +26,7 @@
 import { ref, onMounted } from "vue";
 import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
-import moment from 'moment';
+import moment from "moment";
 
 const authStore = useAuthStore();
 
@@ -42,8 +42,8 @@ onMounted(async () => {
       id.value = response.data.id;
       username.value = response.data.username;
       email.value = response.data.email;
-      let strDate = moment(response.data.created_at).format('DD-MMM-YYYY')
-      created_at.value = strDate
+      let strDate = moment(response.data.created_at).format("DD-MMM-YYYY");
+      created_at.value = strDate;
     } catch (error) {
       console.error("Error fetching data: ", error);
     }
@@ -52,3 +52,8 @@ onMounted(async () => {
   }
 });
 </script>
+<style scoped>
+.email-style {
+  @apply text-blue-700 dark:text-blue-400;
+}
+</style>

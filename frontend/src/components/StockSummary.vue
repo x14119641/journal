@@ -1,16 +1,16 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title-2">{{ ticker?.toUpperCase() }}</h3>
+    <h3 class="title-component">{{ ticker?.toUpperCase() }}</h3>
 
     <!-- Info Labels -->
     <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-12">
       <div v-if="stockData" class="mt-2" v-for="(value, key) in stockData" :key="key">
         <div class="flex justify-between">
-          <span class="summary-label">{{ key }}</span>
-          <span class="summary-value">{{ value }}</span>
+          <span class="text-label">{{ key }}</span>
+          <span class="text-value">{{ value }}</span>
         </div>
       </div>
-      <div v-else class="text-gray-500 text-sm">
+      <div v-else class="">
         Loading stock data...
       </div>
     </div>

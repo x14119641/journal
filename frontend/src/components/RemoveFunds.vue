@@ -38,7 +38,7 @@
           type="text"
           v-model="description"
           min="0"
-          placeholder="default:Withraw"
+          placeholder="Type:Withraw"
           class="input-style"
         />
       </div>
@@ -46,13 +46,13 @@
         class="flex flex-col space-x-2 items-center justify-center md:justify-end"
       >
         <div class="mt-4 md:mt-0 md:ml-4">
-          <button type="submit" class="withdraw-funds-button-style">
+          <button type="submit" class="button-delete">
             Witdraw
           </button>
         </div>
       </div>
     </form>
-    <p v-if="errorMessage" class="mt-4 text-center text-red-500">
+    <p v-if="errorMessage" class="mt-4 text-error">
       {{ errorMessage }}
     </p>
   </div>

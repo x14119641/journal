@@ -37,24 +37,24 @@
         type="text"
         v-model="description"
         min="0"
-        placeholder="default:Deposit"
+        placeholder="Type:Deposit"
         class="input-style"
       />
     </div>
     <div
       class="flex flex-col space-x-2 items-center justify-center md:justify-end"
     >
-      <div class="mt-4 md:mt-0 md:ml-4">
+      <div class="mt-4 md:mt-0 md:ml-4 min-w-min">
         <button
           type="submit"
-          class="deposit-funds-button-style"
+          class="button-add "
         >
           Deposit
         </button>
       </div>
     </div>
   </form>
-    <p v-if="errorMessage" class="mt-4 text-center  text-red-500">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="mt-4 text-error">{{ errorMessage }}</p>
   </div>
 </template>
 

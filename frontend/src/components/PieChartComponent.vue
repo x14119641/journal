@@ -4,7 +4,7 @@
         <h3 v-if="title" class="summary-title">{{ title }}</h3>
       <canvas class="mt-2" ref="chartCanvas"></canvas>
     </div>
-    <div v-else class="chart-container text-white">Loading chart...</div>
+    <div v-else class=" text-white">Loading chart...</div>
   </div>
 </template>
 

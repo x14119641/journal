@@ -1,17 +1,17 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title-2">Risk Data</h3>
+    <h3 class="title-component">Risk Data</h3>
     <div class="items-center">
       <div class="">
         <div class="flex justify-between">
-          <span class=" summary-label">quantityToBuy</span>
-          <span class="summary-value">{{ quantityToBuy }}</span>
+          <span class="text-label">quantityToBuy</span>
+          <span class="text-value">{{ quantityToBuy }}</span>
 
-          <span class="summary-label">stopLoss</span>
-          <span class="summary-value">{{ stopLoss }}</span>
+          <span class="text-label">stopLoss</span>
+          <span class="text-value">{{ stopLoss }}</span>
 
-          <span class="summary-label">willingToLose</span>
-          <span class="summary-value">${{ willingToLose }}</span>
+          <span class="text-label">willingToLose</span>
+          <span class="text-value">${{ willingToLose }}</span>
         </div>
       </div>
     </div>

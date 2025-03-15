@@ -143,4 +143,26 @@ const daysInMonth = computed(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.calendar-title{
+  @apply text-center text-2xl font-bazooka text-lime-400;
+}
+.calendar-days{
+  @apply text-lg text-gray-700 dark:text-blue-200 font-bold ;
+}
+.calendar-cell-style{
+  @apply bg-gray-300  dark:bg-gray-900 border-gray-700;
+}
+.calendar-cell-day{
+ @apply font-bold text-lg text-gray-950 dark:text-gray-300;  
+}
+.calendar-ticker{
+  @apply text-blue-700  dark:text-indigo-300 hover:underline hover:text-gray-800 dark:hover:text-lime-300 truncate;
+}
+.calendar-dividend{
+  @apply font-bold text-green-500 dark:text-green-400 ml-1;
+}
+.calendar-show-more{
+ @apply text-gray-700 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-600;
+}
+</style>

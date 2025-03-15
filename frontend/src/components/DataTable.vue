@@ -1,6 +1,6 @@
 <template>
     <div class="p-6 text-center">
-      <h3 v-if="title" class="datatable-title mb-4">{{ title }}</h3>
+      <h3 v-if="title" class="title-component mb-4">{{ title }}</h3>
       <!-- Use overflow-x-auto to only allow horizontal scrolling -->
       <div class="w-full overflow-x-auto">
         <table class="w-full table-fixed text-center border-collapse">
@@ -104,6 +104,17 @@
   </script>
   
   <style scoped>
-  /* Additional custom styles if needed */
+.datatable-cell-title{
+  @apply font-medium text-blue-900 dark:text-cyan-300;
+}
+.datatable-cell-text{
+  @apply text-sm text-gray-900 dark:text-blue-200;
+}
+.datatable-cell-link-stock{
+  @apply  text-blue-600 dark:text-lime-400 hover:underline;
+}
+.datatable-cell-link-id{
+  @apply  text-indigo-600 dark:text-indigo-400 hover:underline;
+}
   </style>
   

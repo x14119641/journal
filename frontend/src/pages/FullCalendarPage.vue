@@ -1,11 +1,11 @@
 <template>
-  <div class="slate-container">
+  <div class="container-component">
     <!-- Months buttons -->
     <div class="p-6 flex justify-center">
       <div v-for="(month, index) in months" :key="index" class="px-2">
         <button 
           @click="setMonth(index)"
-          class="py-2 px-6 rounded-md shadow-md"
+          class="py-2 px-6 rounded-lg shadow-lg"
           :class="{
             // Selected Month
             'calendar-months-button-selected focus:ring-opacity-50': currentMonth === index,
@@ -36,7 +36,6 @@ const months = ref([
 
 const portfolioStore = usePortfolioStore();
 onMounted(async () => {
-  await portfolioStore.getFunds();
   await portfolioStore.getPortfolio();
 });
 
@@ -69,4 +68,10 @@ const getMonthDividends = async () => {
 </script>
 
 <style scoped>
+.calendar-months-button{
+  @apply bg-gray-300  dark:bg-gray-900 text-gray-600 dark:text-gray-100 hover:bg-gray-500 hover:text-gray-800 focus:ring-gray-400 dark:hover:bg-gray-500 dark:hover:text-gray-300 dark:focus:ring-gray-400;
+}
+.calendar-months-button-selected{
+  @apply bg-lime-400 text-gray-600 hover:bg-gray-300 hover:text-gray-800 focus:ring-gray-400;
+}
 </style>

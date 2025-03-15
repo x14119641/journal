@@ -8,6 +8,20 @@ export default {
         bazooka: ['Bazooka', 'sans-serif']
       },
       colors:{
+        primary: "#bef264", // lime-300
+        secondary: "#a5b4fc", // indigo-300
+        background: {
+          1: "#e1e2e5", // light gray
+          2: "#0f1010", // almost black
+        },
+        container: {
+          1: "#9ca3af", // gray-400
+          2: "#292b2b", // dark gray
+        },
+        body: {
+          1: "#1f2937", // gray-800
+          2: "#d1d5db", // gray-300
+        },
         // light
         lightGreen:{
           // https://colorkit.co/color/daffcc/

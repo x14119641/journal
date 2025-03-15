@@ -1,11 +1,11 @@
 <template>
-  <div class="p-6 text-center">
-    <h3 class="summary-title">Login</h3>
+  <div class="p-6 text-center ">
+    <h3 class="title-component">Login</h3>
     <form @submit.prevent="onSubmit">
       <div class="mt-4">
         <label
           for="username"
-          class="input-label"
+          class="text-label"
           >Username or Email</label
         >
         <input
@@ -19,7 +19,7 @@
       <div class="mt-4">
         <label
           for="password"
-          class="input-label"
+          class="text-label"
           >Password</label
         >
         <input
@@ -32,20 +32,20 @@
       <div class="mt-8">
         <button
         type="submit"
-        class="login-button-style"
+        class="button-add w-full"
       >
         Login
       </button>
       </div>
       
     </form>
-    <p class="text-center summary-label mt-4">
+    <p class="text-center  mt-4">
       Don't have an account?
       <router-link to="/register" class="register-link-style"
         >Register here</router-link
       >.
     </p>
-    <p v-if="errorMessage" class="mt-4 text-negative-style">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="mt-4 text-error">{{ errorMessage }}</p>
   </div>
 
 </template>
@@ -68,3 +68,9 @@ const onSubmit = () => {
 
 
 </script>
+
+<style scoped>
+.register-link-style{
+  @apply text-primary hover:underline;
+}
+</style>

@@ -1,30 +1,30 @@
 <template>
   <div v-if="stockData" class="p-6 text-center">
-      <h3 class="summary-title-2">Portfolio</h3>
+      <h3 class="title-component">Portfolio</h3>
 
       <div class="flex justify-between">
-          <span class="summary-label">Capital</span>
-          <span class="summary-value">{{ stockData?.totalValue }}</span>
+          <span class="text-label">Capital</span>
+          <span class="text-value">{{ stockData?.totalValue }}</span>
       </div>
       <div class="flex justify-between">
-          <span class="summary-label">Quantity</span>
-          <span class="summary-value">{{ stockData?.remainingQuantity  }}</span>
+          <span class="text-label">Quantity</span>
+          <span class="text-value">{{ stockData?.remainingQuantity  }}</span>
       </div>
       <div class="flex justify-between">
-          <span class="summary-label">Min Price</span>
-          <span class="summary-value">{{ stockData?.minPrice  }}</span>
+          <span class="text-label">Min Price</span>
+          <span class="text-value">{{ stockData?.minPrice  }}</span>
       </div>
       <div class="flex justify-between">
-          <span class="summary-label">Max Price</span>
-          <span class="summary-value">{{ stockData?.maxPrice  }}</span>
+          <span class="text-label">Max Price</span>
+          <span class="text-value">{{ stockData?.maxPrice  }}</span>
       </div>
       <div class="flex justify-between">
-          <span class="summary-label">AvgPrice</span>
-          <span class="summary-value">{{ stockData?.avgBuyPrice  }}</span>
+          <span class="text-label">AvgPrice</span>
+          <span class="text-value">{{ stockData?.avgBuyPrice  }}</span>
       </div>
       <div class="flex justify-between">
-          <span class="summary-label">BreakEven</span>
-          <span class="summary-value">{{ stockData?.breakeven  }}</span>
+          <span class="text-label">BreakEven</span>
+          <span class="text-value">{{ stockData?.breakeven  }}</span>
       </div>
   </div>
 </template>

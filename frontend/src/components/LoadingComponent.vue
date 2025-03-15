@@ -3,7 +3,7 @@
       <!-- Spinner -->
       <div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-500"></div>
       <!-- Loading Text -->
-      <div class="loading-text">Loading...</div>
+      <div class="">Loading...</div>
     </div>
   </template>
   

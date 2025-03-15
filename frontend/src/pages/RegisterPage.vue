@@ -1,14 +1,15 @@
 <template>
-  <div class="flex items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
-      <h2 class="text-2xl font-semibold text-center text-white mb-6">
+  <div class="flex justify-center w-full transition-all">
+    <div class="container-component w-full  sm:w-96 md:w-2/3 lg:w-1/2 xl:w-1/3">
+      <div class="p-6 text-center">
+        <h2 class="title-component">
         Register
       </h2>
       <form @submit.prevent="onSubmit">
-        <div class="mb-4">
+        <div class="mt-4">
           <label
             for="username"
-            class="block text-sm font-medium text-gray-200 mb-2"
+            class="text-label"
             >Username:</label
           >
           <input
@@ -16,47 +17,54 @@
             id="username"
             v-model="username"
             required
-            class="w-full bg-gray-400 p-3 border border-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-lime-400"
+            class="input-style"
           />
         </div>
-        <div class="mb-4">
+        <div class="mt-4">
           <label
             for="username"
-            class="block text-sm font-medium text-gray-200 mb-2"
-            >Email:</label
+            class="text-label"
+            >Email</label
           >
           <input
             type="text"
             id="email"
             v-model="email"
             required
-            class="w-full bg-gray-400 p-3 border border-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-lime-400"
+            class="input-style"
           />
         </div>
-        <div class="mb-8">
+        <div class="mt-4">
           <label
             for="password"
-            class="block text-sm font-medium text-gray-200 mb-2"
-            >Password:</label
+            class="text-label"
+            >Password</label
           >
           <input
             type="text"
             id="password"
             v-model="password"
             required
-            class="w-full bg-gray-400 p-3 border border-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-lime-400"
+            class="input-style"
           />
         </div>
-        <div class="mb-2">
+        <div class="mt-8">
           <button
             type="submit"
-            class="w-full bg-lime-400 text-white py-3 rounded hover:bg-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
+            class="button-add w-full"
           >
             Register
           </button>
         </div>
       </form>
+      <p class="text-center  mt-4">
+      <router-link to="/login" class="register-link-style "
+        >Go Back</router-link
+      >
+    </p>
       <p v-if="errorMessage" class="mt-4 text-red-500">{{ errorMessage }}</p>
+      </div>
+      
     </div>
   </div>
 </template>
@@ -85,7 +93,7 @@ const onSubmit = async () => {
         email: email.value,
         password: password.value,
       });
-      router.push('login')
+      router.push("login");
     } catch (error) {
       // Improve error logging
       if (error.response) {
@@ -102,4 +110,8 @@ const onSubmit = async () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.register-link-style{
+  @apply text-primary hover:underline;
+}
+</style>

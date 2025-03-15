@@ -8,7 +8,7 @@
         <h3 class="chart-title">Sector Allocation</h3>
         <canvas class="pb-4" ref="chartCanvas"></canvas>
       </div>
-      <div v-else class="text-center text-negative-style">
+      <div v-else class="text-center text-error">
         <p>
           No data available. Start investing to see your portfolio allocation.
         </p>

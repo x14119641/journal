@@ -267,7 +267,7 @@ Must Need (layouts)
 }
 .notebook-icon {
   /* Change this! */
-  @apply text-blue-600  w-16 h-16 group-hover:stroke-cyan-300 dark:stroke-gray-200 ;
+  @apply text-darkGreen-1  w-16 h-16 group-hover:stroke-cyan-300 dark:stroke-gray-200 ;
   /* color: #ffadff;
   width: 24px;
   height: 24px;*/

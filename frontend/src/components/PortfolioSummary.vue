@@ -1,11 +1,11 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title">Summary</h3>
+    <h3 class="title-component">Summary</h3>
     <div v-if="stocks">
       <div class="mt-2 space-y-2">
         <div class="flex justify-between">
-          <span class="summary-label">Stocks</span>
-          <span class="text-green-400">
+          <span class="text-label">Stocks</span>
+          <span class="">
             <template v-for="(stock, index) in stocks" :key="index">
               <router-link :to="`/stocks/${stock}`" 
               class="ticker-link">{{
@@ -16,18 +16,18 @@
           </span>
         </div>
         <div class="flex justify-between">
-          <span class="summary-label">Total</span>
+          <span class="text-label">Total</span>
           <span class="summary-value">{{ numberStocks }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="summary-label">Market Value</span>
+          <span class="text-label">Market Value</span>
           <span class="summary-value money-positive-style">
             <!-- <span class="dolar-style">$</span>  -->
             {{ stocksMarketValue }}</span
           >
         </div>
         <div class="flex justify-between">
-          <span class="summary-label">Unrealized Gains</span>
+          <span class="text-label">Unrealized Gains</span>
           <span
             :class="
               unRealizedGains >= 0
@@ -65,3 +65,8 @@ onMounted(async () => {
   }
 });
 </script>
+<style scoped>
+.ticker-link{
+  @apply font-medium text-blue-600 dark:text-blue-500 hover:text-lime-500 dark:hover:text-lime-400;
+}
+</style>

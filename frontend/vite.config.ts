@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+
 // Get the directory name using import.meta.url
 const __dirname = new URL('.', import.meta.url).pathname
 

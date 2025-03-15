@@ -77,3 +77,14 @@ const closeDropdown = () => {
   navBarStore.closeDropdown();
 };
 </script>
+<style >
+.navbar-text{
+  @apply text-primary font-bazooka inline self-center font-semibold whitespace-nowrap;
+}
+.dropdown-style {
+ @apply bg-gray-300 dark:bg-gray-700  border border-lime-300 rounded-lg shadow-lg z-10;
+}
+.dropdown-text{
+  @apply dark:text-indigo-300 hover:bg-gray-100 hover:text-gray-800;
+}
+</style>

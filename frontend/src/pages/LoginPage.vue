@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center w-full transition-all">
-    <div class="slate-container-login w-full mr-12 sm:w-96 md:w-2/3 lg:w-1/2 xl:w-1/3">
+    <div class="container-component w-full  sm:w-96 md:w-2/3 lg:w-1/2 xl:w-1/3">
       <LoginComponent />
     </div>
   </div>

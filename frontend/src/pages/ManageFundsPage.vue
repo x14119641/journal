@@ -2,21 +2,21 @@
     <div class="flex flex-col items-center space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
         <!-- Left Column -->
-        <div class="bg-gray-800 rounded-lg shadow-lg ">
+        <div class="container-component ">
           <FundsHeader />
         </div>
   
         <!-- Right Column (2 boxes inside) -->
         <div class="col-span-2 flex flex-col gap-6 w-full">
-          <div class="slate-container">
+          <div class="container-component">
             <AddFunds />
           </div>
-          <div class="slate-container">
+          <div class="container-component">
             <RemoveFunds />
           </div>
         </div>
       </div>
-      <div class="slate-container">
+      <div class="container-component">
         <!-- Main content, table -->
         <DataTable title="Balance Transactions" :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
       </div>

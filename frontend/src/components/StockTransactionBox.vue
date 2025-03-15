@@ -1,9 +1,9 @@
 <template>
   <div class="p-6 text-center">
-    <h3 class="summary-title">
+    <h3 class="title-component">
       TransactionID: <span class="chart-title">{{ transactionId }}</span>
     </h3>
-    <h2 class="mt-2 summary-subtitle">
+    <h2 class="mt-2 subtitle-component">
       <span>Stock: </span
       ><router-link
         :to="`/stocks/${transactionIdData?.ticker}`"
@@ -14,41 +14,41 @@
 
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div class="flex justify-between items-center ">
-        <label for="ticker" class="summary-label">Price</label>
-        <span class="summary-value">{{ transactionIdData.price }}</span>
+        <label for="ticker" class="text-label">Price</label>
+        <span class="text-value">{{ transactionIdData.price }}</span>
       </div>
       <div class="flex justify-between items-center ">
-        <label for="ticker" class="summary-label">Quantity</label>
-        <span class="summary-value">{{ transactionIdData.quantity }}</span>
+        <label for="ticker" class="text-label">Quantity</label>
+        <span class="text-value">{{ transactionIdData.quantity }}</span>
       </div>
       <div class="flex justify-between items-center">
-        <label for="ticker" class="summary-label">Type</label>
-        <span class="summary-value">{{
+        <label for="ticker" class="text-label">Type</label>
+        <span class="text-value">{{
           transactionIdData.transactionType
         }}</span>
       </div>
       <div class="flex justify-between items-center ">
-        <label for="ticker" class="summary-label">Fee</label>
-        <span class="summary-value">{{ transactionIdData.fee }}</span>
+        <label for="ticker" class="text-label">Fee</label>
+        <span class="text-value">{{ transactionIdData.fee }}</span>
       </div>
       <div class="flex justify-between items-center ">
-        <label for="ticker" class="summary-label">ProfitLoss</label>
-        <span class="summary-value">{{ transactionIdData.realizedProfitLoss }}</span>
+        <label for="ticker" class="text-label">ProfitLoss</label>
+        <span class="text-value">{{ transactionIdData.realizedProfitLoss }}</span>
       </div>
       <div class="flex justify-between items-center">
-        <label for="ticker" class="summary-label">Created</label>
-        <span class="summary-value">{{ transactionIdData.created_at }}</span>
+        <label for="ticker" class="text-label">Created</label>
+        <span class="text-value">{{ transactionIdData.created_at }}</span>
       </div>
     </div>
     <!-- ONe row with details -->
     <div class="mt-6 flex justify-start gap-12">
-      <label for="ticker" class="summary-label">Details</label>
-      <span class="summary-value">{{ transactionIdData.details }}</span>
+      <label for="ticker" class="text-label">Details</label>
+      <span class="text-value">{{ transactionIdData.details }}</span>
     </div>
 
     <form @submit.prevent="updateDetails" class="mt-6 justify-center">
       <div>
-        <label for="details" class="summary-value">Modify Details</label>
+        <label for="details" class="text-label">Modify Details</label>
         <textarea
           id="details"
           type="text"
@@ -64,8 +64,8 @@
         ></textarea>
       </div>
       <div class="">
-        <label for="" class="invisible summary-value">bla</label>
-        <button type="submit" class="update-transaction-button-style">
+        <label for="" class="invisible text-label">bla</label>
+        <button type="submit" class="mt-4 w-full button-blue">
           Update Details
         </button>
       </div>
@@ -73,7 +73,7 @@
 
     <form @submit.prevent="deleteTransaction" class="mt-6 justify-center">
       <div>
-        <label for="reason" class="summary-value">Reason</label>
+        <label for="reason" class="text-label">Reason</label>
         <textarea
           id="reason"
           type="text"
@@ -85,8 +85,8 @@
         ></textarea>
       </div>
       <div class="">
-        <label for="" class="invisible summary-value">bla</label>
-        <button type="submit" class="delete-transaction-button-style">
+        <label for="" class="invisible text-value">bla</label>
+        <button type="submit" class="mt-4 w-full button-delete">
           Try To Delete
         </button>
       </div>
@@ -192,3 +192,9 @@ watch(transactionId, () => {
   fetchTransactionById();
 });
 </script>
+
+<style scoped>
+.ticker-link{
+  @apply font-medium text-blue-600 dark:text-blue-500 hover:text-lime-500 dark:hover:text-lime-400;
+}
+</style>

@@ -70,16 +70,16 @@
       <!-- Button -->
       <div class="flex flex-col space-x-2 items-center justify-center">
         <div class="mt-4 md:mt-0 md:ml-4">
-          <button type="submit" class="sell-stock-button-style w-24">
+          <button type="submit" class="w-24  button-delete">
             Sell
           </button>
         </div>
       </div>
     </form>
-    <p v-if="errorMessage" class="mt-4 text-center error-message-text">
+    <p v-if="errorMessage" class="mt-4 text-center text-info">
       {{ errorMessage }}
     </p>
-    <p v-if="successMessage" class="mt-4 text-center success-message-text">
+    <p v-if="successMessage" class="mt-4 text-center text-error">
       {{ successMessage }}
     </p>
   </div>

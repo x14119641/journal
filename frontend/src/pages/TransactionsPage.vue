@@ -2,23 +2,23 @@
   <div class="flex flex-col items-center space-y-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
       <!-- Left Column -->
-      <div class="slate-container">
+      <div class="container-component">
         <FundsHeader />
       </div>
 
       <!-- Right Column (2 boxes inside) -->
       <div class="col-span-2 flex flex-col gap-6 w-full">
-        <div class="slate-container">
+        <div class="container-component">
           <BuyStock />
         </div>
-        <div class="slate-container">
+        <div class="container-component">
           <SellStock />
         </div>
       </div>
     </div>
     <!-- Bottom Row: 2 Boxes -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-      <div v-if="hasData" class="slate-container">
+      <div v-if="hasData" class="container-component">
         <!-- Box 4 content goes here -->
         <PieChartComponent
           title="Portfolio Distribution Qnty"
@@ -27,7 +27,7 @@
           :values="chartValues"
         />
       </div>
-      <div v-if="hasData" class="slate-container">
+      <div v-if="hasData" class="container-component">
         <!-- Box 5 content goes here -->
         <DataTable :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
       </div>
