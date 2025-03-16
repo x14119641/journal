@@ -89,9 +89,9 @@ class BuyStock(BaseModel):
     fee: Decimal=Field(2)
     created_at: Optional[datetime] = None
     
-class UpdateTransactionDetails(BaseModel):
+class UpdateTransactionDescription(BaseModel):
     transaction_id:int
-    details:str
+    description:str
 
 class TransactionDelete(BaseModel):
     transaction_id:int

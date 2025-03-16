@@ -1,6 +1,6 @@
 from ..dependencies import get_db
 from ..services.database import Database
-from ..schema import BuyStock, SellStock, TransactionDelete, TransactionFund, UpdateTransactionDetails, UserLogin
+from ..schema import BuyStock, SellStock, TransactionDelete, TransactionFund, UpdateTransactionDescription, UserLogin
 from .auth import get_current_active_user
 from fastapi import Depends, status, APIRouter, HTTPException
 from typing import Annotated
@@ -152,7 +152,7 @@ async def get_transaction_history(
         limit: int = 10):
     results = await db.fetch(
         """SELECT id as "transactionId" ,ticker, price,quantity, transaction_type  as "transactionType",
-            fee, details, created_at 
+            fee, description, created_at 
             FROM transactions WHERE user_id=($1) 
             ORDER BY created_at DESC LIMIT ($2);""", current_user.id, limit)
     print(results)
@@ -171,7 +171,7 @@ async def get_stocks_transaction_history(
         """SELECT id as "transactionId",ticker, price, quantity, fee,
                 transaction_type as "transactionType", 
                 realized_profit_loss as "realizedProfitLoss", 
-                details, created_At 
+                description, created_At 
             FROM transactions
             WHERE user_id = ($1)
             AND ticker is NOT NULL
@@ -213,21 +213,21 @@ async def reset_user_transactions(
     else:
         raise HTTPException(status_code=500, detail="Method not allawed")
 
-@router.post("/{transactionId}/details/update")
-async def update_details_transaction(
-        transaction:UpdateTransactionDetails,
+@router.post("/{transactionId}/description/update")
+async def update_description_transaction(
+        transaction:UpdateTransactionDescription,
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db),
         ):
     print("Tranaciton: ", transaction)
     id = await db.fetchone("""
                              UPDATE transactions
-                             SET details = $1
+                             SET description = $1
                              WHERE id = $2
                              AND user_id=$3
                              RETURNING id
                              """,
-                             transaction.details,transaction.transaction_id,current_user.id)
+                             transaction.des,transaction.transaction_id,current_user.id)
     if not id:
         msg = "Nothin has been updated"
         return {"message": "Nothin has been updated"}
@@ -302,7 +302,7 @@ async def get_transaction_by_id(
         db: Database = Depends(get_db)):
     results = await db.fetchrow("""
                              SELECT id, ticker, price, quantity, transaction_type as "transactionType", 
-                                fee,realized_profit_loss as "realizedProfitLoss", details, created_at
+                                fee,realized_profit_loss as "realizedProfitLoss", description, created_at
                             FROM transactions
                             WHERE id = $1
                             AND user_id=$2;""",

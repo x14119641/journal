@@ -118,9 +118,20 @@ CREATE INDEX IF NOT EXISTS idx_institutional_holdings_ticker ON institutional_ho
 -- Create Balance, I think we will need it
 CREATE TABLE IF NOT EXISTS balance (
     user_id INT PRIMARY KEY REFERENCES users(id),
-    total_balance NUMERIC(19,6) DEFAULT 0
+    total_balance NUMERIC(19,6) DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_balance_user_id ON balance (user_id);
+
+
+-- We will store balance history too
+CREATE TABLE IF NOT EXISTS balance_history (
+	id SERIAL PRIMARY KEY,
+	user_id INT REFERENCES users(id),
+	balance NUMERIC(19,6) NOT NULL,  
+	recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
+);
+CREATE INDEX IF NOT EXISTS idx_balance_history_user_id ON balance_history (user_id);
 
 -- Stores buy/sell transactions
 CREATE TABLE IF NOT EXISTS transactions (
@@ -132,13 +143,14 @@ CREATE TABLE IF NOT EXISTS transactions (
     transaction_type TEXT,
     fee NUMERIC DEFAULT 0,
 	realized_profit_loss NUMERIC(19,6) DEFAULT 0,
-    details TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_ticker_quantity_created UNIQUE (ticker, quantity, created_at)
 );
-CREATE INDEX IF NOT EXISTS idx_transcations_user_ticker ON transactions (user_id, ticker);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_ticker ON transactions (user_id, ticker);
 
--- Create a balance history
-CREATE TABLE IF NOT EXISTS balance_history (
+--  Tacks transacitons history
+CREATE TABLE IF NOT EXISTS transactions_history (
 	id serial PRIMARY KEY,
 	user_id INT REFERENCES users(id),
     transaction_id INT REFERENCES transactions(id),
@@ -147,7 +159,7 @@ CREATE TABLE IF NOT EXISTS balance_history (
 	reason TEXT,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_balance_history_user_id ON balance_history (user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_history_user_id ON transactions_history (user_id);
 
 -- Create Portfolio and its relations
 CREATE TABLE IF NOT EXISTS portfolio_lots (
@@ -167,7 +179,7 @@ CREATE INDEX IF NOT EXISTS idx_portfolio_lots_user_ticker ON portfolio_lots (use
 
 
 -- HEre will store the "deposits" withraws" or something that extracts or puts money in it the deposi
--- We dont need it anymore because we store everything in ransactions, balance and balance_history
+-- We dont need it anymore because we store everything in ransactions, balance and transactions_history
 -- CREATE TABLE IF NOT EXISTS funds (
 --     id SERIAL PRIMARY KEY,
 --     user_id INT REFERENCES users(id),
@@ -202,7 +214,7 @@ CREATE TABLE IF NOT EXISTS deleted_transactions (
     transaction_type TEXT,
     fee NUMERIC(19,6),
     realized_profit_loss NUMERIC(19,6),
-    details TEXT,
+    description TEXT,
     balance_at_deletion NUMERIC(19,6),
     reason TEXT,
     created_at TIMESTAMP NOT NULL,
@@ -230,13 +242,17 @@ BEGIN
     ON CONFLICT (user_id) -- If user_id already exists, do nothing
     DO UPDATE SET total_balance = balance.total_balance + _amount;
 
+    -- insert last total_balance we just updated
+    INSERT INTO balance_history (user_id, balance)
+    SELECT user_id, total_balance FROM balance WHERE user_id=_user_id;
+
     -- Insert transaction record for deposit
-    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
+    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, description, created_at)
     VALUES (_user_id, NULL, NULL, _amount, 'DEPOSIT', 0, _description,_created_at) 
 	RETURNING id into _transaction_id;
 
-    -- Insert balance history
-    INSERT INTO balance_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
+    -- Insert transactions history
+    INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
     VALUES (_user_id, _transaction_id,_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'DEPOSIT',_created_at);
     
     RETURN 'Success: Deposit Completed.';
@@ -277,13 +293,17 @@ BEGIN
     SET total_balance = total_balance - _amount
     WHERE user_id = _user_id;
 
+    -- insert last total_balance we just updated
+    INSERT INTO balance_history (user_id, balance)
+    SELECT user_id, total_balance FROM balance WHERE user_id=_user_id;
+
     -- Insert transaction record for withdrawal
-    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, details, created_at)
+    INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, description, created_at)
     VALUES (_user_id, NULL, NULL, _amount, 'WITHDRAW', 0, _description, _created_at)
     RETURNING id into _transaction_id;
 
-    -- Insert into balance history
-    INSERT INTO balance_history (user_id, transaction_id,change_amount, new_balance, reason, created_at)
+    -- Insert into transactions history
+    INSERT INTO transactions_history (user_id, transaction_id,change_amount, new_balance, reason, created_at)
     VALUES (_user_id, _transaction_id,-_amount, (SELECT total_balance FROM balance WHERE user_id = _user_id), 'WITHDRAW', _created_at);
 
     RETURN 'Success: Withdraw Completed.';
@@ -345,8 +365,12 @@ BEGIN
 	_new_balance := _current_balance - _total_cost;
 	UPDATE balance SET total_balance = _new_balance WHERE user_id = _user_id;
 
+    -- insert last total_balance we just updated
+    INSERT INTO balance_history (user_id, balance)
+    VALUES(_user_id, _new_balance);
+
 	-- Insert transaction into balance history
-	INSERT INTO balance_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
+	INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
 	VALUES (_user_id, _transaction_id,-_total_cost, _new_balance, 'BUY', _created_at);
 
 	RETURN 'Stock purchased';
@@ -455,8 +479,12 @@ BEGIN
     SET total_balance = _new_balance
     WHERE user_id = _user_id;
 
+    -- insert last total_balance we just updated
+    INSERT INTO balance_history (user_id, balance)
+    VALUES(_user_id, _new_balance);
+
     -- Insert into balance history
-    INSERT INTO balance_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
+    INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
     VALUES (_user_id, _transaction_id, _total_sell_value - _fee, _new_balance, 'SELL', _created_at);
 
     -- Return success message
@@ -474,6 +502,7 @@ DECLARE
     _transaction_details RECORD;
     _transaction_remaining_quantity NUMERIC(19,6);
 	_current_balance NUMERIC(19,6);
+    _previous_balance NUMERIC(19,6);
     _id_of_next_transaction INT;
 BEGIN
     -- Get current balance
@@ -520,16 +549,16 @@ BEGIN
 
 
     -- Insert in deleted_transactions as "backup"
-    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, details, balance_at_deletion,reason, created_at)
+    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, description, balance_at_deletion,reason, created_at)
     VALUES (_transaction_id, _user_id,
          _transaction_details.ticker,  _transaction_details.price, 
          _transaction_details.quantity, _transaction_details.transaction_type, 
          _transaction_details.fee, _transaction_details.realized_profit_loss, 
-         _transaction_details.details, _current_balance, 
+         _transaction_details.description, _current_balance, 
          _reason, _transaction_details.created_at);
 	
     -- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+    DELETE FROM transactions_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
     
     -- Delete fees
     DELETE FROM fees WHERE user_id = _user_id AND transaction_id = _transaction_id;
@@ -545,11 +574,28 @@ BEGIN
     -- Delete deposit transaction
     DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
 	
+    -- Get the last balance from balance history *AFTER* deleting
+    SELECT COALESCE(new_balance, 0) INTO _previous_balance
+    FROM transactions_history
+    WHERE user_id = _user_id 
+    ORDER BY created_at DESC
+    LIMIT 1; 
+
+    -- Delete last item in balance history
+    WITH last_balance AS (
+	    SELECT id FROM balance_history 
+	    WHERE user_id = _user_id 
+	    ORDER BY recorded_at DESC 
+	    LIMIT 1
+	)
+	DELETE FROM balance_history 
+	WHERE id IN (SELECT id FROM last_balance);
 
     -- Restore balance to previous state
     UPDATE balance 
-    SET total_balance = total_balance +((_transaction_details.quantity * _transaction_details.price)+_transaction_details.fee)   -- Restore fee amount
+    SET total_balance = _previous_balance 
     WHERE user_id = _user_id;
+
 
     IF NOT FOUND THEN
         RETURN 'Error updating balance';
@@ -626,17 +672,17 @@ BEGIN
     END LOOP;
 
     -- Insert in deleted_transactions as "backup"
-    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, details, balance_at_deletion,reason, created_at)
+    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, description, balance_at_deletion,reason, created_at)
     VALUES (_transaction_id, _user_id,
          _transaction_details.ticker,  _transaction_details.price, 
          _transaction_details.quantity, _transaction_details.transaction_type, 
          _transaction_details.fee, _transaction_details.realized_profit_loss, 
-         _transaction_details.details, 
+         _transaction_details.description, 
          (SELECT total_balance FROM balance WHERE user_id = _user_id), -- Current Balance
          _reason, _transaction_details.created_at);
 
     -- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+    DELETE FROM transactions_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
 
     -- Delete the sell transaction
     DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
@@ -644,17 +690,30 @@ BEGIN
     -- Delete related fees
     DELETE FROM fees WHERE user_id = _user_id  AND transaction_id = _transaction_id;
 
-    -- Get the last balance from balance history *AFTER* deleting
+
+	-- Get the last balance from balance history *AFTER* deleting
     SELECT COALESCE(new_balance, 0) INTO _previous_balance
-    FROM balance_history
+    FROM transactions_history
     WHERE user_id = _user_id 
     ORDER BY created_at DESC
-    LIMIT 1;
+    LIMIT 1; 
+	
+    -- Delete last item in balance history
+    WITH last_balance AS (
+	    SELECT id FROM balance_history 
+	    WHERE user_id = _user_id 
+	    ORDER BY recorded_at DESC 
+	    LIMIT 1
+	)
+	DELETE FROM balance_history 
+	WHERE id IN (SELECT id FROM last_balance);
+
 
     -- Restore balance to previous state
     UPDATE balance 
-    SET total_balance = _previous_balance   -- Restore fee amount
+    SET total_balance = _previous_balance 
     WHERE user_id = _user_id;
+
 
     -- Return success message
     RETURN 'Success: Sell transaction ' || _transaction_id || ' deleted for user ' || _user_id || ', Ticker: ' || _transaction_details.ticker;
@@ -674,6 +733,7 @@ CREATE OR REPLACE FUNCTION public.delete_deposit_transaction(
 AS $BODY$
 DECLARE
     _current_balance NUMERIC(19,6);
+    _new_balance NUMERIC(19,6);
     _transaction_details RECORD;
     _id_of_next_transaction INT;
 BEGIN
@@ -720,24 +780,37 @@ BEGIN
     END IF;
 
     -- Insert in deleted_transactions as "backup"
-    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, details, balance_at_deletion, reason, created_at)
+    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, description, balance_at_deletion, reason, created_at)
     VALUES (_transaction_id, _user_id,
          _transaction_details.ticker,  _transaction_details.price, 
          _transaction_details.quantity, _transaction_details.transaction_type, 
          _transaction_details.fee, _transaction_details.realized_profit_loss, 
-         _transaction_details.details, _current_balance, 
+         _transaction_details.description, _current_balance, 
          _reason, _transaction_details.created_at);
 
 	-- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+    DELETE FROM transactions_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
 	
     -- Delete deposit transaction
     DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
 
     -- Update balance (subtract amount)
+    _new_balance := _current_balance - _transaction_details.quantity;
+    
+    -- Delete last item in balance history
+    WITH last_balance AS (
+	    SELECT id FROM balance_history 
+	    WHERE user_id = _user_id 
+	    ORDER BY recorded_at DESC 
+	    LIMIT 1
+	)
+	DELETE FROM balance_history 
+	WHERE id IN (SELECT id FROM last_balance);
+
     UPDATE balance 
-    SET total_balance = total_balance - _transaction_details.quantity
+    SET total_balance = _new_balance
     WHERE user_id = _user_id;
+
 	RETURN 'Success! Transaction Deleted properly!';
 END;
 $BODY$;
@@ -753,6 +826,7 @@ CREATE OR REPLACE FUNCTION public.delete_withdraw_transaction(
 AS $BODY$
 DECLARE
     _current_balance NUMERIC(19,6);
+    _new_balance NUMERIC(19,6);
     _transaction_details RECORD;
 BEGIN
     -- Get current balance
@@ -774,24 +848,40 @@ BEGIN
     -- add the quantity to the balance 
 
     -- Insert in deleted_transactions as "backup"
-    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, details, balance_at_deletion, reason, created_at)
+    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, description, balance_at_deletion, reason, created_at)
     VALUES (_transaction_id, _user_id,
          _transaction_details.ticker,  _transaction_details.price, 
          _transaction_details.quantity, _transaction_details.transaction_type, 
          _transaction_details.fee, _transaction_details.realized_profit_loss, 
-         _transaction_details.details, _current_balance, 
+         _transaction_details.description, _current_balance, 
          _reason, _transaction_details.created_at);
 
 	-- Delete from balance history
-    DELETE FROM balance_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+    DELETE FROM transactions_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
     -- Delete deposit transaction
     DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
 
     
-    -- Update balance (subtract amount)
+     -- Update balance (add amount)
+    _new_balance := _current_balance + _transaction_details.quantity;
+    
+    -- Delete last item in balance history
+    WITH last_balance AS (
+	    SELECT id FROM balance_history 
+	    WHERE user_id = _user_id 
+	    ORDER BY recorded_at DESC 
+	    LIMIT 1
+	)
+	DELETE FROM balance_history 
+	WHERE id IN (SELECT id FROM last_balance);
+
+
     UPDATE balance 
-    SET total_balance = total_balance + _transaction_details.quantity
+    SET total_balance = _new_balance
     WHERE user_id = _user_id;
+
+
+    -- insert last new_balacne we just upda
 	
 	RETURN 'Success! Transaction Deleted properly';
 
@@ -799,20 +889,6 @@ END;
 $BODY$;
 
 
-
-
-CREATE OR REPLACE FUNCTION get_balance(_user_id INT)
-RETURNS NUMERIC(19,6) LANGUAGE plpgsql AS $$
-DECLARE
-    _current_balance NUMERIC(19,6);
-BEGIN
-    SELECT ROUND(COALESCE(total_balance, 0), 6) 
-    INTO _current_balance 
-    FROM balance WHERE user_id = _user_id;
-    
-    RETURN _current_balance;
-END;
-$$;
 
 
 
@@ -926,7 +1002,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.get_transaction_history(
 	_user_id integer)
-    RETURNS TABLE(transactionId integer, ticker text, transactionType text, price numeric, quantity numeric, fee numeric, realizedProfitLoss numeric, details text, created_at timestamp without time zone) 
+    RETURNS TABLE(transactionId integer, ticker text, transactionType text, price numeric, quantity numeric, fee numeric, realizedProfitLoss numeric, description text, created_at timestamp without time zone) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -943,7 +1019,7 @@ BEGIN
         t.quantity,
         t.fee,
         t.realized_profit_loss as "realizedProfitLoss",
-        t.details,
+        t.description,
         t.created_at
     FROM transactions t
     WHERE t.user_id = _user_id
@@ -1041,7 +1117,7 @@ CREATE OR REPLACE PROCEDURE reset_user_data(_user_id INT) LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM portfolio_lots WHERE user_id = _user_id;
     DELETE FROM transactions WHERE user_id = _user_id;
-    DELETE FROM balance_history WHERE user_id = _user_id;
+    DELETE FROM transactions_history WHERE user_id = _user_id;
     DELETE FROM fees WHERE user_id = _user_id;
     UPDATE balance SET total_balance = 0 WHERE user_id = _user_id;
 END;
