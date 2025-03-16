@@ -16,9 +16,9 @@ describe("Transaction Store Test", () => {
     
     const mockDataTransactionsHistory = [
         {transactionId: 1,ticker:"MAIN",transactionType:" Transaction tyoe", price:10,
-        quantity:3,fee:2,realizedProfitLoss:4.2,details:"Some details",created_at:"2025-03-05 12:30:00.000"},
+        quantity:3,fee:2,realizedProfitLoss:4.2,description:"Some description",created_at:"2025-03-05 12:30:00.000"},
         {transactionId: 2,ticker:"BLA",transactionType:" Transaction tyoe", price:10,
-            quantity:3,fee:2,realizedProfitLoss:4.2,details:"Some details",created_at:"2025-03-05 12:30:00.000"}
+            quantity:3,fee:2,realizedProfitLoss:4.2,description:"Some description",created_at:"2025-03-05 12:30:00.000"}
     ]
     it("Deposit  Funds (no date)", async () => {
         const transactionStore = useTransactionsStore();

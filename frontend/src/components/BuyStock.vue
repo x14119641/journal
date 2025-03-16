@@ -103,6 +103,12 @@
   const successMessage = ref<string>("");
   const transactionStore = useTransactionsStore();
   
+
+  const parseSelectedDate = (dateString: string) => {
+  const [day, month, year, hours, minutes, seconds] = dateString.split(/[- :]/);
+  return new Date(`${year}-${month}-${day}T${hours}:${minutes}:${seconds}`);
+};
+
   const onSubmit = async () => {
     errorMessage.value = "";
     if (!quantity.value || quantity.value <= 0) {
@@ -125,16 +131,16 @@
     //   return;
     // }
     if (selectedDate.value === "") {
-      selectedDate.value = new Date().toString();
+      selectedDate.value = new Date().toISOString().slice(0, 19).replace("T", " ");
     }
     try {
-      const dateObject = new Date(selectedDate.value);
+      const dateObject = parseSelectedDate(selectedDate.value);
       //   const decimalAmount = new Decimal(Number(amount.value));
       // Ensure the date is valid
-      if (isNaN(dateObject.getTime())) {
-        errorMessage.value = "Invalid date format.";
-        return;
-      }
+      // if (isNaN(dateObject.getTime())) {
+      //   errorMessage.value = "Invalid date format.";
+      //   return;
+      // }
       const transactionData: BuyStockTransaction = {
         ticker: ticker.value.toUpperCase(),
         buy_price: new Decimal(Number(price.value)),

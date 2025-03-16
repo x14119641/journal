@@ -13,51 +13,51 @@
     </h2>
 
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <div class="flex justify-between items-center ">
+      <div class="flex justify-between items-center">
         <label for="ticker" class="text-label">Price</label>
         <span class="text-value">{{ transactionIdData.price }}</span>
       </div>
-      <div class="flex justify-between items-center ">
+      <div class="flex justify-between items-center">
         <label for="ticker" class="text-label">Quantity</label>
         <span class="text-value">{{ transactionIdData.quantity }}</span>
       </div>
       <div class="flex justify-between items-center">
         <label for="ticker" class="text-label">Type</label>
-        <span class="text-value">{{
-          transactionIdData.transactionType
-        }}</span>
+        <span class="text-value">{{ transactionIdData.transactionType }}</span>
       </div>
-      <div class="flex justify-between items-center ">
+      <div class="flex justify-between items-center">
         <label for="ticker" class="text-label">Fee</label>
         <span class="text-value">{{ transactionIdData.fee }}</span>
       </div>
-      <div class="flex justify-between items-center ">
+      <div class="flex justify-between items-center">
         <label for="ticker" class="text-label">ProfitLoss</label>
-        <span class="text-value">{{ transactionIdData.realizedProfitLoss }}</span>
+        <span class="text-value">{{
+          transactionIdData.realizedProfitLoss
+        }}</span>
       </div>
       <div class="flex justify-between items-center">
         <label for="ticker" class="text-label">Created</label>
         <span class="text-value">{{ transactionIdData.created_at }}</span>
       </div>
     </div>
-    <!-- ONe row with details -->
+    <!-- ONe row with description -->
     <div class="mt-6 flex justify-start gap-12">
-      <label for="ticker" class="text-label">Details</label>
-      <span class="text-value">{{ transactionIdData.details }}</span>
+      <label for="ticker" class="text-label">Description</label>
+      <span class="text-value">{{ transactionIdData.description }}</span>
     </div>
 
-    <form @submit.prevent="updateDetails" class="mt-6 justify-center">
+    <form @submit.prevent="updateDescription" class="mt-6 justify-center">
       <div>
-        <label for="details" class="text-label">Modify Details</label>
+        <label for="description" class="text-label">Modify Description</label>
         <textarea
-          id="details"
+          id="description"
           type="text"
-          v-model="details"
+          v-model="description"
           class="input-style"
           required
           :placeholder="
             transactionIdData
-              ? `Details: ${transactionIdData.details}`
+              ? `Description: ${transactionIdData.description}`
               : 'Loading..'
           "
           @input="autoExpand"
@@ -66,7 +66,7 @@
       <div class="">
         <label for="" class="invisible text-label">bla</label>
         <button type="submit" class="mt-4 w-full button-blue">
-          Update Details
+          Update Description
         </button>
       </div>
     </form>
@@ -91,15 +91,29 @@
         </button>
       </div>
     </form>
-  </div>
-  <div class="pb-4 text-center">
-    <p v-if="returnUpdateMessage" :class="returnUpdateMessage?.includes('Success') ? 'success-message-text' : 'error-message-text'">
-      {{ returnUpdateMessage }}
-    </p>
-    <p v-if="returnDeleteMessage" :class="returnDeleteMessage?.includes('Success') ? 'success-message-text' : 'error-message-text'">
-      {{ returnDeleteMessage }}
-    </p>
-    <p v-if="errorMessage" class="error-message-text">{{ errorMessage }}</p>
+    <div class="pt-4 text-center">
+      <p
+        v-if="returnUpdateMessage"
+        :class="
+          returnUpdateMessage?.includes('Success')
+            ? 'text-info'
+            : 'text-error'
+        "
+      >
+        {{ returnUpdateMessage }}
+      </p>
+      <p
+        v-if="returnDeleteMessage"
+        :class="
+          returnDeleteMessage?.includes('Success')
+            ? 'text-info'
+            : 'text-error'
+        "
+      >
+        {{ returnDeleteMessage }}
+      </p>
+      <p v-if="errorMessage" class="text-error">{{ errorMessage }}</p>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -108,7 +122,7 @@ import { useRoute } from "vue-router";
 import { useTransactionsStore } from "../stores/transactionsStore";
 import type {
   DeleteTransaction,
-  UpdateTransactionDetails,
+  UpdateTransactionDescription,
 } from "../models/models";
 
 const autoExpand = (event: Event) => {
@@ -120,12 +134,12 @@ const autoExpand = (event: Event) => {
 const route = useRoute();
 const transactionId = computed(() => route.params.id as string);
 const errorMessage = ref<string>("");
-const details = ref<string>("");
+const description = ref<string>("");
 const reason = ref<string>("");
 const transactionsStore = useTransactionsStore();
 const transactionIdData = computed(() => transactionsStore.transaction_detail);
 const returnUpdateMessage = computed(
-  () => transactionsStore.updateDetailsMessage
+  () => transactionsStore.updateDescriptionMessage
 );
 const returnDeleteMessage = computed(() => transactionsStore.deleteMessage);
 
@@ -141,20 +155,20 @@ const fetchTransactionById = async () => {
   }
 };
 
-const updateDetails = async () => {
+const updateDescription = async () => {
   errorMessage.value = "";
-  if (!details) {
-    errorMessage.value = "Add some details in this transaction";
+  if (!description) {
+    errorMessage.value = "Add some description in this transaction";
     return;
   }
 
   try {
-    const updateTransactionDetailsData: UpdateTransactionDetails = {
+    const updateTransactionDescriptionData: UpdateTransactionDescription = {
       transaction_id: Number(transactionId.value),
-      details: details.value,
+      description: description.value,
     };
-    await transactionsStore.updateTransactionDetails(
-      updateTransactionDetailsData
+    await transactionsStore.updateTransactionDescription(
+      updateTransactionDescriptionData
     );
     await fetchTransactionById();
   } catch (error) {
@@ -167,13 +181,13 @@ const deleteTransaction = async () => {
   errorMessage.value = "";
 
   try {
-    console.log("BLA: ", transactionIdData.value)
-    const deleteTransactionDetailsData: DeleteTransaction = {
+    console.log("BLA: ", transactionIdData.value);
+    const deleteTransactionDescriptionData: DeleteTransaction = {
       transaction_id: Number(transactionId.value),
       transaction_type: transactionIdData.value.transactionType,
       reason: reason.value,
     };
-    await transactionsStore.deleteTransaction(deleteTransactionDetailsData);
+    await transactionsStore.deleteTransaction(deleteTransactionDescriptionData);
     await fetchTransactionById();
   } catch (error) {
     console.log(error);
@@ -182,7 +196,7 @@ const deleteTransaction = async () => {
 };
 
 onMounted(() => {
-  transactionsStore.updateDetailsMessage = "";
+  transactionsStore.updateDescriptionMessage = "";
   transactionsStore.deleteMessage = "";
   errorMessage.value = "";
   fetchTransactionById();
@@ -194,7 +208,7 @@ watch(transactionId, () => {
 </script>
 
 <style scoped>
-.ticker-link{
+.ticker-link {
   @apply font-medium text-blue-600 dark:text-blue-500 hover:text-lime-500 dark:hover:text-lime-400;
 }
 </style>

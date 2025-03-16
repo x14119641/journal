@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import api from "../services/api";
-import type  {  StockTransactionHistoryRecord, FundsTransaction, SellStockTransaction, BuyStockTransaction, TransactionHistoryRecord, UpdateTransactionDetails, DeleteTransaction } from "../models/models";
+import type  {  StockTransactionHistoryRecord, FundsTransaction, SellStockTransaction, BuyStockTransaction, TransactionHistoryRecord, UpdateTransactionDescription, DeleteTransaction } from "../models/models";
 import { usePortfolioStore } from "./portfolioStore";
 
 
@@ -16,7 +16,7 @@ export const useTransactionsStore = defineStore('transactions', {
         // sellTransaction: {} as StockSoldRecord, 
         default_limit:10,
         transactionTypeOrDontExist:"",
-        updateDetailsMessage:"",
+        updateDescriptionMessage:"",
         deleteMessage:"",
     }),
     getters: {
@@ -128,13 +128,13 @@ export const useTransactionsStore = defineStore('transactions', {
                 throw error;
             }
         },
-        async updateTransactionDetails(transaction:UpdateTransactionDetails) {
+        async updateTransactionDescription(transaction:UpdateTransactionDescription) {
             try {
                 const response = await api.post(
-                    `transactions/${transaction.transaction_id.toString()}/details/update`,
+                    `transactions/${transaction.transaction_id.toString()}/description/update`,
                     transaction
                 );
-                this.updateDetailsMessage = response.data.message;
+                this.updateDescriptionMessage = response.data.message;
             } catch (error) {
                 throw error;
             }

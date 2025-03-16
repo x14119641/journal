@@ -1,68 +1,61 @@
-<template>
+<template> 
   <div class="p-6">
     <form
-      @submit.prevent="onSubmit"
-      class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4"
+    @submit.prevent="onSubmit"
+    class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4"
+  >
+    <div class="flex flex-grow flex-col xs:flex-row items-center space-x-2">
+      <!-- Amount Input -->
+      <!-- <label for="amount" class="summary-value">Amount</label> -->
+      <input
+        id="amount"
+        step="0.01"
+        type="number"
+        v-model="amount"
+        min="0"
+        required
+        class="input-style"
+        placeholder="Select amount to Withdraw"
+      />
+    </div>
+    <div class="flex   flex-col xs:flex-row items-center space-x-2">
+      <!-- Date Input -->
+      <!-- <label for="custom-datetime" class="summary-value">Select Date</label> -->
+      <SelectDateComponent v-model="selectedDate"/>
+    </div>
+    <div class="flex   flex-col xs:flex-row items-center space-x-2">
+      <!-- description Input -->
+      <!-- <label for="description" class="summary-value">Description</label> -->
+      <input
+        id="description"
+        type="text"
+        v-model="description"
+        min="0"
+        placeholder="Type:Deposit"
+        class="input-style"
+      />
+    </div>
+    <div
+      class="flex flex-col space-x-2 items-center justify-center md:justify-end"
     >
-      <div class="flex flex-col flex-grow xs:flex-row items-center space-x-2">
-        <!-- Amount Input -->
-        <!-- <label for="amount" class="summary-value">Amount</label> -->
-        <input
-          id="amount"
-          step="0.01"
-          type="number"
-          v-model="amount"
-          min="0"
-          required
-          class="input-style"
-          placeholder="Select amount to withdraw"
-        />
+      <div class="mt-4 md:mt-0 md:ml-4">
+        <button
+          type="submit"
+          class="button-delete w-28 "
+        >
+          Withdraw
+        </button>
       </div>
-      <div class="flex flex-col xs:flex-row items-center space-x-2">
-        <!-- Date Input -->
-        <!-- <label for="custom-datetime" class="summary-value">Select Date</label> -->
-        <input
-          type="text"
-          v-model="selectedDate"
-          id="custom-datetime"
-          class="input-style"
-          placeholder="DD-MM-YYYY HH:mm:ss"
-          alt="Default now()"
-        />
-      </div>
-      <div class="flex flex-col xs:flex-row items-center space-x-2">
-        <!-- description Input -->
-        <!-- <label for="description" class="summary-value">Description</label> -->
-        <input
-          id="description"
-          type="text"
-          v-model="description"
-          min="0"
-          placeholder="Type:Withraw"
-          class="input-style"
-        />
-      </div>
-      <div
-        class="flex flex-col space-x-2 items-center justify-center md:justify-end"
-      >
-        <div class="mt-4 md:mt-0 md:ml-4">
-          <button type="submit" class="button-delete">
-            Witdraw
-          </button>
-        </div>
-      </div>
-    </form>
-    <p v-if="errorMessage" class="mt-4 text-error">
-      {{ errorMessage }}
-    </p>
+    </div>
+  </form>
+    <p v-if="errorMessage" class="mt-4 text-error">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, ref } from "vue";
+import {  ref } from "vue";
 import { useTransactionsStore } from "../stores/transactionsStore";
-import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
+import SelectDateComponent from "./SelectDateComponent.vue";
 import Decimal from "decimal.js";
 import type { FundsTransaction } from "../models/models";
 
@@ -81,18 +74,22 @@ const onSubmit = async () => {
 
   try {
     if (selectedDate.value === "") {
-      selectedDate.value = new Date().toString();
+      selectedDate.value = new Date().toISOString().slice(0, 19).replace("T", " ");
     }
     if (description.value === "") {
       description.value = "WITHDRAW";
     }
-    const dateObject = new Date(selectedDate.value);
+    const parseSelectedDate = (dateString: string) => {
+        const [day, month, year, time] = dateString.split(/[- ]/);
+        return new Date(`${year}-${month}-${day}T${time}`);
+      };
+      const dateObject = parseSelectedDate(selectedDate.value);
     const decimalAmount = new Decimal(Number(amount.value));
     // Ensure the date is valid
-    if (isNaN(dateObject.getTime())) {
-      errorMessage.value = "Invalid date format.";
-      return;
-    }
+    // if (isNaN(dateObject.getTime())) {
+    //   errorMessage.value = "Invalid date format.";
+    //   return;
+    // }
 
     const transactionData: FundsTransaction = {
       amount: decimalAmount,
@@ -104,6 +101,7 @@ const onSubmit = async () => {
     await transactionStore.withdrawFunds(transactionData);
 
     console.log("Funds Withdhrew successfully!");
+    selectedDate.value = ""
   } catch (error: any) {
     console.log(error);
     if (error.response) {
@@ -122,20 +120,6 @@ const onSubmit = async () => {
     }
   }
 };
-onMounted(async () => {
-  await nextTick(); // Ensure DOM is ready before applying Flatpickr
-
-  flatpickr("#custom-datetime", {
-    enableTime: true,
-    enableSeconds: true,
-    dateFormat: "d-m-Y H:i:S",
-    allowInput: true,
-    time_24hr: true,
-    defaultHour: 12,
-    defaultMinute: 0,
-    defaultSeconds: 0,
-  });
-});
 
 const submitForm = () => {
   console.log("Amount:", amount.value);

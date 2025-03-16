@@ -34,6 +34,7 @@
     </div>
     <!-- <p v-if="chartValues" class="text-white">{{ chartValues }}</p> -->
     <!-- <p v-if="tableData" class="text-white">{{ tableData }}</p> -->
+     <p>{{chartValues}}</p>
   </div>
 </template>
 
@@ -66,8 +67,17 @@ onMounted(async () => {
 const tableData = computed(() => transactionsStore.stocks_transactions_history);
 const result = computed(() => portfolioStore.portfolio_summary)
 
-const chartLabels = computed(() => result.value.map(item => item.ticker));
-const chartValues = computed(() => result.value.map(item => item.remainingQuantity));
+const chartLabels = computed(() => {
+  const labels = result.value.map(item => item.ticker);
+  return [...labels, "Cash"]; // ✅ Always matches chartValues
+});
+
+const chartValues = computed(() => {
+  const values = result.value.map(item => item.remainingQuantity);
+  const cashValue = portfolioStore.balance ?? 0; // ✅ Prevent undefined
+
+  return [...values, cashValue]; // ✅ Always matches chartLabels
+});
 const hasData = computed(() => chartValues.value.length > 0);
 
 // const chartLabels = ref<string[]>(["Stocks", "Bonds", "Real Estate", "Crypto", "Cash"]);

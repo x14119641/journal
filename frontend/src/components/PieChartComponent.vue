@@ -102,11 +102,11 @@ onMounted(() => {
 // Watch for changes in the props and update the chart.
 
 // Destroy the chart when the component unmounts.
-onBeforeUnmount(() => {
-  if (chartInstance.value) {
-    chartInstance.value.destroy();
-  }
-});
+// onBeforeUnmount(() => {
+//   if (chartInstance.value) {
+//     chartInstance.value.destroy();
+//   }
+// });
 </script>
 
 <style scoped>

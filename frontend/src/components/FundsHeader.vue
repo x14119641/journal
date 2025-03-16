@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 text-center">
-    <h3 class="title-component">User Balance</h3>
+  <div class="p-6 w-full">
+    <h3 class="title-component text-center">User Balance</h3>
     <div class="mt-2 space-y-2">
-      <div class="flex justify-between">
+      <div class="flex justify-between w-full">
         <span class="text-label">Balance</span>
         <span class="money-positive">{{ balance }}</span>
       </div>

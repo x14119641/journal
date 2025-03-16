@@ -76,12 +76,15 @@
         </div>
       </div>
     </form>
-    <p v-if="errorMessage" class="mt-4 text-center text-info">
+    <div class="mt-4 text-center">
+      <p v-if="errorMessage" class=" text-error">
       {{ errorMessage }}
     </p>
-    <p v-if="successMessage" class="mt-4 text-center text-error">
+    <p v-if="successMessage" class="text-info">
       {{ successMessage }}
     </p>
+    </div >
+    
   </div>
 </template>
 
@@ -125,16 +128,20 @@ const onSubmit = async () => {
   //   return;
   // }
   if (selectedDate.value === "") {
-    selectedDate.value = new Date().toString();
+    selectedDate.value = new Date().toISOString().slice(0, 19).replace("T", " ");
   }
   try {
-    const dateObject = new Date(selectedDate.value);
+    const parseSelectedDate = (dateString: string) => {
+        const [day, month, year, time] = dateString.split(/[- ]/);
+        return new Date(`${year}-${month}-${day}T${time}`);
+      };
+    const dateObject = parseSelectedDate(selectedDate.value);
     //   const decimalAmount = new Decimal(Number(amount.value));
     // Ensure the date is valid
-    if (isNaN(dateObject.getTime())) {
-      errorMessage.value = "Invalid date format.";
-      return;
-    }
+    // if (isNaN(dateObject.getTime())) {
+    //   errorMessage.value = "Invalid date format.";
+    //   return;
+    // }
     const transactionData: StockTransaction = {
       ticker: ticker.value.toUpperCase(),
       price: new Decimal(Number(price.value)),

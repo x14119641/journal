@@ -175,9 +175,9 @@ export interface StockTransaction {
     created_at: Date
   }
 
-  export interface UpdateTransactionDetails {
+  export interface UpdateTransactionDescription {
     transaction_id:number;
-    details:string;
+    description:string;
 
   }
 
@@ -195,7 +195,7 @@ export interface StockTransaction {
     transactionType:Decimal;
     fee:Decimal;
     realizedProfitLoss:Decimal;
-    details:string; 
+    description:string; 
     created_at:Date;
   }
 
