@@ -22,7 +22,14 @@
       <!-- Smaller Dividend Calendar (Limited Height) -->
       <div class="container-component max-h-[400px] no-scrollbar">
         <!-- <CalendarComponent v-if="hasData"  :data="dividends" dateColumn="paymentDate" :month="currentMonth"/> -->
-        <CalendarComponent :data="dividends" dateColumn="paymentDate" :month="currentMonth" :compact="true"/>
+        <div class="pt-2 flex justify-center items-center text-center gap-x-6">
+          <ArrowLeft class="arrow-style h-5 w-5" @click="calendarStore.prevMonth" />
+          <h3 class="title-component">{{  months[calendarStore.currentMonth] }}</h3>
+          <ArrowRight  class="arrow-style h-5 w-5" @click="calendarStore.nextMonth" />
+        </div>
+          <CompactCalendar :data="calendarStore.dividends" dateColumn="paymentDate" :month="calendarStore.currentMonth" />
+
+        
       </div>
 
       <!-- Dividend Breakdown -->
@@ -67,53 +74,26 @@
 <script setup lang="ts">
 import DashboardHeader from '../components/DashboardHeader.vue';
 import { usePortfolioStore } from '../stores/portfolioStore';
-import api from '../services/api';
-import { computed, onMounted, ref } from 'vue';
-import type { DividendCalendar } from '../models/models';
-import CalendarComponent from '../components/CalendarComponent.vue';
 
+import { onMounted, ref } from 'vue';
 
-const today = new Date();
-const portfolioStore = usePortfolioStore();
-const dividends = ref<DividendCalendar[]>([]);
-const currentMonth = ref(today.getMonth());
-const hasData = computed(() => dividends.value.length > 0 ? true:false)
-// const correct_index = 2;
+import CompactCalendar from '../components/CompactCalendar.vue';
+import { useCalendarStore } from '../stores/calendarStore';
+import { ArrowRight,ArrowLeft } from 'lucide-vue-next';
 
-
-const months = ref([
-  "January", "February", "March", "April", "May", "June", 
-  "July", "August", "September", "October", "November", "December"
-]);
-
-const setMonth = (monthIndex: number) => {
-  currentMonth.value = monthIndex;
-  getMonthDividends();
-};
-
-onMounted(async () => {
-  try {
-    await portfolioStore.getPortfolio();
-    await getMonthDividends()
-  } catch (error) {
-    console.error("Error fetching funds:", error);
-  }
+const calendarStore = useCalendarStore();
+const months = ref(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]);
+onMounted(() => {
+  calendarStore.fetchDividends();
 });
 
-const getMonthDividends = async () => {
-  try {
-    const correct_index = currentMonth.value + 1;
-    const response = await api.get(
-      `/stocks/dividends/calendar/${correct_index}`
-    );
-    dividends.value = [...response.data];
-  } catch (error) {
-    console.error("Errro to getch data: ", error);
-  }
-}
+
 </script>
 
 <style scoped>
+.arrow-style {
+  @apply text-secondary
+}
 .no-scrollbar {
   overflow-y: auto; /* Enables scrolling */
   scrollbar-width: none; /* Firefox - Hides scrollbar */

@@ -1,56 +1,54 @@
 <template>
-  <div class="px-6 pb-6">
-    <!-- Calendar Title -->
-    <!-- <h3 class="calendar-title mb-4" :class="headerClass">
-      {{ months[props.month] }}
-    </h3> -->
-
-    <!-- Calendar Days Header -->
-    <div class="grid grid-cols-7 gap-4 mb-2 text-center text-lg">
-      <div v-for="(day, index) in daysOfWeek" :key="index" 
-      class="calendar-days ">
-        {{ day }}
+    <div class="px-6 pb-6">
+      <!-- Calendar Title -->
+      <!-- <h3 class="title-component  text-center pt-2 text-sm">
+        {{ months[props.month] }}
+      </h3> -->
+  
+      <!-- Calendar Days Header -->
+      <div class="grid grid-cols-7 gap-4 text-sm pt-2 text-center">
+        <div v-for="(day, index) in daysOfWeek" :key="index" class="calendar-days " >
+          {{ day }}
+        </div>
       </div>
-    </div>
-
-    <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 gap-4">
-      <!-- Fill in empty days -->
-      <div v-for="n in startDayOfMonth" :key="`empty-${n}`" 
-      class="p-4 text-lg border rounded-lg border-gray-700 bg-transparent shadow-sm"
-      ></div>
-
-      <!-- Actual Days of the Month -->
-      <div v-for="(day, index) in daysInMonth" :key="index" 
-      class="p-4 border rounded-lg calendar-cell-style shadow-sm">
-        <div class="calendar-cell-day">{{ day.date }}</div>
-
-        <!-- Dividends Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-x-2">
-          <div v-for="(dividend, i) in visibleDividends(day)" :key="i">
-            <div class="flex justify-between">
-              <router-link
-                :to="`/stocks/${dividend.ticker}`"
-                class="calendar-ticker"
-                :title="dividend.ticker"
-              >
-                {{ dividend.ticker }}
-              </router-link>
-              <span class="calendar-dividend">{{ dividend.amount }}</span>
+  
+      <!-- Calendar Grid -->
+      <div class="grid grid-cols-7 gap-4">
+        <!-- Fill in empty days -->
+        <div v-for="n in startDayOfMonth" :key="`empty-${n}`" class="p-4 border rounded-lg border-gray-700 bg-transparent shadow-sm"
+        ></div>
+  
+        <!-- Actual Days of the Month -->
+        <div v-for="(day, index) in daysInMonth" :key="index" 
+        class="p-4 border rounded-lg calendar-cell-style shadow-sm">
+          <div class="calendar-cell-day text-sm">{{ day.date }}</div>
+  
+          <!-- Dividends Grid -->
+          <div class="grid grid-cols-1 gap-y-1">
+            <div v-for="(dividend, i) in visibleDividends(day)" :key="i">
+              <div class="flex justify-between text-sm space-x-2">
+                <router-link
+                  :to="`/stocks/${dividend.ticker}`"
+                  class="calendar-ticker"
+                  :title="dividend.ticker"
+                >
+                  {{ dividend.ticker }}
+                </router-link>
+                <span class="calendar-dividend">{{ dividend.amount }}</span>
+              </div>
             </div>
           </div>
-        </div>
-
-        <!-- Show More Button -->
-        <div v-if="day.dividends.length > maxTickersPerDay" class="flex justify-end">
-          <button @click="toggleExpand(day.date)" class="calendar-show-more">
-            {{ isExpanded(day.date) ? "Show less" : "Show more" }}
-          </button>
+  
+          <!-- Show More Button -->
+          <div v-if="day.dividends.length > maxTickersPerDay" class="text-sm flex justify-center">
+            <button @click="toggleExpand(day.date)" class="calendar-show-more">
+              {{ isExpanded(day.date) ? "Show less" : "Show more" }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</template>
+  </template>
 
 
 <script setup lang="ts">
@@ -69,32 +67,12 @@ const props = defineProps<{
   dateColumn: string;
 }>();
 
-const daysOfWeek = ref([
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-]);
-const months = ref([
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-]);
+const daysOfWeek = ref(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
+const months = ref(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]);
+
 
 // Num of tickers till the "show more" row
-const maxTickersPerDay = ref(8);
+const maxTickersPerDay = ref(3);
 
 // store day with its dividends when clicked
 const expandedDays = ref<Record<string, boolean>>({});
@@ -144,9 +122,9 @@ const daysInMonth = computed(() => {
 </script>
 
 <style scoped>
-/* .calendar-title{
-  @apply text-center text-2xl font-bazooka text-lime-400;
-} */
+.calendar-title{
+  @apply font-bold text-lime-400;
+}
 .calendar-ticker {
   @apply text-blue-700 dark:text-indigo-300 hover:underline hover:text-gray-800 dark:hover:text-lime-300 truncate;
 }

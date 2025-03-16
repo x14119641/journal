@@ -4,7 +4,7 @@
     <div class="p-6 flex justify-center">
       <div v-for="(month, index) in months" :key="index" class="px-2">
         <button 
-          @click="setMonth(index)"
+          @click="calendarStore.setMonth(index)"
           class="py-2 px-6 rounded-lg shadow-lg"
           :class="{
             // Selected Month
@@ -16,17 +16,18 @@
         </button>
       </div>
     </div>
-    <CalendarComponent :data="dividends" dateColumn="paymentDate" :month="currentMonth"/>
+    <CalendarComponent :data="dividends" dateColumn="paymentDate" :month="calendarStore.currentMonth"/>
   </div>
 </template>
 
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
 import CalendarComponent from "../components/CalendarComponent.vue"
 import { type DividendCalendar } from "../models/models";
 import api from "../services/api";
+import { useCalendarStore } from '../stores/calendarStore';
 
 
 const months = ref([
@@ -34,37 +35,16 @@ const months = ref([
   "July", "August", "September", "October", "November", "December"
 ]);
 
-const portfolioStore = usePortfolioStore();
-onMounted(async () => {
-  await portfolioStore.getPortfolio();
+const calendarStore = useCalendarStore();
+const currentMonth = computed(() => calendarStore.currentMonth);
+
+const dividends = computed(() => calendarStore.dividends);
+onMounted(() => {
+  calendarStore.fetchDividends();
 });
 
-const today = new Date();
-const currentMonth = ref(today.getMonth());
-const dividends = ref<DividendCalendar[]>([]);
 
-onMounted(async () => {
-  getMonthDividends();
-});
-const setMonth = (monthIndex: number) => {
-  currentMonth.value = monthIndex;
-  getMonthDividends();
-};
-// call api
-const getMonthDividends = async () => {
-  // need to +1
-  const correct_index = currentMonth.value + 1;
-  console.log('Current Value:', currentMonth.value)
-  try {
-    // gives me ticker, amount and payment date
-    const response = await api.get(
-      `/stocks/dividends/calendar/${correct_index}`
-    );
-    dividends.value = response.data;
-  } catch (error) {
-    console.error("Errro to getch data: ", error);
-  }
-};
+
 </script>
 
 <style scoped>
