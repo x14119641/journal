@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 	realized_profit_loss NUMERIC(19,6) DEFAULT 0,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_ticker_quantity_created UNIQUE (ticker, quantity, created_at)
+    CONSTRAINT uq_ticker_quantity_created UNIQUE (user_id, ticker, created_at)
 );
 CREATE INDEX IF NOT EXISTS idx_transactions_user_ticker ON transactions (user_id, ticker);
 
@@ -220,6 +220,23 @@ CREATE TABLE IF NOT EXISTS deleted_transactions (
     created_at TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE  user_dividends (
+	id SERIAL PRIMARY KEY,
+	user_id INT REFERENCES users(id),
+	ticker TEXT NOT NULL REFERENCES tickers(ticker),
+	ex_date DATE,
+	payment_date DATE NOT NULL, -- If no payment_date no enter the dividend
+	declared_amount NUMERIC(12,6),
+	estimated_payout NUMERIC(19,6), -- remainingQuanitity * declared_amount
+	currency TEXT,
+	shares_held_at_ex_date NUMERIC(19, 6), -- Number of shares owned at ex-date
+	is_executed BOOLEAN DEFAULT FALSE, -- Has the dividend been added to balance?
+	executed_at TIMESTAMP, -- When the balance was updated
+    inserted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	 CONSTRAINT unique_record UNIQUE (user_id, ticker, ex_date, payment_date)
+);
+
 
 
 CREATE OR REPLACE FUNCTION public.deposit_funds(
@@ -504,7 +521,10 @@ DECLARE
 	_current_balance NUMERIC(19,6);
     _previous_balance NUMERIC(19,6);
     _id_of_next_transaction INT;
+	_last_dividend_quantity NUMERIC(19,6);
+	_actual_dividend_quantity NUMERIC(19,6);
 BEGIN
+	
     -- Get current balance
     SELECT total_balance INTO _current_balance 
     FROM balance
@@ -533,76 +553,104 @@ BEGIN
     IF FOUND THEN
         RETURN 'You already have another BUY after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
     END IF;
-	
-    -- Get remaining Quantity from portfolio for that transaction
-    SELECT remaining_quantity INTO _transaction_remaining_quantity
-    FROM portfolio_lots
-    WHERE user_id = _user_id 
-    AND ticker = _transaction_details.ticker 
-    AND created_at = _transaction_details.created_at;
-    
-    -- Check if the quantity of stock is the same of the remaingin_qunatity
-    -- That means that part of the lot has not been sold
-    IF (_transaction_details.quantity != _transaction_remaining_quantity) THEN
-        RETURN 'Part of this lot buy lot has been sold and is not possible to delete transaction';
-    END IF;
 
-
-    -- Insert in deleted_transactions as "backup"
-    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, description, balance_at_deletion,reason, created_at)
-    VALUES (_transaction_id, _user_id,
-         _transaction_details.ticker,  _transaction_details.price, 
-         _transaction_details.quantity, _transaction_details.transaction_type, 
-         _transaction_details.fee, _transaction_details.realized_profit_loss, 
-         _transaction_details.description, _current_balance, 
-         _reason, _transaction_details.created_at);
-	
-    -- Delete from balance history
-    DELETE FROM transactions_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
-    
-    -- Delete fees
-    DELETE FROM fees WHERE user_id = _user_id AND transaction_id = _transaction_id;
-    
-    -- Delete from portfolio lots
-    DELETE FROM portfolio_lots 
-    WHERE user_id = _user_id 
-        AND transaction_id = _transaction_id;
-    IF NOT FOUND THEN
-        RETURN 'Error deleting portfolio lot, transaction ID: ' || _transaction_id;
-    END IF;
-	
-    -- Delete deposit transaction
-    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
-	
-    -- Get the last balance from balance history *AFTER* deleting
-    SELECT COALESCE(new_balance, 0) INTO _previous_balance
-    FROM transactions_history
-    WHERE user_id = _user_id 
-    ORDER BY created_at DESC
-    LIMIT 1; 
-
-    -- Delete last item in balance history
-    WITH last_balance AS (
-	    SELECT id FROM balance_history 
+	-- Check if the for that stock are "dividends" not executed
+	IF EXISTS(SELECT 1 FROM user_dividends WHERE user_id=_user_id AND ticker = _transaction_details.ticker AND is_executed = FALSE) THEN
+		 
+		 -- Get remaining Quantity from portfolio for that transaction
+	    SELECT remaining_quantity INTO _transaction_remaining_quantity
+	    FROM portfolio_lots
 	    WHERE user_id = _user_id 
-	    ORDER BY recorded_at DESC 
-	    LIMIT 1
-	)
-	DELETE FROM balance_history 
-	WHERE id IN (SELECT id FROM last_balance);
+	    AND ticker = _transaction_details.ticker 
+	    AND created_at = _transaction_details.created_at;
+	    
+	    -- Check if the quantity of stock is the same of the remaingin_qunatity
+	    -- That means that part of the lot has been sold
+	    IF (_transaction_details.quantity != _transaction_remaining_quantity) THEN
+	        RETURN 'Part of this lot buy lot has been sold and is not possible to delete transaction';
+	    END IF;
 
-    -- Restore balance to previous state
-    UPDATE balance 
-    SET total_balance = _previous_balance 
-    WHERE user_id = _user_id;
+		-- I am going to cehck if the remianing quanity makes sense comparing with the last quantity od the "dividend"
+		 SELECT shares_held_at_ex_date INTO _last_dividend_quantity 
+		  FROM user_dividends WHERE user_id = _user_id AND ticker = _transaction_details.ticker  AND is_executed  = TRUE ORDER BY inserted DESC LIMIT 1;
+		 SELECT shares_held_at_ex_date INTO _actual_dividend_quantity
+		  FROM user_dividends WHERE user_id=_user_id AND  ticker = _transaction_details.ticker AND is_executed = FALSE ORDER BY inserted DESC LIMIT 1;
+		IF(_last_dividend_quantity+_transaction_details.quantity!=_actual_dividend_quantity) THEN
+			RETURN 'This transaction is not possible to delete. Probably you have dividends for stocks in thsi transaciton.';
+		END IF;
+	
+	
+	    -- Insert in deleted_transactions as "backup"
+	    INSERT INTO deleted_transactions  (original_transaction_id, user_id, ticker, price, quantity, transaction_type, fee,realized_profit_loss, description, balance_at_deletion,reason, created_at)
+	    VALUES (_transaction_id, _user_id,
+	         _transaction_details.ticker,  _transaction_details.price, 
+	         _transaction_details.quantity, _transaction_details.transaction_type, 
+	         _transaction_details.fee, _transaction_details.realized_profit_loss, 
+	         _transaction_details.description, _current_balance, 
+	         _reason, _transaction_details.created_at);
+		
+	    -- Delete from balance history
+	    DELETE FROM transactions_history WHERE transaction_id = _transaction_id AND user_id = _user_id;
+	    
+	    -- Delete fees
+	    DELETE FROM fees WHERE user_id = _user_id AND transaction_id = _transaction_id;
+	    
+	    -- Delete from portfolio lots
+	    DELETE FROM portfolio_lots 
+	    WHERE user_id = _user_id 
+	        AND transaction_id = _transaction_id;
+	    IF NOT FOUND THEN
+	        RETURN 'Error deleting portfolio lot, transaction ID: ' || _transaction_id;
+	    END IF;
+		
+	    -- Delete deposit transaction
+	    DELETE FROM transactions WHERE id = _transaction_id AND user_id = _user_id;
+		
+	    -- Get the last balance from balance history *AFTER* deleting
+	    SELECT COALESCE(new_balance, 0) INTO _previous_balance
+	    FROM transactions_history
+	    WHERE user_id = _user_id 
+	    ORDER BY created_at DESC
+	    LIMIT 1; 
+	
+	    -- Delete last item in balance history
+	    WITH last_balance AS (
+		    SELECT id FROM balance_history 
+		    WHERE user_id = _user_id 
+		    ORDER BY recorded_at DESC 
+		    LIMIT 1
+		)
+		DELETE FROM balance_history 
+		WHERE id IN (SELECT id FROM last_balance);
+	
+	    -- Restore balance to previous state
+	    UPDATE balance 
+	    SET total_balance = _previous_balance 
+	    WHERE user_id = _user_id;
 
-
-    IF NOT FOUND THEN
-        RETURN 'Error updating balance';
-    END IF;
-	RETURN 'Success: Buy transaction deleted and balance updated';
+		-- Restore user_dividends
+		UPDATE user_dividends
+		SET shares_held_at_ex_date = _last_dividend_quantity,
+			estimated_payout = shares_held_at_ex_date * declared_amount,
+			updated = CURRENT_TIMESTAMP
+		WHERE user_id = _user_id
+		AND ticker = _transaction_details.ticker
+		AND is_executed IS FALSE;
+	
+	
+	    IF NOT FOUND THEN
+	        RAISE NOTICE 'Error: Could not delete portfolio lot for transaction' ;
+   			RETURN 'Error deleting portfolio lot, transaction ID: ' || _transaction_id;
+	    END IF;
+		RETURN 'Success: Buy transaction deleted and balance updated';
+	
+	ELSE
+		RETURN 'This transactions has received dividends and is not possible to delete.';
+	END IF;
+   
 END;
 $$;
+
 
 
 CREATE OR REPLACE FUNCTION delete_sell_transaction(
@@ -644,7 +692,18 @@ BEGIN
         RETURN 'You already have another SELL after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
     END IF;
 
+	-- Check if there are executed dividends for this ticker
+	IF EXISTS(
+	    SELECT 1 
+	    FROM user_dividends 
+	    WHERE user_id = _user_id 
+	    AND ticker = _transaction_details.ticker 
+	    AND is_executed = TRUE
+	) THEN
+	    RETURN 'This sell transaction cannot be deleted because dividends have already been executed for this stock.';
+	END IF;
 
+	
 	-- Set the total quantity that needs to be restored
  	_transaction_remaining_quantity := _transaction_details.quantity;
     -- Restore FIFO inventory (undo the sell)
