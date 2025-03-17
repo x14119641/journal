@@ -161,7 +161,10 @@ const updateDescription = async () => {
     errorMessage.value = "Add some description in this transaction";
     return;
   }
-
+  if (transactionIdData.value && transactionIdData.value.transactionType === 'DIVIDEND') {
+    errorMessage.value = "Not possible to Update a dividend at this moment";
+    return;
+  }
   try {
     const updateTransactionDescriptionData: UpdateTransactionDescription = {
       transaction_id: Number(transactionId.value),
@@ -179,7 +182,10 @@ const updateDescription = async () => {
 
 const deleteTransaction = async () => {
   errorMessage.value = "";
-
+  if (transactionIdData.value && transactionIdData.value.transactionType === 'DIVIDEND') {
+    errorMessage.value = "Not possible to delete a dividend at this moment";
+    return;
+  }
   try {
     console.log("BLA: ", transactionIdData.value);
     const deleteTransactionDescriptionData: DeleteTransaction = {
