@@ -159,6 +159,20 @@ export interface Dividend {
     ticker: string;
     name: number;
 }
+export interface DividendMonthly {
+    monthIndex:Int16Array;
+    estimatedPayout: number;
+}
+
+export interface DividendMonthlyProfit {
+    monthIndex:Int16Array;
+    totalRealizedProfitLoss: number;
+}
+export interface DividendMonthlyGrouped {
+    monthIndex:Int16Array;
+    ticker:string;
+    estimatedPayout: number;
+}
 
 export interface DividendCalendar {
     ticker: string;

@@ -75,6 +75,21 @@
               >
             </router-link>
           </li>
+          <!-- PRofile -->
+          <li
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
+          >
+            <router-link to="/dashboard" class="flex items-center w-full">
+              <span class="block float-left">
+                <!-- <img :src="testingFlasksIcon" class="w-10 h-10" alt="Icon" /> -->
+                <!-- <IconDemo class="w-10 h-10" alt="Icon" strokeColor="#2ed422"/> -->
+                <LayoutDashboard class="side-icons" />
+              </span>
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
+                >Dashboard</span
+              >
+            </router-link>
+          </li>
           <!-- Dividends -->
           <li
             class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
@@ -138,7 +153,9 @@ import {
   Binoculars,
   Notebook,
   EllipsisVertical,
+  LayoutDashboard,
 } from "lucide-vue-next";
+import DashboardHeader from "./DashboardHeader.vue";
 
 // Access the store
 const sidebarStore = useSidebarStore();

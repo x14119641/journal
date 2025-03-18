@@ -55,22 +55,18 @@
         <div class="container-component">
           <div
             v-if="historicalPortfolioValues.length > 0"
-            class="container-component max-h-[300px] overflow-hidden"
+            class="container-component max-h-[600px] overflow-hidden"
           >
-            <PortfolioGrowthOverTimeChart class="max-h-[300px]"
-              :labels="historicalDates"
-              :values="historicalPortfolioValues"
-            />
+          <MonthlyDividendStackedBarChart class="max-h-[300px]"
+          />
           </div>
         </div>
-        <div class="container-component max-h-[300px] overflow-hidden">
+        <div class="container-component max-h-[600px] overflow-hidden">
           <div
             v-if="historicalPortfolioValues.length > 0"
             class="container-component"
           >
-            <PortfolioGrowthOverTimeChart class="max-h-[300px]"
-              :labels="historicalDates"
-              :values="historicalPortfolioValues"
+            <MonthlyProfitLossBarChart class="max-h-[300px]"
             />
           </div>
         </div>
@@ -116,6 +112,9 @@ import CompactCalendar from "../components/CompactCalendar.vue";
 import { useCalendarStore } from "../stores/calendarStore";
 import { ArrowRight, ArrowLeft } from "lucide-vue-next";
 import PortfolioGrowthOverTimeChart from "../components/PortfolioGrowthOverTimeChart.vue";
+import MonthlyDividendBarChart from "../components/MonthlyDividendBarChart.vue";
+import MonthlyDividendStackedBarChart from "../components/MonthlyDividendStackedBarChart.vue";
+import MonthlyProfitLossBarChart from "../components/MonthlyProfitLossBarChart.vue";
 
 const calendarStore = useCalendarStore();
 const months = ref([
