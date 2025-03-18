@@ -139,6 +139,73 @@ async def get_monthly_performance(
     return results
 
 
+@router.get("/dividend/monthly")
+async def get_dividend_monthly(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch("""
+                            SELECT extract(month from payment_date) as monthIndex,sum(estimated_payout) as "estimatedPayout"
+                            FROM user_dividends where user_id=$1 GROUP BY 1;
+                            """, current_user.id)
+    print('results: ', results)
+    return results
+
+@router.get("/dividend/monthly/grouped")
+async def get_dividend_monthly_grouped(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch("""
+                            SELECT 
+                                EXTRACT(MONTH FROM payment_date) AS month, 
+                                ticker, 
+                                SUM(estimated_payout) AS amount
+                            FROM user_dividends
+                            WHERE user_id = $1
+                            GROUP BY month, ticker
+                            ORDER BY month, ticker;
+                            """, current_user.id)
+    print('results: ', results)
+    return results
+
+
+@router.get("/dividend/monthly/profitloss")
+async def get_dividend_monthly_realized_profit_loss(
+        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+        db: Database = Depends(get_db)):
+    results = await db.fetch("""
+                            WITH x AS (
+                                SELECT 
+                                    EXTRACT(MONTH FROM payment_date) AS monthIndex, 
+
+                                    SUM(estimated_payout) AS realizedProfitLoss
+                                FROM user_dividends
+                                WHERE user_id = $1
+                                AND is_executed = TRUE
+                                GROUP BY 1
+                            ),
+                            y AS (
+                                SELECT 
+                                    EXTRACT(MONTH FROM created_at) AS monthIndex,
+                                    SUM(realized_profit_loss) AS realizedProfitLoss
+                                FROM transactions
+                                WHERE user_id = $2
+                                AND transaction_type NOT IN ('DIVIDEND', 'DEPOSIT', 'WITHDRAW')
+                                GROUP BY 1
+                            )
+
+                            SELECT 
+                                COALESCE(x.monthIndex, y.monthIndex) AS "monthIndex",
+                                COALESCE(x.realizedProfitLoss, 0) + COALESCE(y.realizedProfitLoss, 0) AS "totalRealizedProfitLoss"
+                            FROM x
+                            FULL OUTER JOIN y 
+                            ON x.monthIndex = y.monthIndex 
+                            ORDER BY 1, 2;
+
+                            """, current_user.id, current_user.id)
+    print('results5: ', results)
+    return results
+
+
 @router.get("/summary")
 async def get_summary(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
