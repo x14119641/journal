@@ -11,7 +11,7 @@ export default {
         primary: "#bef264", // lime-300
         secondary: "#a5b4fc", // indigo-300
         background: {
-          1: "#e1e2e5", // light gray
+          1: "#D1D5DB", // gray-300
           2: "#0f1010", // almost black
         },
         container: {

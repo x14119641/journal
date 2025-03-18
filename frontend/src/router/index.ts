@@ -14,6 +14,7 @@ import ManageFundsPage from '../pages/ManageFundsPage.vue';
 import TransactionsPage from '../pages/TransactionsPage.vue';
 import TransactionDetailPage from '../pages/TransactionDetailPage.vue';
 import ColorsPAge from '../pages/ColorsPAge.vue';
+import DashboardPage from '../pages/DashboardPage.vue';
 
 
 const isTest = process.env.NODE_ENV ==="test";
@@ -30,6 +31,7 @@ const routes = [
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
   { path: '/colors', name: 'Colors', component: ColorsPAge, meta: { requiresAuth: false } },
   { path: '/funds', name: 'Funds', component: ManageFundsPage, meta: { requiresAuth: true } },
+  { path: '/dashboard', name: 'Funds', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/transactions', name: 'Transactions', component: TransactionsPage, meta: { requiresAuth: true } },
   { path: '/transactions/:id', name: 'TransactionDetail', component: TransactionDetailPage, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginPage, meta: { requiresAuth: false } },

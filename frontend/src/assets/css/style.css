@@ -65,7 +65,7 @@ select.input-style {
   @apply text-lg font-semibold text-violet-600 dark:text-violet-400;
 }
 .text-label{
-  @apply font-bold text-indigo-900 dark:text-secondary;
+  @apply font-bold text-gray-100 dark:text-secondary;
 }
 .text-value{
   @apply font-bold text-gray-900 dark:text-gray-300;
@@ -74,14 +74,14 @@ select.input-style {
   @apply font-bold text-red-700 dark:text-red-500 ;
 }
 .text-info{
-  @apply font-bold text-blue-700 dark:text-blue-500 ;
+  @apply font-bold text-blue-600 dark:text-blue-500 ;
 }
 .money-positive{
-  @apply font-bold text-green-500 dark:text-green-400;
+  @apply font-bold text-green-400 dark:text-green-400;
 }
 .money-negative{
   @apply font-bold text-red-500 dark:text-red-400;
 }
 .chart-title{
-  @apply text-center text-xl font-bazooka text-cyan-500;
+  @apply text-center text-xl font-bazooka text-lime-300 dark:text-cyan-500;
 }
