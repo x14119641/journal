@@ -3,17 +3,18 @@
     <div class="relative">
       <!-- App Icon -->
       <div class="mt-2 inline-flex">
-        <Notebook
+        <!-- <Notebook
           class="notebook-icon cursor-pointer mr-2 duration-500"
           :class="isSidebarOpen ? '' : 'animate-flip'"
-        />
-
+        /> -->
+        <img :src="notebookIcon" alt="Notebook Icon"  class="size-14 cursor-pointer mr-2 duration-400"
+        :class="isSidebarOpen ? '' : 'animate-flip'" />
         <!-- App Text -->
         <h1
-          class="text-white origin-left font-mono font-medium text-3xl duration-200"
+          class="text-white origin-left ml-1 mt-2 font-bazooka font-medium text-3xl duration-200"
           :class="isSidebarOpen ? '' : 'scale-0'"
         >
-          MyJournal
+          Jornolio
         </h1>
       </div>
       <!-- Alien -->
@@ -25,7 +26,7 @@
       base-color="#2ed422"
       :fill-color="isSidebarOpen ? '#2ed422' : '#e635e0'"
       :fill-color2="isSidebarOpen ? '#e635e0' : '#2ed422'"/> -->
-        <EllipsisVertical class="w-10 h-10 stroke-lime-300" />
+        <EllipsisVertical class="w-10 h-10 stroke-lime-400 stroke-primary" />
       </div>
       <!-- Items in menu -->
       <div>
@@ -155,7 +156,7 @@ import {
   EllipsisVertical,
   LayoutDashboard,
 } from "lucide-vue-next";
-import DashboardHeader from "./DashboardHeader.vue";
+import notebookIcon from '../assets/img/notebook-svgrepo-com.svg'
 
 // Access the store
 const sidebarStore = useSidebarStore();
@@ -169,7 +170,7 @@ const toggleSidebar = () => {
 
 <style scoped>
 .sidebar-style {
-  @apply bg-background-1 dark:bg-container-2;
+  @apply  backdrop-blur-sm;
 }
 .sidebar-li-style {
   @apply text-2xl font-semibold text-gray-800 hover:bg-green-200 dark:text-blue-300 hover:dark:text-gray-300 dark:hover:bg-green-500;
@@ -185,7 +186,7 @@ const toggleSidebar = () => {
 }
 .notebook-icon {
   /* Change this! */
-  @apply w-16 h-16 group-hover:stroke-cyan-300 dark:stroke-gray-200;
+  @apply size-14 group-hover:stroke-cyan-300 dark:stroke-gray-200;
   /* color: #ffadff;
   width: 24px;
   height: 24px;*/

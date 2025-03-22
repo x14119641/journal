@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar-style p-2 w-full">
+  <nav class=" p-2 w-full">
     <div class="flex items-center justify-between w-full">
       
       <!-- Left Side: Icon and Title -->

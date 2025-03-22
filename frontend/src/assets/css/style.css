@@ -14,8 +14,7 @@
 
 /* Use Tailwind Utility Classes for `body` */
 body {
-  @apply bg-background-1 dark:bg-background-2 
- text-body-1  dark:text-body-2;
+  @apply bg-gradient-to-b from-gray-500  via-gray-400 to-gray-500  dark:from-black dark:via-[#191919] dark:to-black;
 }
 /* Body gradient */
 /* body {
@@ -29,8 +28,14 @@ body {
   height: 400px; /* Ensure the container has a defined height */
 
 }
-.container-component{
-  @apply bg-container-1 dark:bg-container-2 rounded-lg shadow-lg 
+.container-component {
+  @apply backdrop-blur-lg 
+    bg-white/10 dark:bg-gray-800/30 
+    border border-white/10 dark:border-white/20 
+    text-white 
+    rounded-xl 
+    shadow-md 
+    ;
 }
 .input-style{
   @apply mt-1 p-2 block w-full rounded-lg  bg-slate-400 border-gray-300 shadow-sm focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50;
@@ -59,7 +64,7 @@ select.input-style {
 
 /* Styles */
 .title-component{
-  @apply text-lg font-semibold text-primary
+  @apply font-bazooka text-lg text-lime-400 dark:text-primary
 }
 .subtitle-component{
   @apply text-lg font-semibold text-violet-600 dark:text-violet-400;

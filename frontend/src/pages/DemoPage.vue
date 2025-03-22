@@ -23,8 +23,8 @@
     <!-- Row 2: Dividend Calendar + 2 boxes one on top of other -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
       <!-- Left Column -->
-      <div class="container-component w-full">
-        <div class="container-component max-h-[600px] no-scrollbar col-span-2">
+      <div class=" w-full">
+        <div class="container-component max-h-[630px] no-scrollbar col-span-2">
           <!-- <CalendarComponent v-if="hasData"  :data="dividends" dateColumn="paymentDate" :month="currentMonth"/> -->
           <div
             class="pt-2 flex justify-center items-center text-center gap-x-6"
@@ -51,29 +51,30 @@
       </div>
 
       <!-- Right Column (2 boxes inside) -->
-      <div class="flex flex-col gap-6 sm:col-span-1">
+      <div class="flex flex-col gap-6 sm:col-span-1 min-h-[600px]">
         <div class="container-component">
           <div
             v-if="historicalPortfolioValues.length > 0"
-            class="container-component max-h-[600px] overflow-hidden"
+            class="overflow-hidden"
           >
           <MonthlyDividendStackedBarChart class="max-h-[300px]"
           />
           </div>
         </div>
-        <div class="container-component max-h-[600px] overflow-hidden">
+        <div class="container-component overflow-hidden">
           <div
             v-if="historicalPortfolioValues.length > 0"
-            class="container-component"
+            class=""
           >
             <MonthlyProfitLossBarChart class="max-h-[300px]"
             />
           </div>
         </div>
+
       </div>
     </div>
 
-    <!-- ✅ Row 3: Performance, Profit/Loss, and Cash Flow -->
+    <!-- Row 3: Performance, Profit/Loss, and Cash Flow -->
     <!-- <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
       <div class="container-component p-6">
         <BarChartComponent
@@ -100,6 +101,7 @@
   </div>
 
   <!-- <p>{{ portfolioHistory }}</p> -->
+   
 </template>
 
 <script setup lang="ts">
@@ -167,7 +169,7 @@ onMounted(async () => {
 
 <style scoped>
 .arrow-style {
-  @apply text-secondary;
+  @apply text-black dark:text-secondary cursor-pointer;
 }
 .no-scrollbar {
   overflow-y: auto; /* Enables scrolling */
@@ -176,5 +178,10 @@ onMounted(async () => {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari - Hides scrollbar */
+}
+.container-component2 {
+  @apply backdrop-blur-2xl bg-white/10 dark:bg-black/40 
+    border border-white/10 dark:border-white/20 
+    text-white rounded-2xl shadow-lg;
 }
 </style>
