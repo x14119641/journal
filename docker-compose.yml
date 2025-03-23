@@ -1,0 +1,36 @@
+
+services:
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend/app:/app/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/journal_app
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=journal_app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432" 
+  
+  frontend:
+    build: 
+      context: ./frontend
+    ports: 
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

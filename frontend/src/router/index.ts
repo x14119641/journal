@@ -13,7 +13,7 @@ import RegisterPage from '../pages/RegisterPage.vue';
 import ManageFundsPage from '../pages/ManageFundsPage.vue';
 import TransactionsPage from '../pages/TransactionsPage.vue';
 import TransactionDetailPage from '../pages/TransactionDetailPage.vue';
-import ColorsPAge from '../pages/ColorsPAge.vue';
+import ColorsPage from '../pages/ColorsPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 
 
@@ -29,7 +29,7 @@ const routes = [
   { path: '/demo', name: 'Demo', component: DemoPage, meta: { requiresAuth: false } },
   { path: '/hello', name: 'Hello', component: HelloPage, meta: { requiresAuth: false } },
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
-  { path: '/colors', name: 'Colors', component: ColorsPAge, meta: { requiresAuth: false } },
+  { path: '/colors', name: 'Colors', component: ColorsPage, meta: { requiresAuth: false } },
   { path: '/funds', name: 'Funds', component: ManageFundsPage, meta: { requiresAuth: true } },
   { path: '/dashboard', name: 'Funds', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/transactions', name: 'Transactions', component: TransactionsPage, meta: { requiresAuth: true } },
