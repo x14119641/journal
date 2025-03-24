@@ -22,12 +22,12 @@ class Settings(BaseSettings):
         print(os.environ["TESTING"])
         print(os.getenv("TESTING"))
         print('*'*9)
-        # for path in possible_locations:
-        #     if os.path.isfile(path):
-        #         with open(path) as json_file:
-        #             return json.load(json_file)
+        for path in possible_locations:
+            if os.path.isfile(path):
+                with open(path) as json_file:
+                    return json.load(json_file)
 
-        raise Exception(f"Could not find config file: {config_path}")
+        raise FileNotFoundError(f"Could not find config file: {config_path}")
     
 class Secrets(BaseSettings):
     SECRET_KEY:str
