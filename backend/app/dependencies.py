@@ -19,6 +19,7 @@ password_hash = PasswordHash.recommended()
 @lru_cache
 def get_settings():
     config_name = 'test_config.json' if os.getenv("TESTING") == "true" else 'config.json'
+    print(f"📄 LOADING CONFIG: {config_name}", flush=True)
     return Settings.read_file(config_name)
 
 @lru_cache
