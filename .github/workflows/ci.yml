@@ -46,7 +46,7 @@ jobs:
             "password": "test",
             "database": "test_db",
             "port": 5432
-          }' > backend/app/config.json
+          }' > backend/app/test_config.json
 
       - name: Debug config location
         run: |
