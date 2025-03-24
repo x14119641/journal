@@ -40,16 +40,15 @@ jobs:
       
       - name: Generate test_config.json
         run: |
-          cd backend
-          cat <<EOF > test_config.json
-          {
-            "host": "localhost",
-            "user": "test",
-            "password": "test",
-            "database": "test_db",
-            "port": 5432
-          }
-        EOF
+          cd backend/tests
+          run: |
+            echo '{
+              "host": "localhost",
+              "user": "test",
+              "password": "test",
+              "database": "test_db",
+              "port": 5432
+            }' > test_config.json
 
       - name: Run Backend Tests
         env:
