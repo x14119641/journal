@@ -39,6 +39,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: Generate test_config.json
+        working-directory: backend
         run: |
           echo '{
             "host": "localhost",
@@ -46,7 +47,7 @@ jobs:
             "password": "test",
             "database": "test_db",
             "port": 5432
-          }' > backend/app/config.json
+          }' > config.json
 
       - name: Run Backend Tests
         env:
