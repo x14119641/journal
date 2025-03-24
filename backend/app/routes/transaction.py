@@ -18,6 +18,12 @@ async def add_funds(
     db: Database = Depends(get_db)
 ):
     print('transaction: ', transaction)
+    if transaction.amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Deposit amount must be positive'
+        )
+        
     if transaction.created_at:
         if transaction.created_at.tzinfo is not None:
             _formated_date = transaction.created_at.astimezone(
@@ -28,19 +34,28 @@ async def add_funds(
         _formated_date = datetime.now()
     try:
         # Use execute() instead of fetch() since we are calling a stored procedure
-        msg = await db.execute(
+        msg = await db.fetchone(
             """SELECT deposit_funds($1, $2, $3, $4);""",
             current_user.id, transaction.amount, transaction.description,
             _formated_date
         )
+        print('MSN: ', msg)
+        if 'Error:' in msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=msg.replace('Error:', '').strip()
+            )
 
-        return {"message": msg}
+        return {"message": msg.replace('Success:', '').strip()}
 
     except PostgresError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    except HTTPException as e:
+        # Allow inner raise
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -68,14 +83,22 @@ async def withdraw_funds(
             current_user.id, transaction.amount, transaction.description,
             _formated_date
         )
+        if 'Error:' in msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=msg.replace('Error:', '').strip()
+            )
 
-        return {"message": msg}
+        return {"message": msg.replace('Success:', '').strip()}
 
     except PostgresError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    except HTTPException as e:
+        # Allow inner raise
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -86,7 +109,7 @@ async def withdraw_funds(
 @router.post("/buy_stock", status_code=status.HTTP_201_CREATED)
 async def buy_stock(transaction: BuyStock, current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
     try:
-        print("Stock Buy: ", transaction)
+        # print("Stock Buy: ", transaction)
         if transaction.created_at:
             if transaction.created_at.tzinfo is not None:
                 _formated_date = transaction.created_at.astimezone(
@@ -95,19 +118,26 @@ async def buy_stock(transaction: BuyStock, current_user: Annotated[UserLogin, De
                 _formated_date = transaction.created_at
         else:
             _formated_date = datetime.now()
-        return_msg = await db.fetchone("SELECT buy_stock($1, $2, $3, $4, $5, $6)",
+        msg = await db.fetchone("SELECT buy_stock($1, $2, $3, $4, $5, $6)",
                                        current_user.id, transaction.ticker, transaction.buy_price,
                                        transaction.quantity, transaction.fee,
                                        _formated_date)
 
-        if return_msg is None:
-            return {"message": "Nothing to buy"}
-        return {"message": return_msg}
+        if 'Error:' in msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=msg.replace('Error:', '').strip()
+            )
+
+        return {"message": msg.replace('Success:', '').strip()}
     except PostgresError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    except HTTPException as e:
+        # Allow inner raise
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -126,19 +156,28 @@ async def sell_stock(transaction: SellStock, current_user: Annotated[UserLogin, 
                 _formated_date = transaction.created_at
         else:
             _formated_date = datetime.now()
-        return_msg = await db.fetchone("""
+        msg = await db.fetchone("""
                                        SELECT sell_stock($1, $2, $3, $4, $5, $6)""",
                                        current_user.id, transaction.ticker, transaction.price,
                                        transaction.quantity, transaction.fee,
                                        _formated_date)
 
-        return {"message": return_msg}
+        if 'Error:' in msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=msg.replace('Error:', '').strip()
+            )
+
+        return {"message": msg.replace('Success:', '').strip()}
 
     except PostgresError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    except HTTPException as e:
+        # Allow inner raise
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -197,7 +236,7 @@ async def get_transactions(
     if not results:
         return []
     return results
-
+ 
 
 @router.delete("/reset", status_code=status.HTTP_200_OK)
 async def reset_user_transactions(
@@ -226,7 +265,7 @@ async def update_description_transaction(
                              WHERE id = $2
                              AND user_id=$3
                              RETURNING id
-                             """,
+                             """, 
                              transaction.des,transaction.transaction_id,current_user.id)
     if not id:
         msg = "Nothin has been updated"

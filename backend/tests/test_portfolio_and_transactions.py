@@ -15,6 +15,7 @@ async def test_add_funds_invalid(test_client, auth_token):
     )
 
     json_data = response.json()
+    print('Json_data: ', json_data)
     assert response.status_code == 400 
     assert "detail" in json_data
     assert json_data['detail'] == 'Deposit amount must be positive'
@@ -50,7 +51,7 @@ async def test_add_funds(test_client, auth_token):
     print(json_data)
     assert response.status_code == 201 
     assert "message" in json_data
-    assert json_data['message'] == 'Funds added successfully'
+    assert json_data['message'] == 'Deposit Completed.'
 
 
 @pytest.mark.asyncio
@@ -83,7 +84,7 @@ async def test_withdraw_funds(test_client, auth_token):
     
     assert response.status_code == 201 
     assert "message" in json_data
-    assert json_data['message'] == 'Funds withdrew successfully' 
+    assert json_data['message'] == 'Withdraw Completed.' 
 
 
 
@@ -375,9 +376,9 @@ async def test_sell_stock(test_client, auth_token):
         json=transactionSell,
         headers=auth_token)
     json_data = response.json()
-    # print(json_data)
+    print('json_data: ', json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message'] 
 
 
 @pytest.mark.asyncio
@@ -397,9 +398,9 @@ async def test_sell_full_stock(test_client, auth_token):
         json=transactionSell,
         headers=auth_token)
     json_data = response.json()
-    # print(json_data)
+    print(json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message']
     # We sold 150
     assert '150' in json_data['message'] 
     # PRofit is 250
@@ -619,7 +620,7 @@ async def test_some_transactions(test_client, auth_token):
     json_data = response.json()
     # print(json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message'] 
     assert '120' in json_data['message'] # Shares sold
     assert '2900' in json_data['message'] # Benefit
     transactionSell2 = {
@@ -635,7 +636,7 @@ async def test_some_transactions(test_client, auth_token):
     json_data = response.json()
     # print(json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message'] 
     assert '20' in json_data['message'] # Shares sold
     assert '500' in json_data['message'] # Benefit
     
@@ -703,7 +704,7 @@ async def test_some_transactions(test_client, auth_token):
     json_data = response.json()
     # print(json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message'] 
     assert '50' in json_data['message'] # Shares sold
     assert '250' in json_data['message'] # Benefit
     
@@ -720,7 +721,7 @@ async def test_some_transactions(test_client, auth_token):
     json_data = response.json()
     # print(json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message'] 
     assert '50' in json_data['message'] # Shares sold
     assert '500' in json_data['message'] # Benefit
     
@@ -737,7 +738,7 @@ async def test_some_transactions(test_client, auth_token):
     json_data = response.json()
     # print(json_data)
     assert response.status_code == 201
-    assert 'Success' in json_data['message'] 
+    assert 'Sold' in json_data['message'] 
     assert '40' in json_data['message'] # Shares sold
     assert '1725' in json_data['message'] # Benefit
     
@@ -794,7 +795,7 @@ async def test_some_transactions(test_client, auth_token):
     assert response.status_code == 200  
     assert json_data['value'] == total_portfolio_value, f"Total invested in stocks right now is supposed to be {total_portfolio_value} for the test user"
     
-
+ 
 @pytest.mark.asyncio
 async def test_stock_transactions_with_decimals(test_client, auth_token):
     """Test buying and selling stocks with decimal values"""

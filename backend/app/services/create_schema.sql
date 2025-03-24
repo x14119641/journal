@@ -250,7 +250,7 @@ DECLARE _transaction_id integer;
 BEGIN
     -- Ensure the amount is positive
     IF _amount <= 0 THEN
-        RETURN 'Deposit amount must be positive';
+        RETURN 'Error: Deposit amount must be positive';
     END IF;
 
     -- If the user has no balance record, insert a new one
@@ -292,17 +292,17 @@ BEGIN
 
     -- Prevent negative withdrawals
     IF _amount <= 0 THEN
-        RETURN 'Invalid withdrawal amount';
+        RETURN 'Error: Invalid withdrawal amount';
     END IF;
 
     -- Prevent insert when nulls 
     IF _current_balance IS NULL THEN
-        RETURN 'There is no balance';
+        RETURN 'Error: There is no balance';
     END IF;
 
     -- Check if the user has enough funds
     IF _current_balance < _amount THEN
-        RETURN 'Insufficient funds for withdrawal';
+        RETURN 'Error: Insufficient funds for withdrawal';
     END IF;
 
     -- Deduct balance
@@ -341,7 +341,8 @@ CREATE OR REPLACE FUNCTION public.buy_stock(
     RETURNS text
     LANGUAGE 'plpgsql'
     COST 100
-    VOLATILE PARALLEL UNSAFE AS $BODY$
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
 DECLARE
 	_total_cost NUMERIC(19,6);
 	_current_balance NUMERIC(19,6);
@@ -350,7 +351,7 @@ DECLARE
 BEGIN 
     --Check if ticker exists in the database
     IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker=_ticker) THEN
-		RETURN 'Ticker not in db';
+		RETURN 'Error: Ticker not in db';
 	END IF;
 
 	-- Calculate total cost of the purchase
@@ -362,7 +363,7 @@ BEGIN
 
 	-- Ensure sufficient funds
 	IF _current_balance < _total_cost THEN
-		RETURN 'Insufficient funds';
+		RETURN 'Error: Insufficient funds';
 	END IF;
 
 	-- Insert transaction record for the buy action
@@ -390,9 +391,9 @@ BEGIN
 	INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
 	VALUES (_user_id, _transaction_id,-_total_cost, _new_balance, 'BUY', _created_at);
 
-	RETURN 'Stock purchased';
+	RETURN 'Success: Stock purchased';
 END;
-$BODY$;
+$BODY$; 
 
 CREATE OR REPLACE FUNCTION public.sell_stock(
     _user_id integer,
@@ -414,16 +415,24 @@ DECLARE
     _new_balance NUMERIC(19,6);
     _quantity_sold NUMERIC(19,6) := 0;
     _transaction_id INT;
+    _total_remaining_to_sell NUMERIC(19,6);
     _remaining_to_sell NUMERIC(19,6) := _quantity;
 BEGIN
     -- Check if ticker exists
     IF NOT EXISTS (SELECT 1 FROM tickers WHERE ticker = _ticker) THEN
-        RETURN 'Ticker not in db';
+        RETURN 'Error: Ticker not in db';
     END IF;
 
     -- Check if shares exist
     IF NOT EXISTS (SELECT 1 FROM portfolio_lots WHERE user_id = _user_id AND ticker = _ticker AND remaining_quantity > 0) THEN
-        RETURN 'No shares available to sell';
+        RETURN 'Error: No shares available to sell';
+    END IF;
+
+    -- Check if have enough shares
+    SELECT sum(remaining_quantity) INTO _total_remaining_to_sell
+    FROM portfolio_lots WHERE user_id = _user_id AND ticker = _ticker;
+    IF _total_remaining_to_sell < _quantity THEN
+        RETURN 'Error: Not enough shares to sell';
     END IF;
 
     -- Process FIFO sales
@@ -438,7 +447,7 @@ BEGIN
 
         -- Check if a lot exists
         IF NOT FOUND THEN
-            RETURN 'Not enough shares to sell';
+            RETURN 'Error: Not enough shares to sell';
         END IF;
 
         -- Determine quantity to sell
@@ -536,7 +545,7 @@ BEGIN
     WHERE user_id = _user_id AND id = _transaction_id;
     -- Ensure the transaction exists
     IF NOT FOUND THEN
-        RETURN 'Buy transaction not found';
+        RETURN 'Error: Buy transaction not found';
     END IF;
 
     -- Checkif there is another BUY transaction 
@@ -551,7 +560,7 @@ BEGIN
         AND transaction_type='BUY'
     LIMIT 1;
     IF FOUND THEN
-        RETURN 'You already have another BUY after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
+        RETURN 'Error: You already have another BUY after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
     END IF;
 
 	-- Check if the for that stock are "dividends" not executed
@@ -567,7 +576,7 @@ BEGIN
 	    -- Check if the quantity of stock is the same of the remaingin_qunatity
 	    -- That means that part of the lot has been sold
 	    IF (_transaction_details.quantity != _transaction_remaining_quantity) THEN
-	        RETURN 'Part of this lot buy lot has been sold and is not possible to delete transaction';
+	        RETURN 'Error: Part of this lot buy lot has been sold and is not possible to delete transaction';
 	    END IF;
 
 		-- I am going to cehck if the remianing quanity makes sense comparing with the last quantity od the "dividend"
@@ -576,7 +585,7 @@ BEGIN
 		 SELECT shares_held_at_ex_date INTO _actual_dividend_quantity
 		  FROM user_dividends WHERE user_id=_user_id AND  ticker = _transaction_details.ticker AND is_executed = FALSE ORDER BY inserted DESC LIMIT 1;
 		IF(_last_dividend_quantity+_transaction_details.quantity!=_actual_dividend_quantity) THEN
-			RETURN 'This transaction is not possible to delete. Probably you have dividends for stocks in thsi transaciton.';
+			RETURN 'Error: This transaction is not possible to delete. Probably you have dividends for stocks in thsi transaciton.';
 		END IF;
 	
 	
@@ -600,7 +609,7 @@ BEGIN
 	    WHERE user_id = _user_id 
 	        AND transaction_id = _transaction_id;
 	    IF NOT FOUND THEN
-	        RETURN 'Error deleting portfolio lot, transaction ID: ' || _transaction_id;
+	        RETURN 'Error: Error deleting portfolio lot, transaction ID: ' || _transaction_id;
 	    END IF;
 		
 	    -- Delete deposit transaction
@@ -640,12 +649,12 @@ BEGIN
 	
 	    IF NOT FOUND THEN
 	        RAISE NOTICE 'Error: Could not delete portfolio lot for transaction' ;
-   			RETURN 'Error deleting portfolio lot, transaction ID: ' || _transaction_id;
+   			RETURN 'Erroe: deleting portfolio lot, transaction ID: ' || _transaction_id;
 	    END IF;
 		RETURN 'Success: Buy transaction deleted and balance updated';
 	
 	ELSE
-		RETURN 'This transactions has received dividends and is not possible to delete.';
+		RETURN 'Error: This transactions has received dividends and is not possible to delete.';
 	END IF;
    
 END;
@@ -674,7 +683,7 @@ BEGIN
 
     -- Ensure the transaction exists
     IF NOT FOUND THEN
-        RETURN 'Sell transaction ' || _transaction_id || ' not found for user ' || _user_id;
+        RETURN 'Error: Sell transaction ' || _transaction_id || ' not found for user ' || _user_id;
     END IF;
 
 	
@@ -689,7 +698,7 @@ BEGIN
         AND transaction_type='SELL'
     LIMIT 1;
     IF FOUND THEN
-        RETURN 'You already have another SELL after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
+        RETURN 'Error: You already have another SELL after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
     END IF;
 
 	-- Check if there are executed dividends for this ticker
@@ -700,7 +709,7 @@ BEGIN
 	    AND ticker = _transaction_details.ticker 
 	    AND is_executed = TRUE
 	) THEN
-	    RETURN 'This sell transaction cannot be deleted because dividends have already been executed for this stock.';
+	    RETURN 'Error: This sell transaction cannot be deleted because dividends have already been executed for this stock.';
 	END IF;
 
 	
@@ -808,7 +817,7 @@ BEGIN
 
     -- Ensure the transaction exists
     IF NOT FOUND THEN
-        RETURN 'Deposit transaction not found';
+        RETURN 'Error: Deposit transaction not found';
     END IF;
     -- Checkif there is another DEpoist transaction
     SELECT id INTO _id_of_next_transaction
@@ -819,7 +828,7 @@ BEGIN
         AND transaction_type='DEPOSIT'
     LIMIT 1;
     IF FOUND THEN
-        RETURN 'You already have another DEPOSIT after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
+        RETURN 'Error: You already have another DEPOSIT after this transaction, try to delete the transaction with id: ' || _id_of_next_transaction;
     END IF;
     -- Check if you have buys before that deposit, 
     -- otherwise i am not going to allow you to delete the deposit
@@ -829,13 +838,13 @@ BEGIN
         AND transaction_type = 'BUY' 
         AND created_at > _transaction_details.created_at
     ) THEN
-        RETURN 'Cannot delete this deposit as you have buy orders after it';
+        RETURN 'Error: Cannot delete this deposit as you have buy orders after it';
     END IF;
    
     -- Check if the amount of the transaction that
     -- i want to delete is possible because i have enoug balance
     IF (_transaction_details.quantity > _current_balance) THEN
-        RETURN 'Insufficient balance to delete this deposit';
+        RETURN 'Error: Insufficient balance to delete this deposit';
     END IF;
 
     -- Insert in deleted_transactions as "backup"
@@ -870,7 +879,7 @@ BEGIN
     SET total_balance = _new_balance
     WHERE user_id = _user_id;
 
-	RETURN 'Success! Transaction Deleted properly!';
+	RETURN 'Success: Transaction Deleted properly!';
 END;
 $BODY$;
 
@@ -900,7 +909,7 @@ BEGIN
 
     -- Ensure the transaction exists
     IF NOT FOUND THEN
-        RETURN 'Withdraw transaction not found';
+        RETURN 'Error: Withdraw transaction not found';
     END IF;
 
     -- As it is a withdraw we dont care, we can delete the withdarw and 
@@ -942,14 +951,30 @@ BEGIN
 
     -- insert last new_balacne we just upda
 	
-	RETURN 'Success! Transaction Deleted properly';
+	RETURN 'Success: Transaction Deleted properly';
 
 END;
 $BODY$;
 
 
 
-
+CREATE OR REPLACE FUNCTION public.get_balance(
+	_user_id integer)
+    RETURNS numeric
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+    _current_balance NUMERIC(19,6);
+BEGIN
+    SELECT ROUND(COALESCE(total_balance, 0), 6) 
+    INTO _current_balance 
+    FROM balance WHERE user_id = _user_id;
+    
+    RETURN _current_balance;
+END;
+$BODY$;
 
 CREATE OR REPLACE FUNCTION get_total_fees(_user_id INT)
 RETURNS NUMERIC(19,6) LANGUAGE 'plpgsql' AS $$
@@ -1174,10 +1199,12 @@ $BODY$;
 
 CREATE OR REPLACE PROCEDURE reset_user_data(_user_id INT) LANGUAGE plpgsql AS $$
 BEGIN
+    DELETE FROM balance_history WHERE user_id = _user_id;
+    DELETE FROM user_dividends WHERE user_id = _user_id;
+    DELETE FROM fees WHERE user_id = _user_id;
+    DELETE FROM transactions_history WHERE user_id = _user_id;
     DELETE FROM portfolio_lots WHERE user_id = _user_id;
     DELETE FROM transactions WHERE user_id = _user_id;
-    DELETE FROM transactions_history WHERE user_id = _user_id;
-    DELETE FROM fees WHERE user_id = _user_id;
     UPDATE balance SET total_balance = 0 WHERE user_id = _user_id;
 END;
 $$;
