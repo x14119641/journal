@@ -21,12 +21,22 @@ class Settings(BaseSettings):
         print('*'*9)
         print("🔁 ENV TESTING:", os.getenv("TESTING"), flush=True)
         print('*'*9)
+        
+            
         for path in possible_locations:
-            if os.path.isfile(path):
+            if os.getenv("TESTING"):
+                json_file = {
+                    "host": "localhost",
+                    "user": "test",
+                    "password": "test",
+                    "database": "test_db",
+                    "port": 5432
+                }
+            elif os.path.isfile(path):
                 with open(path) as json_file:
                     return json.load(json_file)
 
-        raise FileNotFoundError(f"Could not find config file: {config_path}")
+        raise FileNotFoundError(f"Could not find config file: {json_file}")
     
 class Secrets(BaseSettings):
     SECRET_KEY:str
