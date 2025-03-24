@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         # Priority: absolute path > relative to cwd > fallback to same dir as this file
         possible_locations = [
             config_path,  # allow absolute path or relative to cwd
-            os.path.join(os.getcwd(), config_path),  # relative to project root (e.g., in CI)
+            os.path.join(os.path.dirname(os.path.realpath(__file__)), config_path),  # relative to project root (e.g., in CI)
             os.path.join(os.path.dirname(__file__), config_path),  # default: next to config.py
         ]
 
