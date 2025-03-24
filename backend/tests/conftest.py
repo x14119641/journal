@@ -8,7 +8,7 @@ from httpx import ASGITransport, AsyncClient
 import asyncio
 import os
 
-os.environ["TESTING"] = "true"
+# os.environ["TESTING"] = "true"
 
 CREDENTIALS = {
             "username": "test_user", 

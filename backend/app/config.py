@@ -19,8 +19,7 @@ class Settings(BaseSettings):
             os.path.join(os.path.dirname(__file__), config_path),  # default: next to config.py
         ]
         print('*'*9)
-        print(os.environ["TESTING"])
-        print(os.getenv("TESTING"))
+        print("🔁 ENV TESTING:", os.getenv("TESTING"), flush=True)
         print('*'*9)
         for path in possible_locations:
             if os.path.isfile(path):

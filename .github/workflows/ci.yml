@@ -53,6 +53,9 @@ jobs:
           ls -la backend/app
 
       - name: Run Backend Tests
+        env:
+          PYTHONUNBUFFERED: 1
+          TESTING: "true"
         run: |
           export TESTING=true
           cd backend
