@@ -57,7 +57,7 @@ jobs:
           TESTING: "true"
           DB_HOST: localhost
         run: |
-          ls -la
+          cd backend
           pytest --maxfail=1 --disable-warnings -q
   
   frontend:
