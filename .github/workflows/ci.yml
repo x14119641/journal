@@ -47,6 +47,10 @@ jobs:
             "database": "test_db",
             "port": 5432
           }' > backend/app/config.json
+          
+      - name: Debug config location
+        run: |
+          ls -la backend/app
 
       - name: Run Backend Tests
         env:
