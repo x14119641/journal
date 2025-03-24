@@ -7,14 +7,23 @@ from pwdlib import PasswordHash
 from .services.database import Database
 from .config import Settings, Secrets
 from datetime import datetime, timedelta
+from functools import lru_cache
 import os
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 password_hash = PasswordHash.recommended()
 
-settings = Settings.read_file()
-secrets = Secrets(**Settings.read_file('secrets.json'))
+
+# Avoid errors when pulling to github workflow
+@lru_cache
+def get_settings():
+    config_name = 'test_config.json' if os.getenv("TESTING") == "true" else 'config.json'
+    return Settings.read_file(config_name)
+
+@lru_cache
+def get_secrets():
+    return Secrets(**Settings.read_file('secrets.json'))
 
 
 async def get_db():
