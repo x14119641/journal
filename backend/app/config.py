@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         #         with open(path) as json_file:
         #             return json.load(json_file)
 
-        raise FileNotFoundError(f"Could not find config file: {config_path}")
+        raise Exception(f"Could not find config file: {config_path}")
     
 class Secrets(BaseSettings):
     SECRET_KEY:str
