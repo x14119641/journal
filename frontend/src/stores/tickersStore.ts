@@ -13,7 +13,7 @@ export const useTickersStore = defineStore('tickers', {
                 const response = await api.get('/stocks/tickers')
                 this.tickers = [...response.data]
             } catch (error) {
-                console.error('Error un tickers store: ', error)
+                // console.error('Error un tickers store: ', error)
                 this.errorMessage = "There are not tickers"
             }
         }

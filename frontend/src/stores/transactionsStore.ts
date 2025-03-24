@@ -106,8 +106,8 @@ export const useTransactionsStore = defineStore('transactions', {
         async getStocksTransactionsHistory() {
             try {
                 const response = await api.get('transactions/get_stocks_transactions_history');
-                // this.stocks_transactions_history = [...response.data];
-                this.stocks_transactions_history.splice(0, this.stocks_transactions_history.length, ...response.data);
+                this.stocks_transactions_history = [...response.data];
+                // this.stocks_transactions_history.splice(0, this.stocks_transactions_history.length, ...response.data);
             } catch (error) {
                 throw error;
             }

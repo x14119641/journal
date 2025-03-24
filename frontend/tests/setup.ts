@@ -34,9 +34,29 @@ Object.defineProperty(globalThis, "localStorage", {
 });
 
 // Mock Vue Router
+const testRoutes = [
+  { path: '/', component: {} },
+  { path: '/logout', component: {} },
+  { path: '/demo', component: {} },
+  { path: '/hello', component: {} },
+  { path: '/table', component: {} },
+  { path: '/colors', component: {} },
+  { path: '/funds', component: {} },
+  { path: '/dashboard', component: {} },
+  { path: '/transactions', component: {} },
+  { path: '/transactions/:id', component: {} },
+  { path: '/login', component: {} },
+  { path: '/profile', component: {} },
+  { path: '/dividends', component: {} },
+  { path: '/calendar', component: {} },
+  { path: '/screener', component: {} },
+  { path: '/stocks/:ticker', component: {} },
+  { path: '/register', component: {} },
+]
+
 const router = createRouter({
   history:createMemoryHistory(),
-  routes:[]
+  routes:testRoutes
 });
 config.global.plugins = [router];
 // Stub components like `router-link` to avoid errors

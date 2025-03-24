@@ -9,7 +9,6 @@ import type {
     PortfolioItemSummaryExternal
 } from "../models/models";
 
-import Decimal from "decimal.js";
 
 
 
@@ -26,7 +25,6 @@ export const usePortfolioStore = defineStore('portfolio', {
         sector_allocation_portfolio: [] as SectorAllocationRecord[],
         portfolio_barchart_data: [] as BarChartDataItem[],
         portfolio_summary: [] as PortfolioItemSummary[],
-        realized_gains: 0,
         riskCalculatorValues: [] as RiskCalculatorRecord[],
         ticker_portfolio_summary: [] as PortfolioItemSummary[],
         portfolio_monthly_summary: {} as PortfolioItemMontly,

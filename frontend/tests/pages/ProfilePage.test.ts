@@ -28,9 +28,22 @@ describe("ProfilePage", () => {
         { ticker: "EDR", remainingQuantity: 5, buyPrice: 3, totalValue: 18 },
       ],
     });
+    // Avopid warnigns of endpoints wit no data, no testing that
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
   it("renders all components correctly", async () => {
-    const wrapper = mount(ProfilePage, { global: { plugins: [pinia] } });
+    const wrapper = mount(ProfilePage, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          ProfileInfo: true,
+          FundsHeader: true,
+          AllocationDoughnout: true,
+          PortfolioBarChart: true,
+          PortfolioSummary: true,
+        },
+      },
+    });
     await flushPromises();
 
     // Check if all components exist in the page
@@ -42,15 +55,26 @@ describe("ProfilePage", () => {
   });
 
   it("has the correct number of layout containers", async () => {
-    const wrapper = mount(ProfilePage, { global: { plugins: [pinia] } });
+    const wrapper = mount(ProfilePage, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          ProfileInfo: true,
+          FundsHeader: true,
+          AllocationDoughnout: true,
+          PortfolioBarChart: true,
+          PortfolioSummary: true,
+        },
+      },
+    });
     await flushPromises();
 
 
     // Check if there are 3 components in the first row 
-    expect(wrapper.findAll("#grid3 .slate-container").length).toBe(3);
+    expect(wrapper.find("#grid3").findAll(".container-component").length).toBe(3);
 
     // Check if there are 2 components in the second row 
-    expect(wrapper.findAll("#grid2 .slate-container").length).toBe(2);
+    expect(wrapper.find("#grid2").findAll(".container-component").length).toBe(2);
   });
 });
 

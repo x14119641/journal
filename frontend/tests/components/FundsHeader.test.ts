@@ -19,7 +19,7 @@ describe("FundsHeader Test", () => {
         portfolioStore.balance = 1000;
         portfolioStore.totalMoneyInvested = 800;
         portfolioStore.unrealizedMoney = 200;
-        portfolioStore.realized_gains = 50;
+        portfolioStore.netProfitLoss = 50;
         portfolioStore.getPortfolio = vi.fn().mockResolvedValue({});
     });
     it("calls getPortfolio on mount", async () => {
