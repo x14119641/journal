@@ -29,7 +29,13 @@ async def test_client():
 async def db():
     """Database fixture"""
     #  Test config must be in app
-    database = Database(**Settings.read_file('test_config.json'))
+    database = Database(**{
+            "host": "localhost",
+            "user": "test",
+            "password": "test",
+            "database": "test_db",
+            "port": 5432
+          })
     await database.create_pool()  
     # await database.create_schema() # If you dont  habve data in test it may be a good idea toc reate it beforehand.
     # Safety check
