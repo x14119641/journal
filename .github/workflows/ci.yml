@@ -57,9 +57,15 @@ jobs:
           PYTHONUNBUFFERED: 1
           TESTING: "true"
         run: |
+          echo "🔧 ENV TESTING before tests: $TESTING"
           export TESTING=true
+          echo "✅ ENV TESTING after export: $TESTING"
           cd backend
           pytest --maxfail=1 --disable-warnings -q
+      - name: Confirm environment from shell
+        run: |
+          echo "💡 CI ENV TESTING is: $TESTING"
+          env | grep TESTING || echo "TESTING is not set"
   
   frontend:
     name: Frontend Tests
