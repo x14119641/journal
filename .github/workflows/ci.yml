@@ -53,10 +53,8 @@ jobs:
           ls -la backend/app
 
       - name: Run Backend Tests
-        env:
-          TESTING: "true"
-          DB_HOST: localhost
         run: |
+          export TESTING=true
           cd backend
           pytest --maxfail=1 --disable-warnings -q
   
