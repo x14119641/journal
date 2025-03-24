@@ -39,7 +39,8 @@ def get_secrets():
 async def get_db():
     db_config_file = "test_config.json" if os.getenv(
         "TESTING") == "true" else "config.json"
-    db = Database(**Settings.read_file(db_config_file))
+    settings = get_settings()
+    db = Database(**settings)
     await db.create_pool()
     try:
         yield db
