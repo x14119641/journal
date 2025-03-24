@@ -18,9 +18,18 @@ password_hash = PasswordHash.recommended()
 # Avoid errors when pulling to github workflow
 @lru_cache
 def get_settings():
-    config_name = 'test_config.json' if os.getenv("TESTING") == "true" else 'config.json'
-    print(f"📄 LOADING CONFIG: {config_name}", flush=True)
-    return Settings.read_file(config_name)
+    config_name = 'test_config.json'
+    if os.getenv("TESTING") == "true":
+        return {
+            "host": "localhost",
+            "user": "test",
+            "password": "test",
+            "database": "test_db",
+            "port": 5432
+        }
+    else:
+        return Settings.read_file('config.json')
+
 
 @lru_cache
 def get_secrets():
@@ -28,26 +37,29 @@ def get_secrets():
 
 
 async def get_db():
-    db_config_file = "test_config.json" if os.getenv("TESTING") == "true" else "config.json"
+    db_config_file = "test_config.json" if os.getenv(
+        "TESTING") == "true" else "config.json"
     db = Database(**Settings.read_file(db_config_file))
     await db.create_pool()
     try:
         yield db
     finally:
         await db.close_pool()
-        
+
+
 def last_day_of_month(any_date):
     # The day 28 exists in every month. 4 days later, it's always next month
     next_month = any_date.replace(day=28) + timedelta(days=4)
     return next_month - timedelta(days=next_month.day)
 
 
-
 class UnicornException(Exception):
     """Custom Error Handler"""
-    def __init__(self, message: str, status_code:int):
+
+    def __init__(self, message: str, status_code: int):
         self.message = message
         self.status_code = status_code
+
 
 async def unicorn_exception_handler(request: Request, exc: UnicornException):
     return JSONResponse(
