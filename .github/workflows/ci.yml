@@ -47,7 +47,7 @@ jobs:
             "database": "test_db",
             "port": 5432
           }' > backend/app/config.json
-          
+
       - name: Debug config location
         run: |
           ls -la backend/app
@@ -57,7 +57,7 @@ jobs:
           TESTING: "true"
           DB_HOST: localhost
         run: |
-          cd backend
+          ls -la
           pytest --maxfail=1 --disable-warnings -q
   
   frontend:
