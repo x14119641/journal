@@ -40,15 +40,13 @@ jobs:
       
       - name: Generate test_config.json
         run: |
-          cd backend/tests
-          run: |
-            echo '{
-              "host": "localhost",
-              "user": "test",
-              "password": "test",
-              "database": "test_db",
-              "port": 5432
-            }' > test_config.json
+          echo '{
+            "host": "localhost",
+            "user": "test",
+            "password": "test",
+            "database": "test_db",
+            "port": 5432
+          }' > backend/app/test_config.json
 
       - name: Run Backend Tests
         env:
