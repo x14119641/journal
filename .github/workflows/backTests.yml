@@ -43,7 +43,7 @@ jobs:
           find . -name "__pycache__" -delete
 
       - name: Create database test_db
-        run: psql -h localhost -U postgres -c 'CREATE DATABASE IF NOT EXISTS "test_db";'
+        run: psql -h localhost -U postgres -p postgres -c 'CREATE DATABASE IF NOT EXISTS "test_db";'
         
       - name: Show Test Results Summary
         if: always()
