@@ -13,13 +13,15 @@ import os
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 password_hash = PasswordHash.recommended()
 
-settings = Settings.read_file()
-secrets = Secrets(**Settings.read_file('secrets.json'))
+Settings.load_env()
+
+settings = Settings.get_db_config()
+secrets = Secrets.load()
 
 
 async def get_db():
     db_config_file = "test_config.json" if os.getenv("TESTING") == "true" else "config.json"
-    db = Database(**Settings.read_file(db_config_file))
+    db = Database(**settings)
     await db.create_pool()
     try:
         yield db
