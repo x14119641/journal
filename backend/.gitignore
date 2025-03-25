@@ -5,6 +5,8 @@ __pycache__/
 .pytest_cache
 .pytest_cache
 
+backend/src/
+
 # Logs
 app/logs/
 *.log
