@@ -2,6 +2,7 @@ import os
 import json
 from functools import lru_cache
 from dotenv import load_dotenv
+print("📦 config.py loaded from", __file__)
 
 class Settings:
     @staticmethod

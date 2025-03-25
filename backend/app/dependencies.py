@@ -10,6 +10,9 @@ from datetime import datetime, timedelta
 import os
 from .config import Settings,Secrets
 
+
+print("🔧 dependencies.py loaded from", __file__)
+
 Settings.load_env()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
