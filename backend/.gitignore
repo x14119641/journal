@@ -21,6 +21,7 @@ user.json
 
 # Environments
 .env
+.env.test
 .venv
 env/
 venv/
