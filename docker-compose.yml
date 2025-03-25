@@ -3,6 +3,8 @@ services:
   backend:
     build:
       context: ./backend
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend/app:/app/app
     ports:
@@ -13,7 +15,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/journal_app
 
   db:
-    image: postgres:latest
+    image: postgres:17
     restart: always
     environment:
       - POSTGRES_USER=postgres
