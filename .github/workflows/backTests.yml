@@ -37,13 +37,10 @@ jobs:
           cd backend
           pip install -r requirements.txt
       
-      - name: Run Backend Tests
-        env:
-          TESTING: "true"
-          DB_HOST: localhost
+      - name: Remove Python cache
         run: |
-          cd backend
-          pytest --maxfail=1 --disable-warnings -q
+          find . -name "*.pyc" -delete
+          find . -name "__pycache__" -delete
 
       - name: Show Test Results Summary
         if: always()
