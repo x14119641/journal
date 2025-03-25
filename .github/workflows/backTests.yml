@@ -34,9 +34,9 @@ jobs:
           context: backend
           no-cache: true
               
-      - name: 💣 Nuke ghost src directory (if it exists)
-        run: |
-          rm -rf .backend/src
+      # - name: 💣 Nuke ghost src directory (if it exists)
+      #   run: |
+      #     rm -rf .backend/src
       - name: 💣 Clean ghost `backend/src` and old files
         run: |
           rm -rf backend/src
@@ -85,7 +85,14 @@ jobs:
           find . -name "config.py"
           grep -r "read_file" .
 
-     
+      - name: Run Single Backend Test
+          env:
+            TESTING: "true"
+            DB_HOST: localhost
+          run: |
+            cd backend/tests
+            pytest test_users.py::test_create_user --maxfail=1 --disable-warnings -q
+        
       - name: Show Test Results Summary
         if: always()
         run: |
