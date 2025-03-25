@@ -8,7 +8,7 @@ from httpx import ASGITransport, AsyncClient
 import asyncio
 import os
 
-# os.environ["TESTING"] = "true"
+os.environ["TESTING"] = "true"
 
 CREDENTIALS = {
             "username": "test_user", 
@@ -29,13 +29,7 @@ async def test_client():
 async def db():
     """Database fixture"""
     #  Test config must be in app
-    database = Database(**{
-            "host": "localhost",
-            "user": "test",
-            "password": "test",
-            "database": "test_db",
-            "port": 5432
-          })
+    database = Database(**Settings.read_file('test_config.json'))
     await database.create_pool()  
     # await database.create_schema() # If you dont  habve data in test it may be a good idea toc reate it beforehand.
     # Safety check

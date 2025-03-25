@@ -38,34 +38,13 @@ jobs:
           cd backend
           pip install -r requirements.txt
       
-      - name: Generate test_config.json
-        run: |
-          echo '{
-            "host": "localhost",
-            "user": "test",
-            "password": "test",
-            "database": "test_db",
-            "port": 5432
-          }' > backend/app/test_config.json
-
-      - name: Debug config location
-        run: |
-          ls -la backend/app
-
       - name: Run Backend Tests
         env:
-          PYTHONUNBUFFERED: 1
           TESTING: "true"
+          DB_HOST: localhost
         run: |
-          echo "🔧 ENV TESTING before tests: $TESTING"
-          export TESTING=true
-          echo "✅ ENV TESTING after export: $TESTING"
           cd backend
           pytest --maxfail=1 --disable-warnings -q
-      - name: Confirm environment from shell
-        run: |
-          echo "💡 CI ENV TESTING is: $TESTING"
-          env | grep TESTING || echo "TESTING is not set"
   
   frontend:
     name: Frontend Tests

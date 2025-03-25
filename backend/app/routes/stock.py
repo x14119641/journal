@@ -1,6 +1,7 @@
 from typing import List, Annotated, Optional
 from ..dependencies import get_db, last_day_of_month
 from ..services.database import Database
+from ..config import Settings
 from ..services.mini_scarper import get_current_outstanding_shares_ticker
 from fastapi import Depends, Response, status, HTTPException, APIRouter
 from .auth import get_current_active_user
