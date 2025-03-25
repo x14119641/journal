@@ -43,6 +43,9 @@ jobs:
       - name: Show contest.py contents
         run: |
           cat backend/tests/conftest.py
+      - name: Second check
+        run: |
+          cat /home/runner/work/journal/journal/backend/tests/conftest.py
             
       
       - name: Remove Python cache

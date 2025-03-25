@@ -10,7 +10,7 @@ from .routes import post, user, auth, stock, portfolio, transaction
 
 app = FastAPI()
 
-
+print('¡MAIN!')
 origins = [
     "http://localhost",
     "http://localhost:3000",

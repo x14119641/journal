@@ -10,6 +10,9 @@ import os
 
 os.environ["TESTING"] = "true"
 
+print("💥 CONFIG LOADED from:", __file__)
+
+
 CREDENTIALS = {
             "username": "test_user", 
             "email":"test_user@email.com",
