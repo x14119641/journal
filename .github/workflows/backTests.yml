@@ -47,8 +47,9 @@ jobs:
       
       - name: Remove Python cache
         run: |
-          find . -name "*.pyc" -delete
-          find . -name "__pycache__" -delete
+          echo "🧹 Cleaning all .pyc and __pycache__ folders"
+          find . -type d -name "__pycache__" -exec rm -r {} +
+          find . -type f -name "*.pyc" -delete
 
       - name: Run Single Backend Test
         env:
