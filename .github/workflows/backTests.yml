@@ -31,12 +31,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: backend
           no-cache: true
               
       - name: 💣 Nuke ghost src directory (if it exists)
         run: |
-          rm -rf backend/src
+          rm -rf .backend/src
       - name: 💣 Clean ghost `backend/src` and old files
         run: |
           rm -rf backend/src
