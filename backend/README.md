@@ -2,7 +2,7 @@
 
 ## Step1: Create the env files
 You need to set some configuration files in the following format and structure:
-### Main Configuration File for postgres: `app/env`
+### Main Configuration File for postgres: `app/env.env`
 ```
 DB_HOST=db
 DB_USER=user
