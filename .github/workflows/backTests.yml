@@ -39,8 +39,7 @@ jobs:
           rm -rf backend/src
           find . -name "__pycache__" -exec rm -r {} +
           find . -name "*.pyc" -delete
-      - name: Remove
-        run: rm -R ./backend/src
+
 
       - name: 💣 Clean ghost files from old structure
         run: |
