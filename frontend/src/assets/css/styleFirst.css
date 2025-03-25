@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* :root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+} */
+
+
+
+/* Fonts */
+@font-face {
+  font-family: 'Bazooka';
+  src: url('assets/fonts/Bazooka.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Titles and other text related styles */
+.chart-title{
+  @apply text-center text-xl font-bazooka text-cyan-500;
+}
+.datatable-title{
+  @apply text-center text-xl font-bazooka text-lime-400;
+}
+.summary-title{
+  @apply text-lg font-semibold text-indigo-300;
+}
+.summary-title-2{
+  @apply font-bold text-lime-300;
+}
+.summary-label{
+  @apply font-medium text-gray-200;
+}
+.summary-value{
+  @apply font-bold text-indigo-200;
+}
+.summary-value{
+  @apply font-bold text-blue-200;
+}
+.loading-text{
+  @apply mt-4 text-white text-lg;
+}
+
+.summary-text-label{
+  @apply text-lg font-semibold text-gray-300;
+}
+
+.summary-link{
+  @apply font-medium text-blue-500 hover:text-lime-500
+}
+
+.summary-link-separation{
+  @apply px-4 pl-8 mt-2 ;
+}
+
+.page-title{
+  @apply text-center text-2xl font-bazooka text-lime-400;
+}
+.input-label{
+  @apply block text-sm font-medium text-gray-300;
+}
+.input-style{
+  @apply mt-1 p-2 block w-full rounded-md  bg-slate-400 border-gray-300 shadow-sm focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50;
+}
+.datatable-cell-title{
+  @apply font-medium text-cyan-300;
+}
+.datatable-cell-text{
+  @apply text-sm text-blue-200;
+}
+.datatable-cell-link{
+  @apply text-lime-300 hover:underline;
+}
+.navbar-title{
+  @apply text-lime-500 font-bazooka text-2xl font-semibold whitespace-nowrap;
+}
+.navbar-text{
+  @apply text-lime-500 font-bazooka inline self-center font-semibold whitespace-nowrap;
+}
+
+/* Special Styles */
+.dolar-style{
+  @apply font-bazooka text-lime-500;
+}
+.dolar-style-title{
+  @apply text-2xl font-bazooka text-lime-500;
+}
+.email-style{
+  @apply text-blue-400;
+}
+.account-value-style {
+  @apply text-emerald-300;
+}
+.money-positive-style {
+  @apply text-green-300;
+}
+.money-negative-style {
+  @apply text-red-300;
+}
+.dropdown-style {
+ @apply bg-gray-700  border border-lime-300 rounded-lg shadow-lg z-10;
+}
+.dropdown-text{
+  @apply text-indigo-300 hover:bg-gray-100 hover:text-gray-800;
+}
+.calendar-months-button{
+  @apply bg-slate-700 text-gray-100 hover:bg-gray-300 hover:text-gray-800 focus:ring-gray-400;
+}
+.calendar-months-button-selected{
+  @apply bg-indigo-700 text-gray-100 hover:bg-gray-300 hover:text-gray-800 focus:ring-gray-400;
+}
+.calendar-title{
+  @apply text-center text-xl font-bazooka text-lime-500;
+}
+.calendar-days{
+  @apply text-lg text-blue-200 font-bold ;
+}
+.calendar-cell-style{
+  @apply bg-slate-700 border-gray-700;
+}
+.calendar-cell-day{
+ @apply font-bold text-lg text-gray-300;  
+}
+.calendar-ticker{
+  @apply text-indigo-300 hover:underline hover:text-lime-300 truncate;
+}
+.calendar-dividend{
+  @apply font-bold text-green-400 ml-1;
+}
+.calendar-show-more{
+ @apply text-blue-500 hover:text-blue-600;
+}
+.searchbox-input-style{
+  @apply text-sm text-cyan-300 bg-gray-700 border border-slate-600  rounded-lg  focus:ring-lime-400 focus:border-lime-300 ;
+}
+.searchbox-input-style::placeholder{
+  @apply text-sm italic text-cyan-300 ;
+}
+.searchbox-ul-style{
+  @apply  bg-gray-700 border border-slate-600 rounded-md shadow-lg;
+}
+.searchbox-li-style{
+  @apply truncate text-sm  hover:bg-gray-400 hover:text-stone-900;
+}
+.searchbox-ticker-style{
+  @apply font-bold text-lime-300 ;
+}
+.searchbox-companyname-style{
+  @apply text-sm text-gray-200 ;
+}
+/* 
+Must Need (layouts) 
+*/
+/* chart container sets a high to the chart */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 400px; /* Ensure the container has a defined height */
+
+}
+
+/* slate box with rounded borders and shadow */
+.slate-container{
+  @apply bg-white rounded-lg shadow-lg min-w-full md:min-w-0 sm:min-w-48 dark:bg-gray-800 
+}

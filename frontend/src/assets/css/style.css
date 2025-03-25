@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+ 
+/* Fonts */
+@font-face {
+  font-family: 'Bazooka';
+  src: url('@/assets/fonts/bazooka.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Use Tailwind Utility Classes for `body` */
+body {
+  @apply bg-gradient-to-b from-gray-500  via-gray-400 to-gray-500  dark:from-black dark:via-[#191919] dark:to-black;
+}
+/* Body gradient */
+/* body {
+  @apply bg-gradient-to-r  from-gray-950 via-gray-950 to-gray-900 ;
+} */
+
+/* Important laayout*/
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 400px; /* Ensure the container has a defined height */
+
+}
+.container-component {
+  @apply backdrop-blur-lg 
+    bg-white/10 dark:bg-gray-800/30 
+    border border-white/10 dark:border-white/20 
+    text-white 
+    rounded-xl 
+    shadow-md 
+    ;
+}
+.input-style{
+  @apply mt-1 p-2 block w-full rounded-lg  bg-slate-400 border-gray-300 shadow-sm focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50;
+}
+.input-style::placeholder{
+  @apply  text-sm font-medium italic   text-gray-800 dark:text-slate-800;
+}
+.input-dropdown-style{
+  @apply mt-1 p-2 block w-full rounded-lg  bg-slate-900 border-gray-300 shadow-sm focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50;
+}
+
+/* Specific style for dropdowns (select elements) */
+select.input-style {
+  @apply rounded-lg bg-gray-800 dark:bg-blue-800 dark:text-white appearance-none pr-10;
+}
+
+.button-add{
+  @apply font-medium shadow-sm px-4 py-2.5 rounded-lg text-gray-800 dark:text-white bg-green-400 hover:bg-green-500 dark:bg-lime-600 dark:hover:bg-lime-500 ;
+}
+.button-delete{
+  @apply  font-medium shadow-sm px-4 py-2.5 rounded-lg text-gray-800 dark:text-white bg-red-400 hover:bg-blue-500 dark:bg-red-600 dark:hover:bg-red-500 ;
+}
+.button-blue{
+  @apply  font-medium shadow-sm px-4 py-2.5 rounded-lg text-gray-800 dark:text-white bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 ;
+}
+
+/* Styles */
+.title-component{
+  @apply font-bazooka text-lg text-lime-400 dark:text-primary
+}
+.subtitle-component{
+  @apply text-lg font-semibold text-violet-600 dark:text-violet-400;
+}
+.text-label{
+  @apply font-bold text-gray-100 dark:text-secondary;
+}
+.text-value{
+  @apply font-bold text-gray-900 dark:text-gray-300;
+}
+.text-error{
+  @apply font-bold text-red-700 dark:text-red-500 ;
+}
+.text-info{
+  @apply font-bold text-blue-600 dark:text-blue-500 ;
+}
+.money-positive{
+  @apply font-bold text-green-400 dark:text-green-400;
+}
+.money-negative{
+  @apply font-bold text-red-500 dark:text-red-400;
+}
+.chart-title{
+  @apply text-center text-xl font-bazooka text-lime-300 dark:text-cyan-500;
+}

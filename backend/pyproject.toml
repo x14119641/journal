@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = "MAnual Journal to sace trades and check statistics."
+authors = ["x14119641 <daniel.gil.romero24@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["all"], version = "^0.115.6"}
+pandas = "^2.2.3"
+asyncpg = "^0.30.0"
+pwdlib = {extras = ["argon2"], version = "^0.2.1"}
+pytest = "^8.3.4"
+pytest-asyncio = "^0.25.1"
+pyjwt = {extras = ["crypto"], version = "^2.10.1"}
+yfinance = "^0.2.52"
+httpx = "^0.28.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
