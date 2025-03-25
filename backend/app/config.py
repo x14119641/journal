@@ -17,9 +17,7 @@ class Settings(BaseSettings):
     @staticmethod
     def load_env():
         env_file = ".env.test" if os.getenv("TESTING") == "true" else ".env"
-        print('ENV FILE; ', env_file)
-        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), env_file)
-        load_dotenv(dotenv_path=env_path)
+        load_dotenv(dotenv_path=env_file)
 
     @staticmethod
     def get_db_config():
