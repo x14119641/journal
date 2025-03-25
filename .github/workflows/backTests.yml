@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend:
-    name: Backend Tests
+    name: Backend Tests 2
     runs-on: ubuntu-latest
 
     services:
@@ -31,7 +31,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: backend
               
       - name: 💣 Nuke ghost src directory (if it exists)
         run: |
