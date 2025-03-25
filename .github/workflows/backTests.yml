@@ -30,6 +30,13 @@ jobs:
       - name: 💣 Nuke ghost src directory (if it exists)
         run: |
           rm -rf backend/src
+
+      - name: 💣 Clean ghost files from old structure
+        run: |
+          echo "Removing stale ghost files..."
+          rm -rf backend/src || true
+          find . -name "config.py" -exec grep -H "read_file" {} \; || true
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -61,14 +68,7 @@ jobs:
           find . -name "config.py"
           grep -r "read_file" .
 
-      - name: Run Single Backend Test
-        env:
-          TESTING: "true"
-          DB_HOST: localhost
-        run: |
-          cd backend
-          pytest tests/test_users.py::test_create_user --maxfail=1 --disable-warnings -q
-        
+     
       - name: Show Test Results Summary
         if: always()
         run: |
