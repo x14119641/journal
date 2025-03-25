@@ -1,10 +1,6 @@
-from fastapi import FastAPI, Response, status, HTTPException
-from fastapi.params import Body
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .schema import Post, PostOut, PostCreate, User, UserCreate, UserResponse
-from .dependencies import oauth2_scheme, password_hash, UnicornException, unicorn_exception_handler
-from typing import List
-import random
+from .dependencies import  UnicornException, unicorn_exception_handler
 from .routes import post, user, auth, stock, portfolio, transaction
 
 
