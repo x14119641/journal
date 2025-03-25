@@ -85,7 +85,8 @@ jobs:
         env:
           TESTING: "true"
           DB_HOST: localhost
-        context: backend
+        with:
+          context: backend
         run: |
           pytest test_users.py::test_create_user --maxfail=1 --disable-warnings -q
         
