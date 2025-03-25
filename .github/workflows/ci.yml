@@ -14,7 +14,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -45,6 +45,11 @@ jobs:
         run: |
           cd backend
           pytest --maxfail=1 --disable-warnings -q
+          
+      - name: Show Test Results Summary
+        if: always()
+        run: |
+          echo "✅ Tests completed. See logs for details."
   
   frontend:
     name: Frontend Tests
