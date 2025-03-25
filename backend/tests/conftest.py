@@ -32,7 +32,7 @@ async def db():
     #  Test config must be in app
     database = Database(**Settings.get_db_config())
     await database.create_pool()  
-    # await database.create_schema() # If you dont  habve data in test it may be a good idea toc reate it beforehand.
+    await database.create_schema() # If you dont  habve data in test it may be a good idea toc reate it beforehand.
     # Safety check
     # db_name = await database.fetchone("SElect current_database();")
     # assert db_name == "test_db", "Tests only in test db!!"

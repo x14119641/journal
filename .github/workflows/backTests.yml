@@ -36,6 +36,14 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
+
+      - name: Show dependencies.py contents
+        run: |
+          cat backend/app/dependencies.py
+      - name: Show contest.py contents
+        run: |
+          cat backend/tests/conftest.py
+            
       
       - name: Remove Python cache
         run: |
