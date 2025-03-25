@@ -27,6 +27,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: 💣 Nuke ghost src directory (if it exists)
+        run: |
+          rm -rf backend/src
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -57,7 +60,7 @@ jobs:
         run: |
           find . -name "config.py"
           grep -r "read_file" .
-          
+
       - name: Run Single Backend Test
         env:
           TESTING: "true"
