@@ -1,19 +1,32 @@
 # Backend: FastAPI backend + PostgresSQL #
 
-## Step1: Create the configuration files .env and .env.test
+## Step1: Create the configuration files 
 You need to set some configuration files in the following format and structure:
-### Main Configuration File for postgres: `.env`
+### Main Configuration File for postgres: `app/config.json`
+```json
+{
+    "host": "127.0.0.1",
+    "user": "",
+    "password": "",
+    "database": "journal_app"
+}
 ```
-DB_HOST="db if docker" 
-DB_USER=db_username
-DB_PASSWORD=the_password
-DB_NAME=db_name
-DB_PORT=5432
-
-# Secrets
-SECRET_KEY=""
-ACCESS_TOKEN_EXPIRE_MINUTES=360
-ALGORITHM="HS256"
+### Test Configuration File for user:**test** in postgres: `app/test_config.json`
+```json
+{
+    "host": "127.0.0.1",
+    "user": "test",
+    "password": "",
+    "database": "journal_app"
+}
+```
+### Add secrets file: `app/secrets.json`
+```json
+{
+    "SECRET_KEY": "your secret",
+    "ACCESS_TOKEN_EXPIRE_MINUTES": 30,
+    "ALGORITHM": "HS256"
+}
 ```
 
 ## Step2: Set Up PostgresSQL #

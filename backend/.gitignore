@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache
-.pytest_cache
-
-backend/src/
 
 # Logs
 app/logs/
@@ -24,7 +21,6 @@ user.json
 
 # Environments
 .env
-.env.test
 .venv
 env/
 venv/

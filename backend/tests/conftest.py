@@ -8,18 +8,13 @@ from httpx import ASGITransport, AsyncClient
 import asyncio
 import os
 
-
 os.environ["TESTING"] = "true"
-
-print("💥 CONFIG LOADED from:", __file__)
-
 
 CREDENTIALS = {
             "username": "test_user", 
             "email":"test_user@email.com",
             "password":"test_pass"}
     
-Settings.load_env()
 
 @pytest.fixture(scope="session")
 async def test_client():
@@ -34,9 +29,9 @@ async def test_client():
 async def db():
     """Database fixture"""
     #  Test config must be in app
-    database = Database(**Settings.get_db_config())
+    database = Database(**Settings.read_file('test_config.json'))
     await database.create_pool()  
-    await database.create_schema() # If you dont  habve data in test it may be a good idea toc reate it beforehand.
+    # await database.create_schema() # If you dont  habve data in test it may be a good idea toc reate it beforehand.
     # Safety check
     # db_name = await database.fetchone("SElect current_database();")
     # assert db_name == "test_db", "Tests only in test db!!"

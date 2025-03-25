@@ -5,24 +5,21 @@ from fastapi.responses import JSONResponse
 # from ..app.main import app
 from pwdlib import PasswordHash
 from .services.database import Database
-
+from .config import Settings, Secrets
 from datetime import datetime, timedelta
 import os
-from .config import Settings,Secrets
 
-
-print("🔧 dependencies.py loaded from", __file__)
-
-Settings.load_env()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 password_hash = PasswordHash.recommended()
 
-settings = Settings.get_db_config()
-secrets = Secrets.load()
+settings = Settings.read_file()
+secrets = Secrets(**Settings.read_file('secrets.json'))
+
 
 async def get_db():
-    db = Database(**Settings.get_db_config())
+    db_config_file = "test_config.json" if os.getenv("TESTING") == "true" else "config.json"
+    db = Database(**Settings.read_file(db_config_file))
     await db.create_pool()
     try:
         yield db

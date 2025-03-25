@@ -1,12 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
+from fastapi.params import Body
 from fastapi.middleware.cors import CORSMiddleware
-from .dependencies import  UnicornException, unicorn_exception_handler
+from .schema import Post, PostOut, PostCreate, User, UserCreate, UserResponse
+from .dependencies import oauth2_scheme, password_hash, UnicornException, unicorn_exception_handler
+from typing import List
+import random
 from .routes import post, user, auth, stock, portfolio, transaction
 
 
 app = FastAPI()
 
-print('¡MAIN!')
+
 origins = [
     "http://localhost",
     "http://localhost:3000",
