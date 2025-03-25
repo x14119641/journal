@@ -1,0 +1,81 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [main ]
+    types: [synchronize]
+
+jobs:
+  backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      
+      - name: Remove Python cache
+        run: |
+          find . -name "*.pyc" -delete
+          find . -name "__pycache__" -delete
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      
+      - name: Run Backend Tests
+        env:
+          TESTING: "true"
+          DB_HOST: localhost
+        run: |
+          cd backend
+          pytest --maxfail=1 --disable-warnings -q
+
+      - name: Show Test Results Summary
+        if: always()
+        run: |
+          echo "✅ Tests completed. See logs for details."
+  
+  frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+        
+      - name: Run Frontend Tests
+        run: |
+          cd frontend
+          npx vitest run
+
+
