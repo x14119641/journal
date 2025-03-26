@@ -13,7 +13,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/journal_app
 
   db:
-    image: postgres:latest
+    image: postgres:17
     restart: always
     environment:
       - POSTGRES_USER=postgres

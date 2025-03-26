@@ -17,10 +17,10 @@ Settings.load_env()
 
 settings = Settings.get_db_config()
 secrets = Secrets.load()
+print('SEttings: ', settings )
 
 
 async def get_db():
-    db_config_file = "test_config.json" if os.getenv("TESTING") == "true" else "config.json"
     db = Database(**settings)
     await db.create_pool()
     try:

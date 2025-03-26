@@ -1,14 +1,24 @@
 import pytest, pytest_asyncio
-from app.main import app
-from app.services.database import Database
-from app.config import Settings
-from app.dependencies import password_hash
+import os, sys
+
+try:
+    from app.main import app
+    from app.services.database import Database
+    from app.config import Settings
+    from app.dependencies import password_hash
+except ImportError:
+    # To run in docker
+    from app.app.main import app
+    from app.app.services.database import Database
+    from app.app.config import Settings
+    from app.app.dependencies import password_hash
+    
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
-import asyncio
-import os
 
-os.environ["TESTING"] = "true"
+
+
+# os.environ["TESTING"] = "true"
 
 CREDENTIALS = {
             "username": "test_user", 
@@ -16,7 +26,6 @@ CREDENTIALS = {
             "password":"test_pass"}
     
 Settings.load_env()
-
 
 @pytest.fixture(scope="session")
 async def test_client():

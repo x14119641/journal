@@ -8,8 +8,8 @@ class Settings:
     @staticmethod
     @lru_cache()
     def load_env():
-        env_path = ".env.test" if os.getenv("TESTING") == "true" else ".env"
-        load_dotenv(dotenv_path=env_path, override=True)
+        filename = ".env.test" if os.getenv("TESTING") == "true" else ".env"
+        load_dotenv(dotenv_path=filename, override=True)
 
     @staticmethod
     def get_db_config():
