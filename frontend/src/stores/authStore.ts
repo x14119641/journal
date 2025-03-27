@@ -6,9 +6,11 @@ import { jwtDecode } from 'jwt-decode';
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: localStorage.getItem('token') || '',
+        refreshToken: localStorage.getItem('refreshToken') || '',
         username: '',
         id:'',
         errorMessage: '',
+        
     }),
     actions: {
         isTokenExpired() {
@@ -27,7 +29,10 @@ export const useAuthStore = defineStore('auth', {
                 });
                 console.log("API Response:", response.data); 
                 this.token = response.data.access_token;
+                this.refreshToken = response.data.refresh_token;
                 localStorage.setItem('token', this.token);
+                localStorage.setItem('refreshToken', this.refreshToken);
+                
                 await this.fetchUser();
                 router.push('/profile'); 
             } catch (error) {
@@ -36,10 +41,7 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         async fetchUser() {
-            if (this.isTokenExpired()) {
-                this.logout();
-                return;
-            }
+
             try {
                 const response = await api.get('http://localhost:8000/users/me', {
                     headers: {Authorization: `Bearer ${this.token}`,},
@@ -60,18 +62,21 @@ export const useAuthStore = defineStore('auth', {
                 console.error('Error fetching user data:', error);
             }
         },
-        logout() {
-            this.token = ''
-            this.username = ''
-            this.username = ''
-            localStorage.removeItem('token')
+        async logout() {
+            await api.post('/logout', {
+                refresh_token: this.refreshToken
+                }
+              );
+            console.log("The token: ", this.refreshToken)
+            this.removeToken()
             router.push('/login')
         },
         removeToken() {
             this.token = ''
             this.username = ''
-            this.username = ''
-            localStorage.removeItem('token')
+            this.refreshToken = ''
+            localStorage.removeItem('ref')
+            localStorage.removeItem('refreshToken')
         },
     },
 });

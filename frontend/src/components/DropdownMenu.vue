@@ -1,9 +1,7 @@
 <template>
-  <span v-if="authStore.username" class="navbar-text">
-    Hello, {{ authStore.username }}
-  </span>
+  <span v-if="username" class="navbar-text"> Hello, {{ username }} </span>
 
-  <div v-if="authStore.username" class="pr-2">
+  <div v-if="username" class="pr-2">
     <button
       @click="toggleDropdown"
       :class="[
@@ -29,9 +27,12 @@
     <div
       v-if="isDropdownOpen"
       v-click-away="closeDropdown"
-      class="absolute right-4 mt-1 w-40 dropdown-style "
+      class="absolute right-4 mt-1 w-40 dropdown-style"
     >
-      <router-link to="/funds" class="block px-4 py-2 dropdown-text rounded-t-lg">
+      <router-link
+        to="/funds"
+        class="block px-4 py-2 dropdown-text rounded-t-lg"
+      >
         Funds
       </router-link>
       <router-link to="/transactions" class="block px-4 py-2 dropdown-text">
@@ -41,22 +42,25 @@
         Profile
       </router-link>
       <!-- Dark Mode Toggle Row -->
-      <div class="flex items-center justify-between px-4 py-2 dropdown-text"
-                 @click.stop>  <!-- Stop propagation here -->
-              <span class="select-none">Theme</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" />
-                <DarkModeToggle />
-            </label>
-            </div>
-
-      <router-link
-        to="/logout"
-        @click="closeDropdown"
-        class="block px-4 py-2 dropdown-text rounded-b-lg"
+      <div
+        class="flex items-center justify-between px-4 py-2 dropdown-text"
+        @click.stop
       >
-        Logout
-      </router-link>
+        <!-- Stop propagation here -->
+        <span class="select-none">Theme</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" class="sr-only peer" />
+          <DarkModeToggle />
+        </label>
+      </div>
+      <!-- <div class="flex dropdown-text"> -->
+        <button
+          @click="logout"
+          class="block w-full text-left px-4 py-2 dropdown-text rounded-b-lg"
+        >
+          Logout
+        </button>
+      <!-- </div> -->
     </div>
   </div>
 </template>
@@ -70,21 +74,25 @@ import DarkModeToggle from "./DarkModeToggle.vue";
 const authStore = useAuthStore();
 const navBarStore = useNavBarStore();
 const isDropdownOpen = computed(() => navBarStore.isDropdownOpen);
+const username = computed(() => authStore.username);
 const toggleDropdown = () => {
   navBarStore.toggleDropdown();
+};
+const logout = async () => {
+  await authStore.logout();
 };
 const closeDropdown = () => {
   navBarStore.closeDropdown();
 };
 </script>
-<style >
-.navbar-text{
+<style>
+.navbar-text {
   @apply text-primary font-bazooka inline self-center font-semibold whitespace-nowrap;
 }
 .dropdown-style {
- @apply bg-gray-300 dark:bg-gray-700  border border-lime-300 rounded-lg shadow-lg z-10;
+  @apply bg-gray-300 dark:bg-gray-700  border border-lime-300 rounded-lg shadow-lg z-10;
 }
-.dropdown-text{
+.dropdown-text {
   @apply dark:text-indigo-300 hover:bg-gray-100 hover:text-gray-800;
 }
 </style>

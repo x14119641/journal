@@ -93,7 +93,8 @@ const onSubmit = async () => {
         email: email.value,
         password: password.value,
       });
-      router.push("login");
+      errorMessage.value = '';
+      router.push('/login');
     } catch (error) {
       // Improve error logging
       if (error.response) {

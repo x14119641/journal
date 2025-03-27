@@ -12,10 +12,15 @@ app.use(createPinia()).use(VueClickAway)
 
 
 // Fetch user if click refresh and user is logged in and token is ok 
-const authStore = useAuthStore();
-authStore.fetchUser().then(() => {
-  app.use(router);
-  app.mount('#app');
-});
+
+app.use(router);
+app.mount('#app');
+// to set token when lading 
+// const authStore = useAuthStore();
+// if (authStore.token) {
+//   authStore.setTokenExpiresAt();
+//   authStore.startRefreshTimer(); 
+//   authStore.fetchUser();
+// }
 
 

@@ -68,8 +68,8 @@ const errorMessage = computed(() => authStore.errorMessage)
 const username = ref("");
 const password = ref("");
 
-const onSubmit = () => {
-  authStore.login(username.value, password.value);
+const onSubmit = async () => {
+  await authStore.login(username.value, password.value);
 };
 
 

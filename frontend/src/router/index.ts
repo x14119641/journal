@@ -17,16 +17,11 @@ import ColorsPage from '../pages/ColorsPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import ForgotPasswordPage from '../pages/ForgotPasswoPage.vue';
 
-
 const isTest = process.env.NODE_ENV ==="test";
-
+import api from '../services/api';
 
 const routes = [
   { path: '/', name: 'Demo0', component: DemoPage, meta: { requiresAuth: false }},
-  { path: '/logout', name: 'Logout', beforeEnter: (to, from, next) => {
-    const authStore = useAuthStore();
-    authStore.logout()
-  }},
   { path: '/demo', name: 'Demo', component: DemoPage, meta: { requiresAuth: false } },
   { path: '/hello', name: 'Hello', component: HelloPage, meta: { requiresAuth: false } },
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
@@ -50,30 +45,55 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+let isRefreshing = false;
+let refreshPromise: Promise<any> | null = null;
+
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  // Dubugging
-  // console.log('Token:', authStore.token); 
-  // console.log('Requires Auth:', to.meta.requiresAuth); 
-  
-
-  const isAuthenticated = !!authStore.token;
   const isTokenExpired = authStore.isTokenExpired();
-  
-  // console.log('Token isAuthenticated:', isAuthenticated); 
-  // console.log('Token Expired:', isTokenExpired); 
 
-  if (isTokenExpired) {
-    console.log("Token is indeed expired: ", isTokenExpired)
-    authStore.removeToken();
+  if (isTokenExpired && authStore.refreshToken) {
+    console.log('🔁 Token expired — attempting refresh');
+
+    try {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshPromise = api.post('/refresh', null, {
+          headers: {
+            Authorization: `Bearer ${authStore.refreshToken}`
+          }
+        });
+        const response = await refreshPromise;
+
+        authStore.token = response.data.access_token;
+        authStore.refreshToken = response.data.refresh_token;
+        await authStore.fetchUser()
+        
+        isRefreshing = false;
+        refreshPromise = null;
+      } else {
+        // Wait for the other refresh to complete
+        await refreshPromise;
+      }
+
+      next(); // ✅ Proceed after refresh
+      return;
+    } catch (err) {
+      console.warn('🔒 Refresh failed, logging out...');
+      authStore.removeToken();
+      isRefreshing = false;
+      refreshPromise = null;
+      return next('/login');
+    }
   }
 
+  // Not authenticated and route requires auth
   if (to.meta.requiresAuth && !authStore.token) {
-    console.log('Redirecting to login');
-    next('/login');
-  } else {
-    next(); 
+    console.log('🔐 No token, redirecting to login...');
+    return next('/login');
   }
+
+  next(); // ✅ Default forward
 });
 
 export default router;

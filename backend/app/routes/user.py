@@ -35,8 +35,8 @@ async def create_user(user:UserCreate, db:Database=Depends(get_db)):
         "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *", 
         user.username, user.email, hashed_pwd,)
 
-    data = await db.fetchrow("SELECT * FROM users WHERE id = ($1)", row['id'],)
-    return data
+    # data = await db.fetchrow("SELECT * FROM users WHERE id = ($1)", row['id'],)
+    return User(**row)
 
 
 

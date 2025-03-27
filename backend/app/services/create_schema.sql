@@ -176,7 +176,17 @@ CREATE TABLE IF NOT EXISTS portfolio_lots (
 CREATE INDEX IF NOT EXISTS idx_portfolio_lots_user_ticker ON portfolio_lots (user_id, ticker);
 
 
-
+-- Create Refresh
+CREATE TABLE refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    token TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    expires_at TIMESTAMPTZ,
+	ip_address TEXT,
+    user_agent TEXT, 
+	revoked BOOLEAN DEFAULT FALSE
+);
 
 -- HEre will store the "deposits" withraws" or something that extracts or puts money in it the deposi
 -- We dont need it anymore because we store everything in ransactions, balance and transactions_history
