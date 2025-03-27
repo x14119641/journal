@@ -51,6 +51,15 @@ export const useAuthStore = defineStore('auth', {
                 console.error('Error fetching user data:', error);
             }
         },
+        async resetPassword(email:string) {
+            try {
+                const response = await api.post('http://localhost:8000/auth/reset-password', { email });
+                console.log(response)
+                this.errorMessage = response.data;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        },
         logout() {
             this.token = ''
             this.username = ''

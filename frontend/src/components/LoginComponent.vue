@@ -45,6 +45,12 @@
         >Register here</router-link
       >.
     </p>
+    <p class="text-center  mt-4">
+      Forgot Password?
+      <router-link to="/forgot-password"  class="register-link-style"
+        >Click here</router-link
+      >.
+    </p>
     <p v-if="errorMessage" class="mt-4 text-error">{{ errorMessage }}</p>
   </div>
 

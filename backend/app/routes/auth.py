@@ -1,7 +1,8 @@
-from fastapi import Depends, Response, status, HTTPException, APIRouter
+from fastapi import Depends, status, HTTPException, APIRouter, BackgroundTasks
 from ..dependencies import get_db, password_hash, secrets, oauth2_scheme
-from ..schema import (Post, PostCreate, User, UserCreate, UserResponse, UserLogin,
+from ..schema import (Post, PostCreate, ResetPasswordRequest, User, UserCreate, UserResponse, UserLogin,
                      Token, TokenData)
+from ..services import email_service
 from ..services.database import Database
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List, Annotated
@@ -107,3 +108,10 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> T
     )
     print(access_token)
     return Token(access_token=access_token, token_type="bearer")
+
+@router.post("/auth/reset-password")
+def reset_password(transaction:ResetPasswordRequest, background_tasks: BackgroundTasks):
+    # reset_link = generate_reset_link(email)
+    reset_link = f"https://yourfrontend.com/reset-password?token=dummy-token"
+    background_tasks.add_task(email_service.send_reset_email, transaction.email, reset_link)
+    return {"message": "If that email exists, a reset link was sent."}

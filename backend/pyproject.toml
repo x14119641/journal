@@ -16,6 +16,7 @@ pytest-asyncio = "^0.25.1"
 pyjwt = {extras = ["crypto"], version = "^2.10.1"}
 yfinance = "^0.2.52"
 httpx = "^0.28.1"
+brevo-python = "^1.1.2"
 
 
 [build-system]

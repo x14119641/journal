@@ -65,7 +65,11 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
     
+
+class ResetPasswordRequest(BaseModel):
+    email: str
     
+     
 class Vote(BaseModel):
     post_id: int
     liked: conint(le=1)
