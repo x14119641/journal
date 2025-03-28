@@ -53,13 +53,34 @@ export const useAuthStore = defineStore('auth', {
                 console.error('Error fetching user data:', error);
             }
         },
-        async resetPassword(email:string) {
+        async forgotPassword(email:string) {
             try {
-                const response = await api.post('http://localhost:8000/auth/reset-password', { email });
+                const response = await api.post('http://localhost:8000/forgot-password', { email });
                 console.log(response)
                 this.errorMessage = response.data;
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error('Error resetPassword:', error);
+            }
+        },
+        async resetPassword(password:string) {
+            try {
+                const response = await api.post('http://localhost:8000/reset-password', { password },
+                    {
+                        headers: {
+                          Authorization: `Bearer ${this.token}`
+                        }
+                      }
+                );
+                console.log(response)
+                this.token = response.data.access_token;
+                this.refreshToken = response.data.refresh_token;
+                localStorage.setItem('token', this.token);
+                localStorage.setItem('refreshToken', this.refreshToken);
+                
+                await this.fetchUser();
+                router.push('/profile'); 
+            } catch (error) {
+                console.error('ErrorupdatePassword:', error);
             }
         },
         async logout() {

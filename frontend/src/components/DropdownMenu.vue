@@ -75,6 +75,7 @@ const authStore = useAuthStore();
 const navBarStore = useNavBarStore();
 const isDropdownOpen = computed(() => navBarStore.isDropdownOpen);
 const username = computed(() => authStore.username);
+console.log('Navbar username:', authStore.username)
 const toggleDropdown = () => {
   navBarStore.toggleDropdown();
 };

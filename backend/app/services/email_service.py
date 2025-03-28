@@ -68,7 +68,7 @@ def send_reset_email(to_email: str, reset_link: str):
     }
 
     response = requests.post("https://api.brevo.com/v3/smtp/email", headers=headers, json=payload)
-    
+    # print('Resoponse: ', response)
     if response.status_code == 201:
         return {"message":"Email sent successfully"}
     else:

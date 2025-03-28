@@ -1,4 +1,4 @@
-from fastapi import Depends, status, HTTPException, APIRouter, BackgroundTasks, Request
+from fastapi import Depends, status, HTTPException, APIRouter, BackgroundTasks, Request,Header
 from ..dependencies import get_db, password_hash, secrets, oauth2_scheme
 from ..schema import (Post, PostCreate, RefreshToken, ResetPasswordRequest, User, UserCreate, UserResponse, UserLogin,
                      Token, TokenData)
@@ -197,12 +197,76 @@ async def refresh_token(
         refresh_token=new_refresh_token
     )
 
-@router.post("/auth/reset-password")
-def reset_password(transaction:ResetPasswordRequest, background_tasks: BackgroundTasks):
-    # reset_link = generate_reset_link(email)
-    reset_link = f"https://yourfrontend.com/reset-password?token=dummy-token"
+@router.post("/forgot-password")
+async def forgot_password(transaction:ResetPasswordRequest, background_tasks: BackgroundTasks, db: Annotated[Database, Depends(get_db)]):
+    user = await db.fetchrow("SELECT * FROM users WHERE email =$1", transaction.email)
+    print('USER: ', user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    reset_token = create_access_token(
+        data={"sub": user['username']},
+        expires_delta=timedelta(minutes=15)
+    )
+    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
     background_tasks.add_task(email_service.send_reset_email, transaction.email, reset_link)
+    print('EMail SENT')
     return {"message": "If that email exists, a reset link was sent."}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    password: str,
+    request: Request,
+    db: Annotated[Database, Depends(get_db)],) -> Token:
+    auth_header = request.headers.get("authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        payload = jwt.decode(token, secrets.SECRET_KEY, algorithms=[secrets.ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+
+    user = await get_user(username)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    hashed_pwd = password_hash.hash(password)
+    updated_user  = await db.fetchrow(
+        "UPDATE users SET password = $1 WHERE user_id = $2 RETURNING *",
+        hashed_pwd, user.id
+    )
+    if not updated_user:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+    
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.headers.get("x-forwarded-for", request.client.host)
+    
+    access_token_expires = timedelta(minutes=60)
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
+    refresh_token_expires = timedelta(days=7)
+    refresh_token = create_refresh_token(
+        data={"sub": username}, expires_delta=refresh_token_expires
+    )
+    # INsert into Token
+    expires_at = datetime.now(timezone.utc) + refresh_token_expires
+    await db.execute(
+        """
+        INSERT INTO refresh_tokens (user_id, token, expires_at, ip_address, user_agent)
+        VALUES ($1, $2, $3, $4, $5)
+        """,
+        user.id, refresh_token, expires_at, ip_address, user_agent
+    )
+    return Token(access_token=access_token, token_type="bearer", refresh_token=refresh_token)
 
 
 @router.post("/logout")

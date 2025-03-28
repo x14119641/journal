@@ -15,7 +15,8 @@ import TransactionsPage from '../pages/TransactionsPage.vue';
 import TransactionDetailPage from '../pages/TransactionDetailPage.vue';
 import ColorsPage from '../pages/ColorsPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
-import ForgotPasswordPage from '../pages/ForgotPasswoPage.vue';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.vue';
+import ResetPasswordPage from '../pages/ResetPasswordPage.vue';
 
 const isTest = process.env.NODE_ENV ==="test";
 import api from '../services/api';
@@ -38,6 +39,7 @@ const routes = [
   { path: '/stocks/:ticker', name: 'Stocks', component: StockPage, meta: { requiresAuth: false } },
   { path: '/register', name: 'Register', component: RegisterPage, meta: { requiresAuth: false } },
   { path: '/forgot-password', name: 'Forgot Password', component: ForgotPasswordPage, meta: { requiresAuth: false } },
+  { path: '/reset-password', name: 'Reset Password', component: ResetPasswordPage, meta: { requiresAuth: false } },
 ];
 
 const router = createRouter({

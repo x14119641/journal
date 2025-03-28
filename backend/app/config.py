@@ -27,11 +27,12 @@ class Secrets(BaseModel):
     REFRESH_SECRET_KEY:str
     ALGORITHM:str
     ACCESS_TOKEN_EXPIRE_MINUTES:int
+    
     @staticmethod
     def load():
         return Secrets(
             SECRET_KEY= os.getenv("SECRET_KEY", "dev-key"),
             ALGORITHM= os.getenv("ALGORITHM", "HS256"),
             REFRESH_SECRET_KEY=os.getenv("REFRESH_SECRET_KEY", ""),
-            ACCESS_TOKEN_EXPIRE_MINUTES= int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")),
+            ACCESS_TOKEN_EXPIRE_MINUTES= int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")),
         )
