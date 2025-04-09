@@ -69,36 +69,10 @@ router.beforeEach(async (to, from, next) => {
     return next('/login');
   }
 
-  // Try to refresh if token expired
-  if (isExpired && authStore.refreshToken) {
-    console.log('🔁 Token expired — attempting refresh');
-
-    try {
-      if (!isRefreshing) {
-        isRefreshing = true;
-        refreshPromise = api.post('/refresh', null, {
-          headers: {
-            Authorization: `Bearer ${authStore.refreshToken}`
-          }
-        });
-        const response = await refreshPromise;
-
-        authStore.token = response.data.access_token;
-        authStore.refreshToken = response.data.refresh_token;
-
-        await authStore.fetchUser(); // Must succeed or user is not logged in
-        isRefreshing = false;
-        refreshPromise = null;
-      } else {
-        await refreshPromise; // wait for the in-progress refresh
-      }
-    } catch (err) {
-      console.warn('🔒 Refresh failed, redirecting to login.');
-      authStore.removeToken(); // reset everything
-      isRefreshing = false;
-      refreshPromise = null;
-      return next('/login');
-    }
+  if (routeNeedsAuth && !authStore.token) {
+    console.warn('❌ No valid token — redirecting to login.');
+    authStore.removeToken();
+    return next('/login');
   }
 
   // After refresh, or if token is still valid, make sure user is loaded

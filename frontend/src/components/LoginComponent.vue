@@ -59,19 +59,27 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useAuthStore } from "../stores/authStore";
+import { onBeforeRouteLeave } from "vue-router";
 
 
 const authStore = useAuthStore();
 
-const errorMessage = computed(() => authStore.errorMessage)
+const errorMessage = ref<string>("");
 
 const username = ref("");
 const password = ref("");
 
 const onSubmit = async () => {
   await authStore.login(username.value, password.value);
+  errorMessage.value = authStore.errorMessage;
 };
 
+// Clean message error, cause if i go to register, an d then go back the error message still there
+onBeforeRouteLeave(() => {
+  username.value = '';
+  password.value = '';
+  errorMessage.value = '';
+});
 
 </script>
 

@@ -116,7 +116,7 @@ async def login(request: Request, # To get data form person trying to login
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=60)
+    access_token_expires = timedelta(minutes= secrets.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
@@ -145,13 +145,20 @@ async def refresh_token(
     user_agent = request.headers.get("user-agent")
     ip_address = request.headers.get("x-forwarded-for", request.client.host)
 
+    print("🔁 /refresh called")
+    print("Raw token:", token_data)
+
     try:
         payload = jwt.decode(token_data, secrets.REFRESH_SECRET_KEY, algorithms=[secrets.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=401, detail="Invalid refresh token")
-    except InvalidTokenError:
+        username = payload.get('sub')
+        print("Decoded payload:", payload)
+    except Exception as e:
+        print("❌ JWT decode failed:", str(e))
         raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    row = await db.fetchrow("SELECT * FROM refresh_tokens WHERE token = $1 AND revoked = FALSE", token_data)
+    print("DB token found:", row)
+
 
     # Check if refresh token is valid and not revoked
     row = await db.fetchrow(

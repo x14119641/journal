@@ -18,6 +18,7 @@ Settings.load_env()
 settings = Settings.get_db_config()
 secrets = Secrets.load()
 print('SEttings: ', settings )
+print('Secrets: ', secrets)
 
 
 async def get_db():

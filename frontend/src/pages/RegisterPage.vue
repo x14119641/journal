@@ -70,9 +70,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import api from "../services/api";
-import { useRouter } from "vue-router";
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
 
 const router = useRouter();
 const username = ref<string>("");
@@ -109,6 +109,13 @@ const onSubmit = async () => {
     errorMessage.value = "Email is invalid.";
   }
 };
+// Clean message error, cause if i go to register, an d then go back the error message still there
+onBeforeRouteLeave(() => {
+  username.value = '';
+  email.value = '';
+  password.value = '';
+  errorMessage.value = '';
+});
 </script>
 
 <style scoped>

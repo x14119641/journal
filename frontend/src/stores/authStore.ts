@@ -43,9 +43,7 @@ export const useAuthStore = defineStore('auth', {
         async fetchUser() {
 
             try {
-                const response = await api.get('http://localhost:8000/users/me', {
-                    headers: {Authorization: `Bearer ${this.token}`,},
-                });
+                const response = await api.get('http://localhost:8000/users/me');
                 console.log(response)
                 this.username = response.data.username;
                 this.id = response.data.id;
@@ -96,7 +94,7 @@ export const useAuthStore = defineStore('auth', {
             this.token = ''
             this.username = ''
             this.refreshToken = ''
-            localStorage.removeItem('ref')
+            localStorage.removeItem('token')
             localStorage.removeItem('refreshToken')
         },
     },

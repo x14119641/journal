@@ -16,7 +16,7 @@ async def get_balance(
         db: Database = Depends(get_db)):
     current_balance = await db.fetchone("SELECT get_balance(($1))", current_user.id)
     print("Balance:", current_balance)
-    return {'value': current_balance}
+    return {'value': current_balance or 0}
 
 
 @router.get("/balance/history")
@@ -36,20 +36,9 @@ async def get_balance_history(
       { 'record_date': "2024-05-01", 'balance': 5600.8 },
       { 'record_date': "2024-06-01", 'balance': 5900.3 },
     ]
-    print(results)
+    # print(results)
     return results
 
-@router.get("/get_portfolio")
-async def get_portfolio(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch("SELECT * FROM get_portfolio(($1))", current_user.id)
-
-    if not results: 
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
-                            detail="Portfolio is empty")
-
-    return results
 
 @router.get("/get_portfolio")
 async def get_portfolio(
@@ -109,7 +98,7 @@ async def get_net_profit_loss(
         db: Database = Depends(get_db)):
     net_profit_loss = await db.fetchone("SELECT get_net_profit_loss(($1))", 
                                         current_user.id)
-    print(net_profit_loss)
+    # print(net_profit_loss)
     return {"value": net_profit_loss}
 
 @router.get("/ticker/{ticker}")
@@ -147,7 +136,7 @@ async def get_dividend_monthly(
                             SELECT extract(month from payment_date) as monthIndex,sum(estimated_payout) as "estimatedPayout"
                             FROM user_dividends where user_id=$1 GROUP BY 1;
                             """, current_user.id)
-    print('results: ', results)
+    # print('results: ', results)
     return results
 
 @router.get("/dividend/monthly/grouped")
@@ -164,7 +153,7 @@ async def get_dividend_monthly_grouped(
                             GROUP BY month, ticker
                             ORDER BY month, ticker;
                             """, current_user.id)
-    print('results: ', results)
+    # print('results: ', results)
     return results
 
 
@@ -202,7 +191,7 @@ async def get_dividend_monthly_realized_profit_loss(
                             ORDER BY 1, 2;
 
                             """, current_user.id, current_user.id)
-    print('results5: ', results)
+    # print('results5: ', results)
     return results
 
 
@@ -229,7 +218,7 @@ async def get_summary(
             FROM portfolio_lots p
             WHERE p.user_id = ($1)
             GROUP BY p.ticker;""", current_user.id)
-    print("summary: ", summary)
+    # print("summary: ", summary)
     if  summary is None:
         return []
     return summary
@@ -240,7 +229,7 @@ async def get_unrealized_money(
         db: Database = Depends(get_db)):
     net_profit_loss = await db.fetchone("SELECT get_unrealized_money(($1))", 
                                         current_user.id)
-    print(net_profit_loss)
+    # print(net_profit_loss)
     return {"value": net_profit_loss}
 
 
