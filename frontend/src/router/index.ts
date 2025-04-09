@@ -52,9 +52,25 @@ let refreshPromise: Promise<any> | null = null;
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  const isTokenExpired = authStore.isTokenExpired();
 
-  if (isTokenExpired && authStore.refreshToken) {
+  const routeNeedsAuth = to.meta.requiresAuth;
+  const hasToken = !!authStore.token;
+  const isExpired = authStore.isTokenExpired();
+
+  // If the route doesn't need auth, just go
+  if (!routeNeedsAuth) {
+    return next();
+  }
+
+  // Route requires auth but no token and no refresh token
+  if (!hasToken && !authStore.refreshToken) {
+    console.warn('🔐 No token and no refresh token. Redirecting to login.');
+    authStore.removeToken(); // Make sure we reset state
+    return next('/login');
+  }
+
+  // Try to refresh if token expired
+  if (isExpired && authStore.refreshToken) {
     console.log('🔁 Token expired — attempting refresh');
 
     try {
@@ -69,33 +85,30 @@ router.beforeEach(async (to, from, next) => {
 
         authStore.token = response.data.access_token;
         authStore.refreshToken = response.data.refresh_token;
-        await authStore.fetchUser()
-        
+
+        await authStore.fetchUser(); // Must succeed or user is not logged in
         isRefreshing = false;
         refreshPromise = null;
       } else {
-        // Wait for the other refresh to complete
-        await refreshPromise;
+        await refreshPromise; // wait for the in-progress refresh
       }
-
-      next(); // ✅ Proceed after refresh
-      return;
     } catch (err) {
-      console.warn('🔒 Refresh failed, logging out...');
-      authStore.removeToken();
+      console.warn('🔒 Refresh failed, redirecting to login.');
+      authStore.removeToken(); // reset everything
       isRefreshing = false;
       refreshPromise = null;
       return next('/login');
     }
   }
 
-  // Not authenticated and route requires auth
-  if (to.meta.requiresAuth && !authStore.token) {
-    console.log('🔐 No token, redirecting to login...');
+  // After refresh, or if token is still valid, make sure user is loaded
+  if (!authStore.token || !authStore.username) {
+    console.warn('❌ Token or user missing. Redirecting to login.');
+    authStore.removeToken();
     return next('/login');
   }
 
-  next(); // ✅ Default forward
+  return next(); // ✅ All good, allow navigation
 });
 
 export default router;
