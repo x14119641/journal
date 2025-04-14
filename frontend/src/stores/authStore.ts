@@ -7,10 +7,10 @@ export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: localStorage.getItem('token') || '',
         refreshToken: localStorage.getItem('refreshToken') || '',
-        username: '',
-        id:'',
+        username: localStorage.getItem('username') || '',
+        id: localStorage.getItem('id') || '',
         errorMessage: '',
-        
+
     }),
     actions: {
         isTokenExpired() {
@@ -24,17 +24,18 @@ export const useAuthStore = defineStore('auth', {
                 console.log("Login function called");
                 const response = await api.post(
                     'http://localhost:8000/login',
-                    new URLSearchParams({username,password,}),
-                    {headers: {'Content-Type': 'application/x-www-form-urlencoded',},
-                });
-                console.log("API Response:", response.data); 
+                    new URLSearchParams({ username, password, }),
+                    {
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
+                    });
+                console.log("API Response:", response.data);
                 this.token = response.data.access_token;
                 this.refreshToken = response.data.refresh_token;
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('refreshToken', this.refreshToken);
-                
+
                 await this.fetchUser();
-                router.push('/profile'); 
+                router.push('/profile');
             } catch (error) {
                 console.error('Login error:', error);
                 this.errorMessage = 'Invalid username or password';
@@ -47,11 +48,13 @@ export const useAuthStore = defineStore('auth', {
                 console.log(response)
                 this.username = response.data.username;
                 this.id = response.data.id;
+                localStorage.setItem('username', this.username);
+                localStorage.setItem('id', this.id);
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         },
-        async forgotPassword(email:string) {
+        async forgotPassword(email: string) {
             try {
                 const response = await api.post('http://localhost:8000/forgot-password', { email });
                 console.log(response)
@@ -60,23 +63,23 @@ export const useAuthStore = defineStore('auth', {
                 console.error('Error resetPassword:', error);
             }
         },
-        async resetPassword(password:string) {
+        async resetPassword(password: string) {
             try {
                 const response = await api.post('http://localhost:8000/reset-password', { password },
                     {
                         headers: {
-                          Authorization: `Bearer ${this.token}`
+                            Authorization: `Bearer ${this.token}`
                         }
-                      }
+                    }
                 );
                 console.log(response)
                 this.token = response.data.access_token;
                 this.refreshToken = response.data.refresh_token;
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('refreshToken', this.refreshToken);
-                
+
                 await this.fetchUser();
-                router.push('/profile'); 
+                router.push('/profile');
             } catch (error) {
                 console.error('ErrorupdatePassword:', error);
             }
@@ -84,8 +87,8 @@ export const useAuthStore = defineStore('auth', {
         async logout() {
             await api.post('/logout', {
                 refresh_token: this.refreshToken
-                }
-              );
+            }
+            );
             console.log("The token: ", this.refreshToken)
             this.removeToken()
             router.push('/login')
@@ -96,6 +99,8 @@ export const useAuthStore = defineStore('auth', {
             this.refreshToken = ''
             localStorage.removeItem('token')
             localStorage.removeItem('refreshToken')
+            localStorage.removeItem('username');
+            localStorage.removeItem('id');
         },
     },
 });
