@@ -23,19 +23,19 @@ async def get_balance(
 async def get_balance_history(
         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
         db: Database = Depends(get_db)):
-    # results = await db.fetchrow("""
-    #                          SELECT * FROM balance_history 
-    #                          WHERE user_id = $1;""", 
-    #                          current_user.id)
+    results = await db.fetchrow("""
+                             SELECT balance, recorded_at FROM balance_history 
+                             WHERE user_id = $1;""", 
+                             current_user.id)
     # faking data
-    results = [
-      { 'record_date': "2024-01-01", 'balance': 5000.0 },
-      { 'record_date': "2024-02-01", 'balance': 5200.5 },
-      { 'record_date': "2024-03-01", 'balance': 5400.75 },
-      { 'record_date': "2024-04-01", 'balance': 5300.2 },
-      { 'record_date': "2024-05-01", 'balance': 5600.8 },
-      { 'record_date': "2024-06-01", 'balance': 5900.3 },
-    ]
+    # results = [
+    #   { 'record_date': "2024-01-01", 'balance': 5000.0 },
+    #   { 'record_date': "2024-02-01", 'balance': 5200.5 },
+    #   { 'record_date': "2024-03-01", 'balance': 5400.75 },
+    #   { 'record_date': "2024-04-01", 'balance': 5300.2 },
+    #   { 'record_date': "2024-05-01", 'balance': 5600.8 },
+    #   { 'record_date': "2024-06-01", 'balance': 5900.3 },
+    # ]
     # print(results)
     return results
 

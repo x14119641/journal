@@ -19,7 +19,7 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage.vue';
 import ResetPasswordPage from '../pages/ResetPasswordPage.vue';
 
 const isTest = process.env.NODE_ENV ==="test";
-import api from '../services/api';
+
 
 const routes = [
   { path: '/', name: 'Demo0', component: DemoPage, meta: { requiresAuth: false }},
@@ -28,7 +28,7 @@ const routes = [
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
   { path: '/colors', name: 'Colors', component: ColorsPage, meta: { requiresAuth: false } },
   { path: '/funds', name: 'Funds', component: ManageFundsPage, meta: { requiresAuth: true } },
-  { path: '/dashboard', name: 'Funds', component: DashboardPage, meta: { requiresAuth: true } },
+  { path: '/dashboard', name: 'Dashboard', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/transactions', name: 'Transactions', component: TransactionsPage, meta: { requiresAuth: true } },
   { path: '/transactions/:id', name: 'TransactionDetail', component: TransactionDetailPage, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginPage, meta: { requiresAuth: false } },

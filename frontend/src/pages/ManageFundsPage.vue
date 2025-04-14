@@ -7,7 +7,7 @@
       </div>
 
       <!-- Right Column (2 boxes inside) -->
-      <div class=" flex flex-col gap-6 sm:col-span-2 w-full col-span-1">
+      <div class="flex flex-col gap-6 sm:col-span-2 w-full col-span-1">
         <div class="container-component">
           <AddFunds />
         </div>
@@ -16,32 +16,40 @@
         </div>
       </div>
     </div>
-    <div class="container-component">
+    <div v-if="tableData.length >0" class="container-component">
       <!-- Main content, table -->
-      <DataTable title="Balance Transactions" :headers="tableHeaders" :rows="tableData" :formattedHeaders="formattedHeaders" :pagingNumber="pagingNumber" />
+      <DataTable
+        title="Balance Transactions"
+        :headers="tableHeaders"
+        :rows="tableData"
+        :formattedHeaders="formattedHeaders"
+        :pagingNumber="pagingNumber"
+      />
     </div>
   </div>
-
 </template>
-  
-  <script setup lang="ts">
-  import { onMounted, computed, ref } from 'vue';
-  import { useTransactionsStore } from '../stores/transactionsStore';
-  import DataTable from '../components/DataTable.vue';
-  import FundsHeader from '../components/FundsHeader.vue';
-  import AddFunds from '../components/AddFunds.vue';
-  import RemoveFunds from '../components/RemoveFunds.vue';
- 
 
-  const pagingNumber = ref(5);
-  const tableHeaders = ['transactionId','transactionType', 'quantity', 'description', 'created_at'];
-  const formattedHeaders = ['Id', 'Type','Quantity', 'Description', 'CreatedAt'];
-  const transactionsStore = useTransactionsStore();
-  onMounted(transactionsStore.getTransactionHistory)
+<script setup lang="ts">
+import { onMounted, computed, ref } from "vue";
+import { useTransactionsStore } from "../stores/transactionsStore";
+import DataTable from "../components/DataTable.vue";
+import FundsHeader from "../components/FundsHeader.vue";
+import AddFunds from "../components/AddFunds.vue";
+import RemoveFunds from "../components/RemoveFunds.vue";
 
-  const tableData = computed(() => transactionsStore.getFundsTransactions)
-  </script>
-  
-  <style scoped>
-  </style> 
-  
+const pagingNumber = ref(5);
+const tableHeaders = [
+  "transactionId",
+  "transactionType",
+  "quantity",
+  "description",
+  "created_at",
+];
+const formattedHeaders = ["Id", "Type", "Quantity", "Description", "CreatedAt"];
+const transactionsStore = useTransactionsStore();
+onMounted(() => transactionsStore.getTransactionHistory);
+
+const tableData = computed(() => transactionsStore.getFundsTransactions);
+</script>
+
+<style scoped></style>

@@ -8,19 +8,8 @@ import VueClickAway from "vue3-click-away";
 
 
 const app = createApp(App)
-app.use(createPinia()).use(VueClickAway)
-
-
-// Fetch user if click refresh and user is logged in and token is ok 
-
-app.use(router);
+app.use(createPinia()).use(VueClickAway).use(router);
 app.mount('#app');
-// to set token when lading 
-// const authStore = useAuthStore();
-// if (authStore.token) {
-//   authStore.setTokenExpiresAt();
-//   authStore.startRefreshTimer(); 
-//   authStore.fetchUser();
-// }
+
 
 

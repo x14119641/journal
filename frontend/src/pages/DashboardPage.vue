@@ -8,10 +8,10 @@
       </div>
 
       <!-- Large Chart (Choose the Most Useful One) -->
-      <div class="max-h-[250px] container-component col-span-2">
+      <div v-if="historicalPortfolioValues.length > 0" class="max-h-[250px] container-component col-span-2">
         <div class=" ">
           <PortfolioGrowthOverTimeChart
-            v-if="historicalPortfolioValues.length > 0"
+            
             class="max-h-[250px]"
             :labels="historicalDates"
             :values="historicalPortfolioValues"
@@ -51,19 +51,19 @@
       </div>
 
       <!-- Right Column (2 boxes inside) -->
-      <div class="flex flex-col gap-6 sm:col-span-1">
-        <div class="container-component">
+      <div class="flex flex-col gap-6 sm:col-span-1 select-none">
+        <div  v-if="historicalPortfolioValues.length > 0"  class="container-component">
           <div
-            v-if="historicalPortfolioValues.length > 0"
+           
             class="container-component max-h-[600px] overflow-hidden"
           >
           <MonthlyDividendStackedBarChart class="max-h-[300px]"
           />
           </div>
         </div>
-        <div class="container-component max-h-[600px] overflow-hidden">
+        <div v-if="historicalPortfolioValues.length > 0" class="container-component max-h-[600px] overflow-hidden">
           <div
-            v-if="historicalPortfolioValues.length > 0"
+            
             class="container-component"
           >
             <MonthlyProfitLossBarChart class="max-h-[300px]"
