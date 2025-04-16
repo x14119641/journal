@@ -23,7 +23,7 @@
       <!-- Dropdown Menu -->
       <div
         v-if="open"
-        class="absolute w-full mt-1 dropdown-style"
+        class="absolute w-full mt-1 dropdown-style z-[999]"
       >
         <div
           v-for="option in options"

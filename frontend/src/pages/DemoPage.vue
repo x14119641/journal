@@ -4,7 +4,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
       <!-- Portfolio Summary (Vertical) -->
       <div class="container-component">
-        <DashboardHeader />
+        <BackTesterHeader />
       </div>
 
       <!-- Large Chart (Choose the Most Useful One) -->
@@ -74,30 +74,6 @@
       </div>
     </div>
 
-    <!-- Row 3: Performance, Profit/Loss, and Cash Flow -->
-    <!-- <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-      <div class="container-component p-6">
-        <BarChartComponent
-          title="Profit & Loss Breakdown"
-          :labels="profitLossStocks"
-          :values="profitLossValues"
-        />
-      </div>
-      <div class="container-component p-6">
-        <BarChartComponent
-          title="Sector Allocation"
-          :labels="sectorAllocationLabels"
-          :values="sectorAllocationValues"
-        />
-      </div>
-      <div class="container-component p-6">
-        <AreaChartComponent
-          title="Cash Flow Over Time"
-          :labels="cashFlowDates"
-          :values="cashFlowAmounts"
-        />
-      </div>
-    </div> -->
   </div>
 
   <!-- <p>{{ portfolioHistory }}</p> -->
@@ -105,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import DashboardHeader from "../components/DashboardHeader.vue";
+import BackTesterHeader from "../components/BackTesterHeader.vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
 import api from "../services/api";
 import { onMounted, computed, ref, nextTick } from "vue";

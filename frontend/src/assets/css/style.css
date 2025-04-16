@@ -29,7 +29,7 @@ body {
 
 }
 .container-component {
-  @apply backdrop-blur-lg 
+  @apply  
     bg-white/10 dark:bg-gray-800/30 
     border border-white/10 dark:border-white/20 
     text-white 
