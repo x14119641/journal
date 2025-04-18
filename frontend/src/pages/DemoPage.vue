@@ -8,10 +8,10 @@
       </div>
 
       <!-- Large Chart (Choose the Most Useful One) -->
-      <div class="max-h-[250px] container-component col-span-2">
+      <div v-if="historicalPortfolioValues.length > 0" class="max-h-[250px] container-component col-span-2">
         <div class=" ">
           <PortfolioGrowthOverTimeChart
-            v-if="historicalPortfolioValues.length > 0"
+            
             class="max-h-[250px]"
             :labels="historicalDates"
             :values="historicalPortfolioValues"
