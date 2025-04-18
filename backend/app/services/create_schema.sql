@@ -264,14 +264,14 @@ BEGIN
     END IF;
 
     -- If the user has no balance record, insert a new one
-    INSERT INTO balance (user_id, total_balance)
-    VALUES (_user_id, _amount)
+    INSERT INTO balance (user_id, total_balance, last_updated)
+    VALUES (_user_id, _amount, _created_at)
     ON CONFLICT (user_id) -- If user_id already exists, do nothing
     DO UPDATE SET total_balance = balance.total_balance + _amount;
 
     -- insert last total_balance we just updated
-    INSERT INTO balance_history (user_id, balance)
-    SELECT user_id, total_balance FROM balance WHERE user_id=_user_id;
+    INSERT INTO balance_history (user_id, balance, recorded_at)
+    SELECT user_id, total_balance, _created_at FROM balance WHERE user_id=_user_id;
 
     -- Insert transaction record for deposit
     INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, description, created_at)
@@ -317,12 +317,13 @@ BEGIN
 
     -- Deduct balance
     UPDATE balance
-    SET total_balance = total_balance - _amount
+    SET total_balance = total_balance - _amount,
+        last_updated = _created_at
     WHERE user_id = _user_id;
 
     -- insert last total_balance we just updated
-    INSERT INTO balance_history (user_id, balance)
-    SELECT user_id, total_balance FROM balance WHERE user_id=_user_id;
+    INSERT INTO balance_history (user_id, balance, recorded_at)
+    SELECT user_id, total_balance, _created_at FROM balance WHERE user_id=_user_id;
 
     -- Insert transaction record for withdrawal
     INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, description, created_at)
@@ -391,11 +392,11 @@ BEGIN
 
 	-- Subtract the cost from the balance
 	_new_balance := _current_balance - _total_cost;
-	UPDATE balance SET total_balance = _new_balance WHERE user_id = _user_id;
+	UPDATE balance SET total_balance = _new_balance, last_updated = _created_at WHERE user_id = _user_id;
 
     -- insert last total_balance we just updated
-    INSERT INTO balance_history (user_id, balance)
-    VALUES(_user_id, _new_balance);
+    INSERT INTO balance_history (user_id, balance, recorded_at)
+    VALUES(_user_id, _new_balance, _created_at);
 
 	-- Insert transaction into balance history
 	INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
@@ -512,12 +513,13 @@ BEGIN
     _new_balance := _current_balance + _total_sell_value - _fee;
 
     UPDATE balance 
-    SET total_balance = _new_balance
+    SET total_balance = _new_balance,
+        last_updated = _created_at
     WHERE user_id = _user_id;
 
     -- insert last total_balance we just updated
-    INSERT INTO balance_history (user_id, balance)
-    VALUES(_user_id, _new_balance);
+    INSERT INTO balance_history (user_id, balance, recorded_at)
+    VALUES(_user_id, _new_balance, _created_at);
 
     -- Insert into balance history
     INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)

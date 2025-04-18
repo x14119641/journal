@@ -11,7 +11,6 @@
       <div v-if="historicalPortfolioValues.length > 0" class="max-h-[250px] container-component col-span-2">
         <div class=" ">
           <PortfolioGrowthOverTimeChart
-            
             class="max-h-[250px]"
             :labels="historicalDates"
             :values="historicalPortfolioValues"
@@ -99,7 +98,7 @@
     </div> -->
   </div>
 
-  <!-- <p>{{ portfolioHistory }}</p> -->
+  <p class="text-white">{{ portfolioHistory }}</p>
 </template>
 
 <script setup lang="ts">
@@ -133,13 +132,14 @@ const months = ref([
 ]);
 
 const portfolioStore = usePortfolioStore();
-const portfolioHistory = ref<{ record_date: string; balance: number }[]>([]);
+const portfolioHistory = ref<{ recorded_at: string; balance: number }[]>([]);
 
 const historicalDates = computed(() =>
-  portfolioHistory.value.map((entry) => entry.record_date)
+  portfolioHistory.value.map((entry) => entry.recorded_at)
 );
+
 const historicalPortfolioValues = computed(() =>
-  portfolioHistory.value.map((entry) => entry.balance)
+  portfolioHistory.value.map((entry) => Number(entry.balance))
 );
 
 const fetchPortfolioHistory = async () => {
@@ -149,7 +149,7 @@ const fetchPortfolioHistory = async () => {
 
     const today = new Date().toISOString().slice(0, 10);
     portfolioHistory.value.push({
-      record_date: today,
+      recorded_at: today,
       balance: portfolioStore.balance,
     });
   } catch (error) {

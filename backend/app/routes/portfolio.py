@@ -7,26 +7,38 @@ from fastapi import Depends, Response, status, APIRouter, HTTPException
 from typing import Annotated
 from decimal import Decimal
 
-router = APIRouter(prefix='/portfolio', tags=["Portfolio",])
+router = APIRouter(
+    prefix="/portfolio",
+    tags=[
+        "Portfolio",
+    ],
+)
 
 
 @router.get("/get_balance")
 async def get_balance(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
     current_balance = await db.fetchone("SELECT get_balance(($1))", current_user.id)
     print("Balance:", current_balance)
-    return {'value': current_balance or 0}
+    return {"value": current_balance or 0}
 
 
 @router.get("/balance/history")
 async def get_balance_history(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetchrow("""
-                             SELECT balance, recorded_at FROM balance_history 
-                             WHERE user_id = $1;""", 
-                             current_user.id)
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetch(
+        """
+                             SELECT balance, 
+                                TO_CHAR(recorded_at, 'YYYY-MM-DD') as recorded_at
+                             FROM balance_history 
+                             WHERE user_id = $1
+                             ORDER BY recorded_at;""",
+        current_user.id,
+    )
     # faking data
     # results = [
     #   { 'record_date': "2024-01-01", 'balance': 5000.0 },
@@ -36,26 +48,37 @@ async def get_balance_history(
     #   { 'record_date': "2024-05-01", 'balance': 5600.8 },
     #   { 'record_date': "2024-06-01", 'balance': 5900.3 },
     # ]
-    # print(results)
+    results = [
+        {
+            "recorded_at": row["recorded_at"], 
+            "balance": float(row["balance"]),  
+        }
+        for row in results
+    ]
+    print(results)
     return results
 
 
 @router.get("/get_portfolio")
 async def get_portfolio(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
     results = await db.fetch("SELECT * FROM get_portfolio(($1))", current_user.id)
 
-    if not results: 
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
-                            detail="Portfolio is empty")
+    if not results:
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT, detail="Portfolio is empty"
+        )
 
     return results
 
+
 @router.get("/get_total_fees")
 async def get_total_fees(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
     results = await db.fetchone("SELECT * FROM get_total_fees(($1))", current_user.id)
     # print(results)
     # if not results:
@@ -66,84 +89,111 @@ async def get_total_fees(
 
 @router.get("/get_total_money_invested")
 async def get_total_money_invested(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    money_invested = await db.fetchone("SELECT get_total_money_invested(($1))", 
-                                        current_user.id)
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    money_invested = await db.fetchone(
+        "SELECT get_total_money_invested(($1))", current_user.id
+    )
     # print(money_invested)
     return {"value": money_invested}
 
+
 @router.get("/get_total_money_earned")
 async def get_total_money_earned(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    money_earned = await db.fetchone("SELECT get_total_money_earned(($1))", 
-                                        current_user.id)
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    money_earned = await db.fetchone(
+        "SELECT get_total_money_earned(($1))", current_user.id
+    )
     # print(money_invested)
     return {"value": money_earned}
 
+
 @router.get("/get_current_portfolio_value")
 async def get_current_portfolio_value(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    current_portfolio_value = await db.fetchone("SELECT get_current_portfolio_value(($1))", 
-                                        current_user.id)
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    current_portfolio_value = await db.fetchone(
+        "SELECT get_current_portfolio_value(($1))", current_user.id
+    )
     # print(current_portfolio_value)
     return {"value": current_portfolio_value}
 
 
 @router.get("/get_net_profit_loss")
 async def get_net_profit_loss(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    net_profit_loss = await db.fetchone("SELECT get_net_profit_loss(($1))", 
-                                        current_user.id)
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    net_profit_loss = await db.fetchone(
+        "SELECT get_net_profit_loss(($1))", current_user.id
+    )
     # print(net_profit_loss)
     return {"value": net_profit_loss}
 
+
 @router.get("/ticker/{ticker}")
 async def get_ticker_portfolio_summary(
-        ticker: str,
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetchrow("SELECT * FROM get_ticker_portfolio_summary($1, $2)", 
-                             current_user.id, ticker)
+    ticker: str,
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetchrow(
+        "SELECT * FROM get_ticker_portfolio_summary($1, $2)", current_user.id, ticker
+    )
 
-    if not results: 
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
-                            detail="Ticker not in Portfolio")
+    if not results:
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT, detail="Ticker not in Portfolio"
+        )
 
     return results
 
 
 @router.get("/get_monthly_performance/{month}/{year}")
 async def get_monthly_performance(
-        month: int, year: int,
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetchrow("""
-                             SELECT * FROM get_monthly_performance(($1), ($2), ($3))""", 
-                             current_user.id, month, year)
+    month: int,
+    year: int,
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetchrow(
+        """
+                             SELECT * FROM get_monthly_performance(($1), ($2), ($3))""",
+        current_user.id,
+        month,
+        year,
+    )
 
     return results
 
 
 @router.get("/dividend/monthly")
 async def get_dividend_monthly(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch("""
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetch(
+        """
                             SELECT extract(month from payment_date) as monthIndex,sum(estimated_payout) as "estimatedPayout"
                             FROM user_dividends where user_id=$1 GROUP BY 1;
-                            """, current_user.id)
+                            """,
+        current_user.id,
+    )
     # print('results: ', results)
     return results
 
+
 @router.get("/dividend/monthly/grouped")
 async def get_dividend_monthly_grouped(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch("""
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetch(
+        """
                             SELECT 
                                 EXTRACT(MONTH FROM payment_date) AS month, 
                                 ticker, 
@@ -152,16 +202,20 @@ async def get_dividend_monthly_grouped(
                             WHERE user_id = $1
                             GROUP BY month, ticker
                             ORDER BY month, ticker;
-                            """, current_user.id)
-    # print('results: ', results)
+                            """,
+        current_user.id,
+    )
+    print('results: ', results)
     return results
 
 
 @router.get("/dividend/monthly/profitloss")
 async def get_dividend_monthly_realized_profit_loss(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch("""
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetch(
+        """
                             WITH x AS (
                                 SELECT 
                                     EXTRACT(MONTH FROM payment_date) AS monthIndex, 
@@ -190,15 +244,19 @@ async def get_dividend_monthly_realized_profit_loss(
                             ON x.monthIndex = y.monthIndex 
                             ORDER BY 1, 2;
 
-                            """, current_user.id, current_user.id)
+                            """,
+        current_user.id,
+        current_user.id,
+    )
     # print('results5: ', results)
     return results
 
 
 @router.get("/summary")
 async def get_summary(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
     summary = await db.fetch(
         """SELECT 
                 p.ticker,
@@ -217,18 +275,23 @@ async def get_summary(
                 ROUND(COALESCE(SUM(p.fee), 0), 6) AS "totalFees"
             FROM portfolio_lots p
             WHERE p.user_id = ($1)
-            GROUP BY p.ticker;""", current_user.id)
+            GROUP BY p.ticker;""",
+        current_user.id,
+    )
     # print("summary: ", summary)
-    if  summary is None:
+    if summary is None:
         return []
     return summary
 
+
 @router.get("/get_unrealized_money")
 async def get_unrealized_money(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    net_profit_loss = await db.fetchone("SELECT get_unrealized_money(($1))", 
-                                        current_user.id)
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    net_profit_loss = await db.fetchone(
+        "SELECT get_unrealized_money(($1))", current_user.id
+    )
     # print(net_profit_loss)
     return {"value": net_profit_loss}
 
@@ -238,18 +301,18 @@ async def get_unrealized_money(
 #         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
 #         db: Database = Depends(get_db)):
 #     results = await db.fetch(
-#         "SELECT * FROM get_portfolio_summary(($1))", 
+#         "SELECT * FROM get_portfolio_summary(($1))",
 #         current_user.id)
 #     tickers = [item['ticker'] for item in results if item['ticker'] != 'Money']
-    
+
 #     # Get current prices for the tickers
 #     stocks = mini_scarper.get_current_price_tickers(tickers)
-    
+
 #     # Build a dictionary mapping ticker to price (only include those with a valid price)
 #     price_map = {stock['ticker']: stock['price'] for stock in stocks if stock['price'] is not None}
-    
+
 #     clean_result = []
-    
+
 #     for row in results:
 #         ticker = row.get('ticker')
 #         # Skip if ticker is 'Money' or missing from our price_map
@@ -271,12 +334,13 @@ async def get_unrealized_money(
 #     return clean_result
 
 
-
 @router.get("/allocation/sector")
 async def get_allocation_funds(
-        current_user: Annotated[UserLogin, Depends(get_current_active_user)],
-        db: Database = Depends(get_db)):
-    results = await db.fetch("""
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    results = await db.fetch(
+        """
                             with cte as (
                                 SELECT ticker,
                                 SUM(remaining_quantity) AS quantity 
@@ -292,7 +356,9 @@ async def get_allocation_funds(
                             FROM metadata m
                             JOIN cte c
                             ON c.ticker = m.ticker;
-                            """, current_user.id)
+                            """,
+        current_user.id,
+    )
     if results is None:
         return []
     return results
@@ -303,10 +369,10 @@ async def get_allocation_funds(
 #         current_user: Annotated[UserLogin, Depends(get_current_active_user)],
 #         db: Database = Depends(get_db)):
 #     results = await db.fetch(
-#         """SELECT ticker, SUM(total_value) AS "totalValue" 
+#         """SELECT ticker, SUM(total_value) AS "totalValue"
 #             FROM portfolio
 #             WHERE user_id = ($1)
-#             GROUP BY ticker;""", 
+#             GROUP BY ticker;""",
 #         current_user.id)
 #     return results
 
@@ -319,7 +385,7 @@ async def get_allocation_funds(
 #     total_gains: realized gains (i think i will change the name)
 #     """
 #     results = await db.fetchrow("""
-#                                 SELECT * FROM calculate_portfolio_totals(($1))""", 
+#                                 SELECT * FROM calculate_portfolio_totals(($1))""",
 #                                 current_user.id)
 #     return results
 
@@ -329,7 +395,7 @@ async def get_allocation_funds(
 #                     current_user: Annotated[UserLogin, Depends(get_current_active_user)], db: Database = Depends(get_db)):
 #     # print(amount)
 #     results = await db.fetchrow("""
-#                              INSERT INTO funds(user_id, amount, description) 
+#                              INSERT INTO funds(user_id, amount, description)
 #                              VALUES (($1), ($2), 'Deposit') RETURNING * """, current_user.id, amount)
 #     print('RESULTS money: ', results)
 #     return results
@@ -345,7 +411,7 @@ async def get_allocation_funds(
 #             print('Not enough funds')
 #             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
 #                                 detail="Not enough funds")
-#     results = await db.fetchrow("""INSERT INTO funds(user_id, amount, description) 
-#                              VALUES (($1), ($2), 'Withdraw') RETURNING *""", 
+#     results = await db.fetchrow("""INSERT INTO funds(user_id, amount, description)
+#                              VALUES (($1), ($2), 'Withdraw') RETURNING *""",
 #                              current_user.id, -amount)
 #     return results
