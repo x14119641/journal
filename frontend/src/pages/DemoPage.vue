@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col space-y-6 w-full">
-    <!-- Row 1: Portfolio Summary (Column) + Large Chart -->
+    <!-- Row 1: BACTESTER HEADER + Large Chart WHEN LOADING -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-      <!-- Portfolio Summary (Vertical) -->
+      <!-- Backtester -->
       <div class="container-component">
         <BackTesterHeader />
       </div>
 
-      <!-- Large Chart (Choose the Most Useful One) -->
+      <!-- LArge chart showing the timeseries of the growth of the potential protfolio -->
       <div v-if="historicalPortfolioValues.length > 0" class="max-h-[250px] container-component col-span-2">
         <div class=" ">
           <PortfolioGrowthOverTimeChart
@@ -20,58 +20,12 @@
       </div>
     </div>
 
-    <!-- Row 2: Dividend Calendar + 2 boxes one on top of other -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-      <!-- Left Column -->
-      <div class=" w-full">
-        <div class="container-component max-h-[630px] no-scrollbar col-span-2">
-          <!-- <CalendarComponent v-if="hasData"  :data="dividends" dateColumn="paymentDate" :month="currentMonth"/> -->
-          <div
-            class="pt-2 flex justify-center items-center text-center gap-x-6"
-          >
-            <ArrowLeft
-              class="arrow-style h-5 w-5"
-              @click="calendarStore.prevMonth"
-            />
-            <h3 class="title-component">
-              {{ months[calendarStore.currentMonth] }}
-            </h3>
-            <ArrowRight
-              class="arrow-style h-5 w-5"
-              @click="calendarStore.nextMonth"
-            />
-          </div>
-
-          <CompactCalendar
-            :data="calendarStore.dividends"
-            dateColumn="paymentDate"
-            :month="calendarStore.currentMonth"
-          />
-        </div>
+    <!-- Row 2: This will have different options for the stock-->
+    <div class="">
+      <div class="container-component">
+        <PortfolioBacktesterBuilder />
       </div>
-
-      <!-- Right Column (2 boxes inside) -->
-      <div class="flex flex-col gap-6 sm:col-span-1 min-h-[600px]">
-        <div class="container-component">
-          <div
-            v-if="historicalPortfolioValues.length > 0"
-            class="overflow-hidden"
-          >
-          <MonthlyDividendStackedBarChart class="max-h-[300px]"
-          />
-          </div>
-        </div>
-        <div class="container-component overflow-hidden">
-          <div
-            v-if="historicalPortfolioValues.length > 0"
-            class=""
-          >
-            <MonthlyProfitLossBarChart class="max-h-[300px]"
-            />
-          </div>
-        </div>
-
-      </div>
+      
     </div>
 
   </div>
@@ -85,7 +39,7 @@ import BackTesterHeader from "../components/BackTesterHeader.vue";
 import { usePortfolioStore } from "../stores/portfolioStore";
 import api from "../services/api";
 import { onMounted, computed, ref, nextTick } from "vue";
-
+import PortfolioBacktesterBuilder from "../components/PortfolioBacktesterBuilder.vue";
 import CompactCalendar from "../components/CompactCalendar.vue";
 import { useCalendarStore } from "../stores/calendarStore";
 import { ArrowRight, ArrowLeft } from "lucide-vue-next";
