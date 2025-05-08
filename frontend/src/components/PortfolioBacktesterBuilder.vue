@@ -47,6 +47,7 @@
 import { ref, computed } from 'vue';
 import SearchStock from './SearchStock.vue';
 import { useBacktesterStore } from "../stores/backTesterStore";
+import api from '../services/api';
 
 const backtesterStore = useBacktesterStore();
 
@@ -83,7 +84,7 @@ const addAsset = () => {
     }
 }
 
-const calculate = () => {
+const calculate = async () => {
     if (
         !backtesterStore.initialBalance ||
         !backtesterStore.monthStart ||
@@ -104,13 +105,13 @@ const calculate = () => {
 
         const validAssets = rawRows
             .filter((r) => r.selectedStock)
-            .map((r) => ({ stock: r.selectedStock, weight: r[key] }));
+            .map((r) => ({ stock: r.selectedStock, weigth: r[key] }));
 
         const total = rawRows.reduce((sum, r) => sum + (r[key] || 0), 0);
 
         if (rawRows.length === 0) return null; // completely empty → skip
 
-        if (hasMissingStock) return "missing-stock"; // weights are present, but no stock
+        if (hasMissingStock) return "missing-stock"; // quantity are present, but no stock
 
         if (total !== 100) return "invalid"; // stock present, but wrong total
 
@@ -146,7 +147,21 @@ const calculate = () => {
     // Remove emtpy obkjects
     rows.value = rows.value.filter(row => row.selectedStock);
     isCalculated.value = true;
+    // add 0 if one digit
+    const padMonth = (month: string | number) => String(month).padStart(2, "0");
 
-    // Here you'd call your API or pass the data to the backtester logic
+    const payload = {
+        initial_balance: Number(backtesterStore.initialBalance),
+        start_date: `${backtesterStore.yearStart}-${padMonth(backtesterStore.monthStart)}-01`,
+        end_date: `${backtesterStore.yearEnd}-${padMonth(backtesterStore.monthEnd)}-01`,
+        portfolios:portfolios
+    }
+
+    try {
+        const response = await api.post("/portfolio/backtesting", payload)
+        console.log(response.data)
+    } catch (error) {
+        console.error("Error in backtesting portfolio: ", error)
+    }
 };
 </script>

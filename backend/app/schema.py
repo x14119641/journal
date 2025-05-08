@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from pydantic.types import conint
-from typing import Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -95,6 +95,17 @@ class BuyStock(BaseModel):
     quantity:Decimal
     fee: Decimal=Field(2)
     created_at: Optional[datetime] = None
+
+
+class StockWeight(BaseModel):
+    stock:str
+    weigth:float
+    
+class BacktestRequest(BaseModel):
+    initial_balance: float
+    start_date: str  
+    end_date: str
+    portfolios: Dict[str, List[StockWeight]]
     
 class UpdateTransactionDescription(BaseModel):
     transaction_id:int

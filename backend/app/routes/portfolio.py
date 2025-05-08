@@ -1,11 +1,13 @@
 from ..dependencies import get_db
 from ..services.database import Database
 from ..services import mini_scarper
-from ..schema import UserLogin
+from ..schema import UserLogin, BacktestRequest
 from .auth import get_current_active_user
 from fastapi import Depends, Response, status, APIRouter, HTTPException
-from typing import Annotated
+from typing import Annotated, List
 from decimal import Decimal
+from datetime import datetime
+
 
 router = APIRouter(
     prefix="/portfolio",
@@ -50,8 +52,8 @@ async def get_balance_history(
     # ]
     results = [
         {
-            "recorded_at": row["recorded_at"], 
-            "balance": float(row["balance"]),  
+            "recorded_at": row["recorded_at"],
+            "balance": float(row["balance"]),
         }
         for row in results
     ]
@@ -294,6 +296,33 @@ async def get_unrealized_money(
     )
     # print(net_profit_loss)
     return {"value": net_profit_loss}
+
+
+@router.post("/backtesting")
+async def custom_backtesting(
+    request: BacktestRequest,
+    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
+    db: Database = Depends(get_db),
+):
+    tickers = {
+        asset.stock
+        for portfolio in request.portfolios.values()
+        for asset in portfolio
+    }
+    
+    start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date()
+    end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date()
+
+    query = """
+        SELECT ticker, ex_date, payment_date, amount
+        FROM dividends
+        WHERE ticker = ANY($1)
+            AND ex_date BETWEEN $2 AND $3
+        ORDER BY ticker, ex_date
+    """
+    rows = await db.fetch(query, list(tickers), start_date, end_date)
+    print(rows)
+    return 1
 
 
 # @router.get("/summary")
