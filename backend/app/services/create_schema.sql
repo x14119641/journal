@@ -1220,3 +1220,112 @@ BEGIN
     UPDATE balance SET total_balance = 0 WHERE user_id = _user_id;
 END;
 $$;
+
+
+-- We need the inserter user_dividends function to calculate dividends for users
+CREATE OR REPLACE FUNCTION calculate_and_insert_dividends()
+RETURNS TEXT LANGUAGE 'plpgsql'
+AS $BODY$
+DECLARE
+  _minimum_stock_date TIMESTAMP;
+  _total_dividend_payout NUMERIC(19,6);
+  _item RECORD;
+  _new_balance NUMERIC(19,6);
+  _transaction_id NUMERIC(19,6);
+  _user_id INT;
+  _seconds  INT DEFAULT 0;
+BEGIN
+	
+	-- Check for the last stock date, is no point to build dividend data from the past
+	SELECT MIN(created_at) INTO _minimum_stock_date FROM portfolio_lots;
+
+	
+	-- Lets select the data i will update
+	
+	WITH dividends_data AS (
+	    -- Get the dividends data
+	    SELECT * 
+	    FROM dividends 
+	    WHERE ticker IN (SELECT DISTINCT ticker FROM portfolio_lots) 
+	    AND ex_date >= _minimum_stock_date 
+	    AND payment_date IS NOT NULL
+	)
+	INSERT INTO user_dividends(user_id, ticker, ex_date, payment_date, currency, declared_amount, estimated_payout, shares_held_at_ex_date)
+	SELECT 
+	    pl.user_id, 
+	    dd.ticker, 
+	    dd.ex_date, 
+	    dd.payment_date, 
+	    'USD',
+	    dd.amount, 
+	    SUM(pl.remaining_quantity) * dd.amount,  -- Aggregate shares
+	    SUM(pl.remaining_quantity)  -- Aggregate shares held
+	FROM portfolio_lots pl
+	INNER JOIN dividends_data dd ON dd.ticker = pl.ticker
+	
+	GROUP BY pl.user_id, dd.ticker, dd.ex_date, dd.payment_date, dd.amount
+	ON CONFLICT (user_id, ticker, ex_date, payment_date)
+	DO UPDATE 
+	SET 
+	    shares_held_at_ex_date = EXCLUDED.shares_held_at_ex_date,
+	    estimated_payout = EXCLUDED.shares_held_at_ex_date * EXCLUDED.declared_amount,
+		is_executed = user_dividends.is_executed,  -- Keep is_executed unchanged
+	    executed_at = CASE 
+	                    WHEN user_dividends.is_executed THEN user_dividends.executed_at 
+	                    ELSE NULL 
+	                  END  -- Reset executed_at if it's not executed yet
+	WHERE COALESCE(user_dividends.is_executed, FALSE) = FALSE
+	AND (user_dividends.shares_held_at_ex_date <> EXCLUDED.shares_held_at_ex_date
+	     OR user_dividends.estimated_payout <> EXCLUDED.estimated_payout);
+
+
+	-- We loop and insert one by one: (We oerder by ex_date to do it kind of FIFO)
+	for _item IN SELECT * FROM (SELECT * FROM user_dividends WHERE is_executed is FALSE ORDER BY  ex_date DESC )
+	LOOP
+		RAISE NOTICE 'INside the loop';
+		
+		if(_item.payment_date <= CURRENT_TIMESTAMP) THEN
+			-- RAISE NOTICE 'In CINdition';
+			-- Get Total earn
+		    _total_dividend_payout := COALESCE(_item.estimated_payout, 0);
+			
+			_user_id := _item.user_id;
+			-- INSERT into transactions
+			INSERT INTO transactions (user_id, ticker, price, quantity, transaction_type, fee, created_at)
+			VALUES (_item.user_id, _item.ticker, _item.declared_amount, _item.shares_held_at_ex_date, 'DIVIDEND', 0, 
+			CURRENT_TIMESTAMP + (_seconds || ' second')::INTERVAL) -- We ad x seconds in order to avouid duplciates entrys for smae ticker same date
+	    	RETURNING id INTO _transaction_id;
+	
+			-- Update	
+			UPDATE balance 
+			SET total_balance = total_balance + _total_dividend_payout
+			WHERE user_id = _user_id
+			RETURNING total_balance INTO _new_balance;
+			-- insert last total_balance we just updated
+			-- INsert in Balance History
+			INSERT INTO balance_history (user_id, balance)
+			VALUES(_user_id, _new_balance);
+		
+			-- Insert transaction into balance history
+			INSERT INTO transactions_history (user_id, transaction_id, change_amount, new_balance, reason, created_at)
+			VALUES (_user_id, _transaction_id,_total_dividend_payout, _new_balance, 'DIVIDEND', CURRENT_TIMESTAMP + (_seconds || ' second')::INTERVAL);
+	
+			-- Update dividend executed
+			UPDATE user_dividends 
+		    SET is_executed = TRUE, executed_at = CURRENT_TIMESTAMP + (_seconds || ' second')::INTERVAL 
+		    WHERE id = _item.id;
+	
+			_seconds := _seconds + 1 ;
+			
+			RAISE NOTICE 'Dividend Executed';
+		ELSE
+			RAISE NOTICE 'Stock pay_date is not due.';
+		END IF;
+	END LOOP;
+		
+	
+	RETURN 'Finished';
+	
+	
+END;
+$BODY$; 
