@@ -9,3 +9,4 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 # Test
 docker-compose -f docker-compose.yml -f docker-compose.test.yml up test
 ```
+test merge
