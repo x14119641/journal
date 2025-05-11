@@ -1,12 +1,13 @@
 from ..dependencies import get_db
 from ..services.database import Database
-from ..services import mini_scarper
+from ..services import mini_scarper, portfolio_simulator_backtesting
 from ..schema import UserLogin, BacktestRequest
 from .auth import get_current_active_user
 from fastapi import Depends, Response, status, APIRouter, HTTPException
 from typing import Annotated, List
 from decimal import Decimal
 from datetime import datetime
+import pandas as pd
 
 
 router = APIRouter(
@@ -301,7 +302,6 @@ async def get_unrealized_money(
 @router.post("/backtesting")
 async def custom_backtesting(
     request: BacktestRequest,
-    current_user: Annotated[UserLogin, Depends(get_current_active_user)],
     db: Database = Depends(get_db),
 ):
     tickers = {
@@ -312,7 +312,10 @@ async def custom_backtesting(
     
     start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date()
     end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date()
-
+    tickers_list = list(tickers)
+    
+    print("reuqest: ", request)
+    # Get data for tickers
     query = """
         SELECT ticker, ex_date, payment_date, amount
         FROM dividends
@@ -320,8 +323,27 @@ async def custom_backtesting(
             AND ex_date BETWEEN $2 AND $3
         ORDER BY ticker, ex_date
     """
-    rows = await db.fetch(query, list(tickers), start_date, end_date)
-    print(rows)
+    dividends = pd.DataFrame(await db.fetch(query, tickers_list, start_date, end_date))
+    print(dividends)
+    # Get historical
+    historical = mini_scarper.get_tickers_historical_close(tickers_list, start_date=start_date, end_date=end_date)
+    print(historical)
+    
+    
+    results = portfolio_simulator_backtesting.simulate_portfolio_no_drip(
+        initial_balance=request.initial_balance,
+        start_date=start_date,
+        end_date=end_date,
+        portfolios=request.portfolios,
+        historical_df=historical,
+        dividends_df=dividends
+    )
+    print(results.keys())
+    print(results['portfolio1'][0:10])
+    print(results['portfolio1'][-10:])
+
+    
+    
     return 1
 
 
