@@ -324,10 +324,10 @@ async def custom_backtesting(
         ORDER BY ticker, ex_date
     """
     dividends = pd.DataFrame(await db.fetch(query, tickers_list, start_date, end_date))
-    print(dividends)
+
     # Get historical
     historical = mini_scarper.get_tickers_historical_close(tickers_list, start_date=start_date, end_date=end_date)
-    print(historical)
+
     
     
     results = portfolio_simulator_backtesting.simulate_portfolio_no_drip(
@@ -339,8 +339,8 @@ async def custom_backtesting(
         dividends_df=dividends
     )
     print(results.keys())
-    print(results['portfolio1'][0:10])
     print(results['portfolio1'][-10:])
+    print(results['portfolio2'][-10:])
 
     
     

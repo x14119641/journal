@@ -20,6 +20,8 @@ def get_tickers_historical_close(tickers:List[str], start_date, end_date=None):
         str_tickers = " ".join(tickers)
         print(str_tickers)
         data = yf.download(str_tickers, start=start_date, end=end_date, auto_adjust=False)['Close']
+        print('Data: ')
+        print(data)
         return data
     except Exception:
         pass
