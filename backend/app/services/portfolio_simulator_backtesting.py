@@ -116,6 +116,111 @@ def simulate_portfolio_no_drip(initial_balance:float, start_date:str, end_date:s
         #     for a in assets:
         #         print(f"  {a.stock} - {a.weigth}%")
 
+    return result
 
+
+from decimal import Decimal
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+
+def simulate_portfolio_with_drip(initial_balance: float, start_date: str, end_date: str, portfolios: dict,
+                                 historical_df: pd.DataFrame, dividends_df: pd.DataFrame):
+    start_date = pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date)
+    historical_df.index = pd.to_datetime(historical_df.index)
+    dividends_df["payment_date"] = pd.to_datetime(dividends_df["payment_date"])
+
+    dividends_df = (
+        dividends_df[dividends_df["payment_date"].notna()]
+        .drop_duplicates(subset=["ticker", "payment_date", "amount"])
+    )
+
+    if start_date < historical_df.index.min():
+        start_date = historical_df.index.min()
+    all_dates = pd.date_range(start=start_date, end=end_date, freq="D")
+
+    result = {}
+
+    for portfolio, assets in portfolios.items():
+        holdings = {}
+        print(f"\n📊 Simulating {portfolio} (DRIP mode)")
+
+        for asset in assets:
+            ticker = asset.stock
+            weight = asset.weigth / 100
+
+            price_on_start = historical_df.loc[start_date, ticker]
+            if pd.isna(price_on_start):
+                first_valid_date = historical_df[ticker].first_valid_index()
+                if first_valid_date is None:
+                    print(f"--Skipping-- No valid price for ticker {ticker}")
+                    continue
+                price_on_start = historical_df.at[first_valid_date, ticker]
+
+            amount_allocated = initial_balance * weight
+            shares = amount_allocated / price_on_start
+            holdings[ticker] = shares
+            print(f"  {ticker}: {shares:.4f} shares @ {price_on_start:.2f}")
+
+        records = []
+        last_valid_invested_value = 0.0
+
+        for day in all_dates:
+            if day not in historical_df.index:
+                continue
+
+            prices_found = False
+            invested_value_today = 0.0
+
+            for ticker in holdings:
+                try:
+                    price = historical_df.at[day, ticker]
+                    if not pd.isna(price):
+                        invested_value_today += holdings[ticker] * price
+                        prices_found = True
+                except KeyError:
+                    continue
+
+            if prices_found:
+                last_valid_invested_value = invested_value_today
+                invested_value = invested_value_today
+            else:
+                invested_value = last_valid_invested_value if last_valid_invested_value is not None else 0.0
+
+            # Check for dividend payouts (and reinvest them)
+            today_dividends = dividends_df[dividends_df["payment_date"] == day]
+            for _, row in today_dividends.iterrows():
+                ticker = row["ticker"]
+                if ticker not in holdings:
+                    continue
+
+                amount = float(row["amount"])
+                current_shares = holdings[ticker]
+                dividend_payment = amount * current_shares
+
+                # Get price on payment date
+                try:
+                    price_on_payment_date = historical_df.at[day, ticker]
+                except KeyError:
+                    continue
+
+                if pd.notna(price_on_payment_date) and price_on_payment_date > 0:
+                    # Reinvest: buy more shares
+                    additional_shares = dividend_payment / price_on_payment_date
+                    holdings[ticker] += additional_shares
+                    print(f"  🔁 {day.date()} {ticker}: +{additional_shares:.4f} shares from ${dividend_payment:.2f} reinvested")
+
+            total_value = invested_value
+            records.append({
+                "date": day.strftime("%Y-%m-%d"),
+                "invested_value": round(invested_value, 2),
+                "cash": 0.0,  # No cash accumulation in DRIP mode
+                "total_value": round(total_value, 2)
+            })
+
+        result[portfolio] = records
+        print(f"{portfolio} final value: {records[-1]}")
 
     return result

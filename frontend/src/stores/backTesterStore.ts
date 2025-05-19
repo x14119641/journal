@@ -41,7 +41,7 @@ export const useBacktesterStore = defineStore("backtester", () => {
 
     try {
       const endpoint = drip.value 
-      ? "/portfolio/backtesting" : "/portfolio/backtesting/drip";
+      ? "/portfolio/backtesting/drip" : "/portfolio/backtesting";
       const response = await api.post(endpoint, payload);
       portfolioResults.value = response.data;
     } catch (error) {

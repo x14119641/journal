@@ -22,13 +22,21 @@ import {
 } from "chart.js";
 
 // Register necessary Chart.js modules
-Chart.register(LineController, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+Chart.register(
+  LineController,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend
+);
 
 // Props from parent
 const props = defineProps<{
   labels: string[]; // Dates
   series: { name: string; values: number[] }[]; // [{ name: "portfolio1", values: [...] }, ...]
-  cash_series?:{ name: string; values: number[] }[];
+  cash_series?: { name: string; values: number[] }[];
 }>();
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
@@ -84,8 +92,29 @@ const createChart = () => {
           titleColor: "#06B6D4",
           bodyColor: "#E5E7EB",
           callbacks: {
-            label: (context) =>
-              `${context.dataset.label}: $${context.parsed.y.toFixed(2)}`,
+            label: (context) => {
+              const label = context.dataset.label;
+              const value = context.parsed.y;
+              const index = context.dataIndex;
+
+              // Look up cash value for the same portfolio and date index
+              let cash = null;
+              if (props.cash_series && props.cash_series.length > 0) {
+                const cashObj = props.cash_series.find((c) => c.name === label);
+                if (cashObj && cashObj.values[index] !== undefined) {
+                  cash = cashObj.values[index];
+                }
+              }
+
+              // Format label with optional cash
+              if (cash !== null) {
+                return `${label}: $${value.toFixed(2)} (Cash: $${cash.toFixed(
+                  2
+                )})`;
+              } else {
+                return `${label}: $${value.toFixed(2)}`;
+              }
+            },
           },
         },
       },
@@ -115,13 +144,5 @@ watch(() => [props.labels, props.series], createChart);
 </script>
 
 <style scoped>
-.chart-container {
-  @apply rounded-xl bg-slate-900 shadow-md;
-}
-.chart-title {
-  @apply text-white text-lg font-semibold mb-2;
-}
-.text-error {
-  @apply text-red-400 font-semibold mt-4;
-}
+
 </style>

@@ -300,7 +300,7 @@ async def get_unrealized_money(
 
 
 @router.post("/backtesting")
-async def custom_backtesting(
+async def custom_backtesting_no_drip(
     request: BacktestRequest,
     db: Database = Depends(get_db),
 ):
@@ -346,6 +346,53 @@ async def custom_backtesting(
     
     return results
 
+
+@router.post("/backtesting/drip")
+async def custom_backtesting_drip(
+    request: BacktestRequest,
+    db: Database = Depends(get_db),
+):
+    tickers = {
+        asset.stock
+        for portfolio in request.portfolios.values()
+        for asset in portfolio
+    }
+    
+    start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date()
+    end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date()
+    tickers_list = list(tickers)
+    
+    print("reuqest: ", request)
+    # Get data for tickers
+    query = """
+        SELECT ticker, ex_date, payment_date, amount
+        FROM dividends
+        WHERE ticker = ANY($1)
+            AND ex_date BETWEEN $2 AND $3
+        ORDER BY ticker, ex_date
+    """
+    dividends = pd.DataFrame(await db.fetch(query, tickers_list, start_date, end_date))
+
+    # Get historical
+    historical = mini_scarper.get_tickers_historical_close(tickers_list, start_date=start_date, end_date=end_date)
+
+    
+    
+    results = portfolio_simulator_backtesting.simulate_portfolio_with_drip(
+        initial_balance=request.initial_balance,
+        start_date=start_date,
+        end_date=end_date,
+        portfolios=request.portfolios,
+        historical_df=historical,
+        dividends_df=dividends
+    )
+    # print(results.keys())
+    # print(results['portfolio1'][-10:])
+    # print(results['portfolio2'][-10:])
+
+    
+    
+    return results
 
 # @router.get("/summary")
 # async def get_summary_external(

@@ -37,9 +37,9 @@
             </div>
         </div>
     </div>
-    <pre v-if="isCalculated" class="mt-6 text-left bg-slate-800 text-white p-4 rounded">
+    <!-- <pre v-if="isCalculated" class="mt-6 text-left bg-slate-800 text-white p-4 rounded">
   {{ rows }}
-</pre>
+</pre> -->
 
 </template>
 
