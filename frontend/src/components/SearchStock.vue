@@ -65,14 +65,35 @@
   });
   
   // Filter logic
-  const filterOptions = () => {
-    const key = searchKey.value.toLowerCase();
-    filteredOptions.value = tickers.value.filter(
+const filterOptions = () => {
+  const keyword = searchKey.value.trim().toLowerCase();
+  if (!keyword) {
+    filteredOptions.value = [];
+    return;
+  }
+
+  filteredOptions.value = tickers.value
+    .filter(
       (ticker) =>
-        ticker.ticker.toLowerCase().includes(key) ||
-        ticker.companyName.toLowerCase().includes(key)
-    );
-  };
+        ticker.ticker.toLowerCase().includes(keyword) ||
+        ticker.companyName.toLowerCase().includes(keyword)
+    )
+    .sort((a, b) => {
+      const aTicker = a.ticker.toLowerCase();
+      const bTicker = b.ticker.toLowerCase();
+
+      // Exact match first
+      if (aTicker === keyword) return -1;
+      if (bTicker === keyword) return 1;
+
+      // Starts with match next
+      if (aTicker.startsWith(keyword) && !bTicker.startsWith(keyword)) return -1;
+      if (!aTicker.startsWith(keyword) && bTicker.startsWith(keyword)) return 1;
+
+      // Otherwise, leave order unchanged
+      return 0;
+    });
+};
   
   const selectOption = (option: TickerName) => {
     searchKey.value = option.ticker;

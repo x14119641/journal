@@ -79,15 +79,33 @@ const filteredOptions = ref<TickerName[]>([]);
 
 // Filter options based on search input
 const filterOptions = () => {
-  if (!searchKey.value.trim()) {
+  const keyword = searchKey.value.trim().toLowerCase();
+  if (!keyword) {
     filteredOptions.value = [];
     return;
   }
-  filteredOptions.value = tickers.value.filter(
-    (ticker) =>
-      ticker.ticker.toLowerCase().includes(searchKey.value.toLowerCase()) ||
-      ticker.companyName.toLowerCase().includes(searchKey.value.toLowerCase())
-  );
+
+  filteredOptions.value = tickers.value
+    .filter(
+      (ticker) =>
+        ticker.ticker.toLowerCase().includes(keyword) ||
+        ticker.companyName.toLowerCase().includes(keyword)
+    )
+    .sort((a, b) => {
+      const aTicker = a.ticker.toLowerCase();
+      const bTicker = b.ticker.toLowerCase();
+
+      // Exact match first
+      if (aTicker === keyword) return -1;
+      if (bTicker === keyword) return 1;
+
+      // Starts with match next
+      if (aTicker.startsWith(keyword) && !bTicker.startsWith(keyword)) return -1;
+      if (!aTicker.startsWith(keyword) && bTicker.startsWith(keyword)) return 1;
+
+      // Otherwise, leave order unchanged
+      return 0;
+    });
 };
 
 // Handle option selection & ensure router updates

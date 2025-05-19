@@ -46,6 +46,19 @@
               >
             </router-link>
           </li>
+          <!-- Backtesting -->
+          <li
+            class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
+          >
+            <router-link to="/backtesting" class="flex items-center w-full">
+              <span class="block float-left">
+                <CandlestickChartIcon class="side-icons" />
+              </span>
+              <span class="flex-1 ml-3" :class="isSidebarOpen ? '' : 'hidden'"
+                >Backtesting</span
+              >
+            </router-link>
+          </li>
           <!-- Colors -->
           <li
             class="sidebar-li-style group flex items-center cursor-pointer select-none p-1 rounded-lg mt-2"
@@ -152,7 +165,7 @@ import {
   HandCoins,
   CalendarDays,
   Binoculars,
-  Notebook,
+  CandlestickChartIcon,
   EllipsisVertical,
   LayoutDashboard,
 } from "lucide-vue-next";

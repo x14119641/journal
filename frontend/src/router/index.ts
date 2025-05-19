@@ -17,6 +17,7 @@ import ColorsPage from '../pages/ColorsPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage.vue';
 import ResetPasswordPage from '../pages/ResetPasswordPage.vue';
+import BacktestingPage from '../pages/BacktestingPage.vue';
 
 const isTest = process.env.NODE_ENV ==="test";
 
@@ -24,6 +25,7 @@ const isTest = process.env.NODE_ENV ==="test";
 const routes = [
   { path: '/', name: 'Demo0', component: DemoPage, meta: { requiresAuth: false }},
   { path: '/demo', name: 'Demo', component: DemoPage, meta: { requiresAuth: false } },
+  { path: '/backtesting', name: 'Backtesting', component: BacktestingPage, meta: { requiresAuth: false }},
   { path: '/hello', name: 'Hello', component: HelloPage, meta: { requiresAuth: false } },
   { path: '/table', name: 'Table', component: TablePage, meta: { requiresAuth: true } },
   { path: '/colors', name: 'Colors', component: ColorsPage, meta: { requiresAuth: false } },
