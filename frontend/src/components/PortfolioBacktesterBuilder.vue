@@ -143,25 +143,7 @@ const calculate = async () => {
         return;
     }
 
-    console.log("✅ Submitting portfolios:", portfolios);
-    // Remove emtpy obkjects
-    rows.value = rows.value.filter(row => row.selectedStock);
+    await backtesterStore.simulatePortfolios(portfolios);
     isCalculated.value = true;
-    // add 0 if one digit
-    const padMonth = (month: string | number) => String(month).padStart(2, "0");
-
-    const payload = {
-        initial_balance: Number(backtesterStore.initialBalance),
-        start_date: `${backtesterStore.yearStart}-${padMonth(backtesterStore.monthStart)}-01`,
-        end_date: `${backtesterStore.yearEnd}-${padMonth(backtesterStore.monthEnd)}-01`,
-        portfolios:portfolios
-    }
-
-    try {
-        const response = await api.post("/portfolio/backtesting", payload)
-        console.log(response.data)
-    } catch (error) {
-        console.error("Error in backtesting portfolio: ", error)
-    }
 };
 </script>

@@ -33,6 +33,12 @@ export interface StockTransactionHistoryRecord {
     created_at:string;
 }
 
+
+export interface PortfolioBacktesterItem {
+    ticker: string;
+    weigth: number;
+}
+
 export interface PortfolioItem {
     ticker: string;
     remainingQuantity: Decimal;

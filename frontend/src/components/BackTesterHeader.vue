@@ -2,23 +2,61 @@
   <div class="p-6 text-center">
     <h3 class="title-component">BackTester</h3>
     <div class="mt-2 flex flex-col space-y-2">
-      <div class="flex justify-between items-center lg:gap-6 flex-col lg:flex-row">
+      <div
+        class="flex justify-between items-center lg:gap-6 flex-col lg:flex-row"
+      >
         <span class="text-label">Initial Balance</span>
-        <input id="initialBalance" type="number" v-model="initialBalance" min="0" class="input-style max-w-64" />
+        <input
+          id="initialBalance"
+          type="number"
+          v-model="initialBalance"
+          min="0"
+          class="input-style max-w-64"
+        />
       </div>
       <!-- Start -->
-      <div class="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 w-full">
+      <div
+        class="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 w-full"
+      >
         <span class="text-label">Start</span>
-        <CustomSelectDropDown v-model="monthStart" :options="optionsMonth" class="w-full max-w-xs" />
-        <CustomSelectDropDown v-model="yearStart" :options="optionsYear" class="w-full max-w-xs" />
+        <CustomSelectDropDown
+          v-model="monthStart"
+          :options="optionsMonth"
+          class="w-full max-w-xs"
+        />
+        <CustomSelectDropDown
+          v-model="yearStart"
+          :options="optionsYear"
+          class="w-full max-w-xs"
+        />
       </div>
       <!-- End -->
-      <div class="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 w-full">
+      <div
+        class="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 w-full"
+      >
         <!-- Add two spaces "&nbsp" to match the same number of letters in "Start" -->
         <span class="text-label">End&nbsp&nbsp</span>
-        <CustomSelectDropDown v-model="monthEnd" :options="optionsMonth" class="w-full max-w-xs" />
-        <CustomSelectDropDown v-model="yearEnd" :options="optionsYear" class="w-full max-w-xs" />
+        <CustomSelectDropDown
+          v-model="monthEnd"
+          :options="optionsMonth"
+          class="w-full max-w-xs"
+        />
+        <CustomSelectDropDown
+          v-model="yearEnd"
+          :options="optionsYear"
+          class="w-full max-w-xs"
+        />
       </div>
+    </div>
+    <!-- DRIP Toggle -->
+    <div class="flex items-center justify-between mt-4">
+      <span class="text-label">Reinvest Dividends (DRIP)</span>
+      <input
+        id="drip-toggle"
+        type="checkbox"
+        v-model="drip"
+        class="w-5 h-5  rounded-lg  accent-slate-400"
+      />
     </div>
   </div>
 </template>
@@ -28,14 +66,10 @@ import { useBacktesterStore } from "../stores/backTesterStore";
 import { storeToRefs } from "pinia";
 import CustomSelectDropDown from "./CustomSelectDropDown.vue";
 const backtesterStore = useBacktesterStore();
+const { drip } = storeToRefs(backtesterStore);
 
-const {
-  initialBalance,
-  monthStart,
-  yearStart,
-  monthEnd,
-  yearEnd,
-} = storeToRefs(backtesterStore);
+const { initialBalance, monthStart, yearStart, monthEnd, yearEnd } =
+  storeToRefs(backtesterStore);
 
 const optionsMonth = [
   { label: "Jan", value: "1" },

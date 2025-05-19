@@ -338,13 +338,13 @@ async def custom_backtesting(
         historical_df=historical,
         dividends_df=dividends
     )
-    print(results.keys())
-    print(results['portfolio1'][-10:])
-    print(results['portfolio2'][-10:])
+    # print(results.keys())
+    # print(results['portfolio1'][-10:])
+    # print(results['portfolio2'][-10:])
 
     
     
-    return 1
+    return results
 
 
 # @router.get("/summary")
